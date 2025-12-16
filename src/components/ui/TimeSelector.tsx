@@ -1,0 +1,60 @@
+import React, { useRef } from "react";
+
+interface TimeSelectorProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+}
+
+export default function TimeSelector({ label, ...props }: TimeSelectorProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleIconClick = () => {
+    inputRef.current?.showPicker?.();
+  };
+
+  return (
+    <div className="w-full flex flex-col justify-end relative">
+      {label && (
+        <label
+          htmlFor={props.id}
+          className="text-sm mb-2.5 block text-gray-1200 font-medium font-inter"
+        >
+          {label}
+        </label>
+      )}
+      <div className="w-full relative">
+        <input
+          type="time"
+          ref={inputRef}
+          {...props}
+          className="w-full text-base font-medium text-gray-1200 placeholder:text-gray-1200 outline outline-gray-1100 focus:outline-primary-color h-12 md:px-5 px-3 md:pr-5 py-3 rounded-lg border-transparent appearance-none"
+        />
+        <span
+          onClick={handleIconClick}
+          className="absolute bg-white right-3 md:right-5 top-[50%] -translate-y-1/2 cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={24}
+            height={24}
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+              stroke="#212121"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M12 6V12L16 14"
+              stroke="#212121"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      </div>
+    </div>
+  );
+}
