@@ -1,36 +1,35 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import DateSelector from '@/components/ui/DateSelector';
-import TimeSelector from '@/components/ui/TimeSelector';
-import FormInput from '@/components/ui/FormInput';
-import InputSwitch from '@/components/ui/Switch';
+import DateSelector from "@/components/ui/DateSelector";
+import TimeSelector from "@/components/ui/TimeSelector";
+import FormInput from "@/components/ui/FormInput";
+import InputSwitch from "@/components/ui/Switch";
 import { useAucationsStore } from "../../../store/auctions-store";
-import AmountWithDropdown from '@/components/auctions/AmountWithDropdown';
-import { AgreeCheckbox } from '@/components/common/AgreeCheckbox';
-import CreateTokenModel from '@/components/gumballs/CreateTokenModel';
+import AmountWithDropdown from "@/components/auctions/AmountWithDropdown";
+import { AgreeCheckbox } from "@/components/common/AgreeCheckbox";
+import CreateTokenModel from "@/components/gumballs/CreateTokenModel";
 
-export const Route = createFileRoute('/auctions/create_auctions')({
+export const Route = createFileRoute("/auctions/create_auctions")({
   component: CreateAucations,
-})
+});
 
 function CreateAucations() {
-const {
-  enabled1,
-  enabled2,
-  isOpen,
-  setEnabled1,
-  setEnabled2,
-  openModal,
-  closeModal,
-} = useAucationsStore();
+  const {
+    enabled1,
+    enabled2,
+    isOpen,
+    setEnabled1,
+    setEnabled2,
+    openModal,
+    closeModal,
+  } = useAucationsStore();
 
-    const [showModel, setShowModel] = useState(false)
+  const [showModel, setShowModel] = useState(false);
 
-
-  return <div>
-    
-        <section className="lg:pt-10 pt-5 pb-[60px] md:pb-[122px]">
+  return (
+    <div>
+      <section className="lg:pt-10 pt-5 pb-[60px] md:pb-[122px]">
         <div className="max-w-[1440px] mx-auto w-full px-4 lg:px-10">
           <div>
             <Link
@@ -122,10 +121,7 @@ const {
                           </span>
                         </Link>
                       </div>
-                        <InputSwitch
-                        checked={enabled1}
-                        onChange={setEnabled1}
-                        />
+                      <InputSwitch checked={enabled1} onChange={setEnabled1} />
                     </div>
                     <div className="w-full my-10">
                       <div className="grid md:grid-cols-2 gap-5">
@@ -260,8 +256,7 @@ const {
                             Reserve price
                           </p>
                         </div>
-                        <AmountWithDropdown/>
-                     
+                        <AmountWithDropdown />
                       </div>
                     </div>
                     <div className="flex items-center mb-2.5 justify-between gap-2.5 border border-solid border-gray-1100 rounded-[10px] h-12 px-5">
@@ -278,19 +273,16 @@ const {
                           </span>
                         </Link>
                       </div>
-                       <InputSwitch
-                        checked={enabled2}
-                        onChange={setEnabled2}
-                        />
+                      <InputSwitch checked={enabled2} onChange={setEnabled2} />
                     </div>
                     <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
                       Royalties: 0%
                     </p>
                     <div className="pt-[51px]">
                       <div className="mb-10 grid xl:grid-cols-2 gap-5 md:gap-4">
-                       <AgreeCheckbox/>
+                        <AgreeCheckbox />
                         <button
-                          onClick={()=> setShowModel(true)}
+                          onClick={() => setShowModel(true)}
                           className="text-white cursor-pointer hover:from-primary-color hover:via-primary-color hover:to-primary-color font-semibold text-sm md:text-base leading-normal font-inter h-11 md:h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800"
                         >
                           Create Auction
@@ -620,8 +612,10 @@ const {
         </Dialog>
       </Transition>
 
-    <CreateTokenModel  isOpen={showModel} onClose={()=>setShowModel(false)} />
-
-
-  </div>
+      <CreateTokenModel
+        isOpen={showModel}
+        onClose={() => setShowModel(false)}
+      />
+    </div>
+  );
 }

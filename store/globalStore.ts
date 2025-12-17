@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+/* ----------------------------- Global Types ----------------------------- */
 
 interface Raffle {
   id: number;
@@ -18,14 +19,15 @@ interface GlobalStore {
   setRaffles: (data: Raffle[]) => void;
 }
 
-
-
 interface NavbarState {
   isAuth: boolean;
+  walletAddress: string | null;
+
   showSettingsModal: boolean;
   showNotificationModal: boolean;
   showMobileMenu: boolean;
-  setAuth: (auth: boolean) => void;
+
+  setAuth: (auth: boolean, address?: string | null) => void;
   openSettings: () => void;
   closeSettings: () => void;
   openNotifications: () => void;
@@ -40,6 +42,7 @@ interface AmountStore {
   setCurrency: (value: string) => void;
 }
 
+/* ----------------------------- Amount Store ----------------------------- */
 
 export const useAmountStore = create<AmountStore>((set) => ({
   amount: "",
@@ -48,27 +51,40 @@ export const useAmountStore = create<AmountStore>((set) => ({
   setCurrency: (value) => set({ currency: value }),
 }));
 
+/* ----------------------------- Global Store ----------------------------- */
+
 export const useGlobalStore = create<GlobalStore>((set) => ({
   sort: "Sort",
   filter: "",
   raffles: [],
-
 
   setSort: (val) => set({ sort: val }),
   setFilter: (val) => set({ filter: val }),
   setRaffles: (data) => set({ raffles: data }),
 }));
 
+/* ----------------------------- Navbar Store ----------------------------- */
 
 export const useNavbarStore = create<NavbarState>((set) => ({
-  isAuth: true,
+  isAuth: false, // wallet is source of truth
+  walletAddress: null,
+
   showSettingsModal: false,
   showNotificationModal: false,
   showMobileMenu: false,
-  setAuth: (auth) => set({ isAuth: auth }),
+
+  setAuth: (auth, address = null) =>
+    set({
+      isAuth: auth,
+      walletAddress: address,
+    }),
+
   openSettings: () => set({ showSettingsModal: true }),
   closeSettings: () => set({ showSettingsModal: false }),
+
   openNotifications: () => set({ showNotificationModal: true }),
   closeNotifications: () => set({ showNotificationModal: false }),
-  toggleMobileMenu: () => set((state) => ({ showMobileMenu: !state.showMobileMenu })),
+
+  toggleMobileMenu: () =>
+    set((state) => ({ showMobileMenu: !state.showMobileMenu })),
 }));

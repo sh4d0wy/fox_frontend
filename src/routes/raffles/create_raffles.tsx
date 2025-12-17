@@ -1,20 +1,25 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from 'react';
-import { AgreeCheckbox } from '@/components/common/AgreeCheckbox';
-import AdvancedSettingsAccordion from '@/components/home/AdvancedSettings';
-import AmountInput from '@/components/home/AmountInput';
-import TimeSelector from '@/components/ui/TimeSelector';
-import FormInput from '@/components/ui/FormInput';
-import DateSelector from '@/components/ui/DateSelector';
-import CreateTokenModel from '@/components/gumballs/CreateTokenModel';
+import { Fragment, useEffect, useState } from "react";
+import { AgreeCheckbox } from "@/components/common/AgreeCheckbox";
+import AdvancedSettingsAccordion from "@/components/home/AdvancedSettings";
+import AmountInput from "@/components/home/AmountInput";
+import TimeSelector from "@/components/ui/TimeSelector";
+import FormInput from "@/components/ui/FormInput";
+import DateSelector from "@/components/ui/DateSelector";
+import CreateTokenModel from "@/components/gumballs/CreateTokenModel";
 
-export const Route = createFileRoute('/raffles/create_raffles')({
+import { useRaffleAnchorProgram } from "../../../hooks/useRaffleAnchorProgram";
+
+export const Route = createFileRoute("/raffles/create_raffles")({
   component: CreateRaffles,
-})
+});
 
 function CreateRaffles() {
-     const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { raffleProgram, raffleConfig } = useRaffleAnchorProgram();
 
   function closeModal() {
     setIsOpen(false);
@@ -23,17 +28,22 @@ function CreateRaffles() {
   function openModal() {
     setIsOpen(true);
   }
-    const [showModel, setShowModel] = useState(false)
+  const [showModel, setShowModel] = useState(false);
 
+  useEffect(() => {
+    console.log("raffleConfig loaded");
+    console.log(raffleConfig);
+  }, [raffleConfig.isPending]);
 
-
-  return <div>
+  return (
+    <div>
       <section className="pt-10 pb-[122px]">
         <div className="max-w-[1440px] mx-auto w-full px-4 lg:px-10">
           <div>
-            <Link to={"/"}
+            <Link
+              to={"/"}
               className="bg-gray-1400 mb-10 rounded-[80px] inline-flex h-10 md:h-[49px] justify-center items-center pl-5 pr-3.5 md:px-6 gap-2 md:gap-2.5  md:text-base text-sm font-semibold text-black-1000 font-inter"
->
+            >
               <span>
                 <img src="/icons/back-arw.svg" alt="" />
               </span>
@@ -173,12 +183,12 @@ function CreateRaffles() {
                             Min: 3 / Max: 10,000
                           </p>
                         </div>
-                        <FormInput 
-                          type='number'
-                          placeholder='Enter Count'
-                          id='count'
+                        <FormInput
+                          type="number"
+                          placeholder="Enter Count"
+                          id="count"
                         />
-                  
+
                         <p className="text-sm font-medium text-black-1000 pt-2.5 font-inter">
                           Rent: 0
                         </p>
@@ -189,20 +199,20 @@ function CreateRaffles() {
                             Ticket Price
                           </p>
                         </div>
-                        <AmountInput/>
-                   
+                        <AmountInput />
+
                         <p className="text-sm font-medium text-black-1000 pt-2.5 font-inter">
                           TTV: 5,382 SOL
                         </p>
                       </div>
                     </div>
-                    <AdvancedSettingsAccordion/>
-                
+                    <AdvancedSettingsAccordion />
+
                     <div>
                       <div className="mb-10 grid xl:grid-cols-2 gap-5 md:gap-4">
-                       <AgreeCheckbox/>
+                        <AgreeCheckbox />
                         <button
-                          onClick={()=> setShowModel(true)}
+                          onClick={() => setShowModel(true)}
                           className="text-white cursor-pointer font-semibold hover:from-primary-color hover:to-primary-color hover:via-primary-color text-sm md:text-base leading-normal font-inter h-11 md:h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800"
                         >
                           Create Raffle
@@ -532,6 +542,10 @@ function CreateRaffles() {
         </Dialog>
       </Transition>
 
-       <CreateTokenModel  isOpen={showModel} onClose={()=>setShowModel(false)} />
-  </div>
+      <CreateTokenModel
+        isOpen={showModel}
+        onClose={() => setShowModel(false)}
+      />
+    </div>
+  );
 }
