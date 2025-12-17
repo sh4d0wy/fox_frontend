@@ -44,10 +44,6 @@ export function useAnchorProvider(): AnchorProvider {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  // if (!wallet.publicKey) {
-  //   throw new Error("Wallet not connected");
-  // }
-
   return new AnchorProvider(connection, wallet as AnchorWallet, {
     commitment: "confirmed",
   });

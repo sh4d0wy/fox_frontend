@@ -1,0 +1,756 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useCallback, useMemo } from "react";
+import * as anchor from "@coral-xyz/anchor";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+
+import { useAnchorProvider } from "../src/providers/SolanaProvider";
+import auctionIdl from "../types/auction.json";
+import type { Auction } from "../types/auction";
+import { getTokenProgramFromMint, getAtaAddress } from './helpers';
+
+export const AUCTION_PROGRAM_ID = new anchor.web3.PublicKey(auctionIdl.address);
+
+/** * Returns a fully configured Anchor Program instance */
+export function useAuctionAnchorProgram() {
+    const { connection } = useConnection();
+    const wallet = useWallet();
+    const provider = useAnchorProvider();
+
+    /* ---------------- Program ---------------- */
+    const auctionProgram = useMemo(
+        () => getAuctionProgram(provider),
+        [provider, AUCTION_PROGRAM_ID]
+    );
+
+    /* ---------------- PDA helpers ---------------- */
+    /** AuctionConfig PDA */
+    const auctionConfigPda = useMemo(() => {
+        return PublicKey.findProgramAddressSync(
+            [Buffer.from("auction")],
+            AUCTION_PROGRAM_ID
+        )[0];
+    }, []);
+
+    /** Auction PDA by auction_id */
+    const auctionPda = (auctionId: number): PublicKey => {
+        return PublicKey.findProgramAddressSync(
+            [
+                Buffer.from("auction"),
+                new BN(auctionId).toArrayLike(Buffer, "le", 4), // u32
+            ],
+            AUCTION_PROGRAM_ID
+        )[0];
+    };
+
+    /* ---------------- State Queries ---------------- */
+    /** Fetch auction config */
+    const getAuctionConfig = useQuery({
+        queryKey: ["auctionConfig"],
+        enabled: !!auctionProgram,
+        queryFn: async () => {
+            if (!auctionProgram) throw new Error("Program not ready");
+            return auctionProgram.account.auctionConfig.fetch(auctionConfigPda);
+        },
+    });
+
+    /** Fetch all auctions */
+    const getAllAuctions = useQuery({
+        queryKey: ["auctions", "all"],
+        enabled: !!auctionProgram,
+        queryFn: async () => {
+            if (!auctionProgram) throw new Error("Program not ready");
+            return auctionProgram.account.auction.all();
+        },
+    });
+
+    /**
+     * Fetch a single auction by ID
+     * Usage:
+     * const auction = useQuery(getAuctionById(1));
+     */
+    const getAuctionById = useCallback(
+        (auctionId: number) => ({
+            queryKey: ["auction", auctionId],
+            enabled: !!auctionProgram && auctionId > 0,
+            queryFn: async () => {
+                if (!auctionProgram) throw new Error("Program not ready");
+                return auctionProgram.account.auction.fetch(
+                    auctionPda(auctionId)
+                );
+            },
+        }),
+        [auctionProgram]
+    );
+
+    const initializeAuctionConfigMutation = useMutation({
+        mutationKey: ["auction", "config", "initialize"],
+        mutationFn: async (args: {
+            auctionOwner: PublicKey;
+            auctionAdmin: PublicKey;
+            creationFeeLamports: number;
+            commissionBps: number;
+            minimumAuctionPeriod: number;
+            maximumAuctionPeriod: number;
+            minimumTimeExtension: number;
+            maximumTimeExtension: number;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .initializeAuctionConfig(
+                    args.auctionOwner,
+                    args.auctionAdmin,
+                    new BN(args.creationFeeLamports),
+                    args.commissionBps,
+                    args.minimumAuctionPeriod,
+                    args.maximumAuctionPeriod,
+                    args.minimumTimeExtension,
+                    args.maximumTimeExtension
+                )
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    payer: wallet.publicKey,
+                    systemProgram,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction config Initialized TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Auction config Initialization Failed: ", error);
+        },
+    });
+
+    const updateAuctionOwnerMutation = useMutation({
+        mutationKey: ["auction", "config", "updateOwner"],
+        mutationFn: async (newAuctionOwner: PublicKey) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .updateAuctionOwner(newAuctionOwner)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auctionOwner: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Update Auction config owner TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Update Auction config owner Failed: ", error);
+        },
+    });
+
+    const updateAuctionAdminMutation = useMutation({
+        mutationKey: ["auction", "config", "updateAdmin"],
+        mutationFn: async (newAuctionAdmin: PublicKey) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .updateAuctionAdmin(newAuctionAdmin)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auctionOwner: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Update Auction config admin TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Update Auction config admin Failed: ", error);
+        },
+    });
+
+    const updateAuctionConfigDataMutation = useMutation({
+        mutationKey: ["auction", "config", "updateData"],
+        mutationFn: async (args: {
+            creationFeeLamports: number;
+            commissionBps: number;
+            minimumAuctionPeriod: number;
+            maximumAuctionPeriod: number;
+            minimumTimeExtension: number;
+            maximumTimeExtension: number;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .updateConfigData(
+                    new BN(args.creationFeeLamports),
+                    args.commissionBps,
+                    args.minimumAuctionPeriod,
+                    args.maximumAuctionPeriod,
+                    args.minimumTimeExtension,
+                    args.maximumTimeExtension
+                )
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auctionOwner: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Update Auction config data TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Update Auction config data Failed: ", error);
+        },
+    });
+
+    const updateAuctionPauseMutation = useMutation({
+        mutationKey: ["auction", "config", "pause"],
+        mutationFn: async (newPauseFlags: number) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .updatePauseAndUnpause(newPauseFlags)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auctionOwner: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Update pause & unpause TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Update pause & unpause Failed: ", error);
+        },
+    });
+
+    const createAuctionMutation = useMutation({
+        mutationKey: ["auction", "create"],
+        mutationFn: async (args: {
+            startTime: number;
+            endTime: number;
+            startImmediately: boolean;
+            isBidMintSol: boolean;
+            baseBid: number;
+            minIncrement: number;
+            timeExtension: number;
+            prizeMint: PublicKey;
+            bidMint?: PublicKey; // ignored if SOL
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            // fetch config to get auction_count
+            const config = await auctionProgram.account.auctionConfig.fetch(
+                auctionConfigPda
+            );
+
+            const auctionAccountPda = auctionPda(config.auctionCount);
+
+            const creatorPrizeAta = await getAtaAddress(
+                connection,
+                args.prizeMint,
+                wallet.publicKey
+            );
+
+            const prizeEscrowAta = await getAtaAddress(
+                connection,
+                args.prizeMint,
+                auctionAccountPda,
+                true // PDA owner
+            );
+
+            const prizeTokenProgram = await getTokenProgramFromMint(
+                connection,
+                args.prizeMint
+            );
+
+            return await auctionProgram.methods
+                .createAuction(
+                    new BN(args.startTime),
+                    new BN(args.endTime),
+                    args.startImmediately,
+                    args.isBidMintSol,
+                    new BN(args.baseBid),
+                    new BN(args.minIncrement),
+                    args.timeExtension
+                )
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionAccountPda,
+                    creator: wallet.publicKey,
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+
+                    prizeMint: args.prizeMint,
+                    bidMint: args.bidMint ?? FAKE_MINT,
+
+                    creatorPrizeAta,
+                    prizeEscrow: prizeEscrowAta,
+
+                    prizeTokenProgram,
+                    associatedTokenProgram,
+                    systemProgram,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction created:", tx);
+        },
+        onError: (error) => {
+            console.error("Create auction failed:", error);
+        },
+    });
+
+    const updateAuctionMutation = useMutation({
+        mutationKey: ["auction", "update"],
+        mutationFn: async (args: {
+            auctionId: number;
+            startTime: number;
+            endTime: number;
+            startImmediately: boolean;
+            baseBid: number;
+            minIncrement: number;
+            timeExtension: number;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .updateAuction(
+                    args.auctionId,
+                    new BN(args.startTime),
+                    new BN(args.endTime),
+                    args.startImmediately,
+                    new BN(args.baseBid),
+                    new BN(args.minIncrement),
+                    args.timeExtension
+                )
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionPda(args.auctionId),
+                    creator: wallet.publicKey,
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction updated:", tx);
+        },
+        onError: (error) => {
+            console.error("Auction update failed:", error);
+        },
+    });
+
+    const cancelAuctionMutation = useMutation({
+        mutationKey: ["auction", "cancel"],
+        mutationFn: async (auctionId: number) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            const auctionAccountPda = auctionPda(auctionId);
+
+            const auctionData = await auctionProgram.account.auction.fetch(
+                auctionAccountPda
+            );
+
+            const prizeEscrow = await getAtaAddress(
+                connection,
+                auctionData.prizeMint,
+                auctionAccountPda,
+                true
+            );
+
+            const creatorPrizeAta = await getAtaAddress(
+                connection,
+                auctionData.prizeMint,
+                wallet.publicKey
+            );
+
+            const prizeTokenProgram = await getTokenProgramFromMint(
+                connection,
+                auctionData.prizeMint
+            );
+
+            return await auctionProgram.methods
+                .cancelAuction(auctionId)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionAccountPda,
+                    creator: wallet.publicKey,
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+
+                    prizeMint: auctionData.prizeMint,
+                    prizeEscrow,
+                    creatorPrizeAta,
+
+                    prizeTokenProgram,
+                    associatedTokenProgram,
+                    systemProgram,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction cancelled:", tx);
+        },
+        onError: (error) => {
+            console.error("Cancel auction failed:", error);
+        },
+    });
+
+    const completeAuctionMutation = useMutation({
+        mutationKey: ["auction", "complete"],
+        mutationFn: async (auctionId: number) => {
+            if (!auctionProgram) {
+                throw new Error("Wallet not ready");
+            }
+
+            const auctionAccountPda = auctionPda(auctionId);
+            const auctionData = await auctionProgram.account.auction.fetch(
+                auctionAccountPda
+            );
+
+            const prizeMint = auctionData.prizeMint;
+            const bidMint = auctionData.bidMint ?? FAKE_MINT;
+
+            const prizeEscrow = await getAtaAddress(
+                connection,
+                prizeMint,
+                auctionAccountPda,
+                true
+            );
+
+            const creatorPrizeAta = await getAtaAddress(
+                connection,
+                prizeMint,
+                auctionData.creator
+            );
+
+            const winnerPrizeAta = auctionData.highestBidder.equals(PublicKey.default)
+                ? FAKE_ATA
+                : await getAtaAddress(connection, prizeMint, auctionData.highestBidder);
+
+            let bidEscrow = FAKE_ATA;
+            let bidFeeTreasuryAta = FAKE_ATA;
+            let creatorBidAta = FAKE_ATA;
+
+            if (auctionData.bidMint !== null) {
+                bidEscrow = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    auctionAccountPda,
+                    true
+                );
+
+                bidFeeTreasuryAta = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    auctionConfigPda,
+                    true
+                );
+
+                creatorBidAta = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    auctionData.creator
+                );
+            }
+
+            const prizeTokenProgram = await getTokenProgramFromMint(
+                connection,
+                prizeMint
+            );
+
+            const bidTokenProgram = await getTokenProgramFromMint(
+                connection,
+                bidMint
+            );
+
+            return await auctionProgram.methods
+                .completeAuction(auctionId)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionAccountPda,
+
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+                    creator: auctionData.creator,
+                    winner: auctionData.highestBidder,
+
+                    prizeMint,
+                    bidMint,
+
+                    prizeEscrow,
+                    bidEscrow,
+
+                    creatorPrizeAta,
+                    winnerPrizeAta,
+
+                    bidFeeTreasuryAta,
+                    creatorBidAta,
+
+                    prizeTokenProgram,
+                    bidTokenProgram,
+
+                    associatedTokenProgram,
+                    systemProgram,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction completed:", tx);
+        },
+        onError: (error) => {
+            console.error("Complete auction failed:", error);
+        },
+    });
+
+    const startAuctionMutation = useMutation({
+        mutationKey: ["auction", "start"],
+        mutationFn: async (auctionId: number) => {
+            if (!auctionProgram) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .startAuction(auctionId)
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionPda(auctionId),
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction started:", tx);
+        },
+        onError: (error) => {
+            console.error("Start auction failed:", error);
+        },
+    });
+
+    const withdrawAuctionSolFeesMutation = useMutation({
+        mutationKey: ["auction", "withdrawSolFees"],
+        mutationFn: async (args: {
+            amount: number;
+            receiver: PublicKey;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            return await auctionProgram.methods
+                .withdrawSolFees(new BN(args.amount))
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    owner: wallet.publicKey,
+                    receiver: args.receiver,
+                    systemProgram,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("SOL fees withdrawn:", tx);
+        },
+        onError: (error) => {
+            console.error("Withdraw SOL fees failed:", error);
+        },
+    });
+
+    const withdrawAuctionSplFeesMutation = useMutation({
+        mutationKey: ["auction", "withdrawSplFees"],
+        mutationFn: async (args: {
+            amount: number;
+            feeMint: PublicKey;
+            receiver: PublicKey;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            const feeTreasuryAta = await getAtaAddress(
+                connection,
+                args.feeMint,
+                auctionConfigPda,
+                true
+            );
+
+            const receiverFeeAta = await getAtaAddress(
+                connection,
+                args.feeMint,
+                args.receiver,
+                true
+            );
+
+            const tokenProgram = await getTokenProgramFromMint(
+                connection,
+                args.feeMint
+            );
+
+            return await auctionProgram.methods
+                .withdrawSplFees(new BN(args.amount))
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    owner: wallet.publicKey,
+                    feeMint: args.feeMint,
+                    feeTreasuryAta,
+                    receiverFeeAta,
+                    tokenProgram,
+                    systemProgram,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("SPL fees withdrawn:", tx);
+        },
+        onError: (error) => {
+            console.error("Withdraw SPL fees failed:", error);
+        },
+    });
+
+    const placeBidMutation = useMutation({
+        mutationKey: ["auction", "placeBid"],
+        mutationFn: async (args: {
+            auctionId: number;
+            bidAmount: number;
+        }) => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            const auctionAccountPda = auctionPda(args.auctionId);
+            const auctionData = await auctionProgram.account.auction.fetch(
+                auctionAccountPda
+            );
+
+            const isSolBid = auctionData.bidMint === null;
+            const bidMint = auctionData.bidMint ?? FAKE_MINT;
+
+            let currentBidderAta: PublicKey = FAKE_ATA;
+            let prevBidderAta: PublicKey = FAKE_ATA;
+            let bidEscrow: PublicKey = FAKE_ATA;
+
+            if (!isSolBid) {
+                currentBidderAta = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    wallet.publicKey
+                );
+
+                bidEscrow = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    auctionAccountPda,
+                    true
+                );
+
+                if (!auctionData.highestBidder.equals(PublicKey.default)) {
+                    prevBidderAta = await getAtaAddress(
+                        connection,
+                        bidMint,
+                        auctionData.highestBidder
+                    );
+                }
+            }
+
+            const bidTokenProgram = await getTokenProgramFromMint(
+                connection,
+                bidMint
+            );
+
+            return await auctionProgram.methods
+                .placeBid(
+                    args.auctionId,
+                    new BN(args.bidAmount)
+                )
+                .accounts({
+                    auctionConfig: auctionConfigPda,
+                    auction: auctionAccountPda,
+
+                    bidder: wallet.publicKey,
+                    auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
+
+                    prevBidderAccount: auctionData.highestBidder,
+
+                    bidMint,
+                    currentBidderAta,
+                    prevBidderAta,
+                    bidEscrow,
+
+                    bidTokenProgram,
+                    systemProgram,
+                })
+                .signers([AUCTION_ADMIN_KEYPAIR])
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Bid placed:", tx);
+        },
+        onError: (error) => {
+            console.error("Place bid failed:", error);
+        },
+    });
+
+
+    /* ---------------- Return API ---------------- */
+    return {
+        /* ---------------- Program ---------------- */
+        auctionProgram,
+
+        /* ---------------- PDAs ---------------- */
+        auctionConfigPda,
+        auctionPda,
+
+        /* ---------------- Queries ---------------- */
+        getAuctionConfig,
+        getAllAuctions,
+        getAuctionById,
+
+        /* ---------------- Config / Admin (Owner only) ---------------- */
+        initializeAuctionConfigMutation,
+        updateAuctionOwnerMutation,
+        updateAuctionAdminMutation,
+        updateAuctionConfigDataMutation,
+        updateAuctionPauseMutation,
+
+        /* ---------------- Auction Lifecycle ---------------- */
+        createAuctionMutation,
+        updateAuctionMutation,
+        cancelAuctionMutation,
+        startAuctionMutation,
+        completeAuctionMutation,
+
+        /* ---------------- Bidding ---------------- */
+        placeBidMutation,
+
+        /* ---------------- Fee Withdrawals ---------------- */
+        withdrawAuctionSolFeesMutation,
+        withdrawAuctionSplFeesMutation,
+    };
+
+}
+
+function getAuctionProgram(provider: anchor.AnchorProvider): anchor.Program<Auction> {
+    return new anchor.Program<Auction>(auctionIdl as anchor.Idl, provider);
+}
+
+const associatedTokenProgram = anchor.utils.token.ASSOCIATED_PROGRAM_ID;
+const systemProgram = anchor.web3.SystemProgram.programId;
+const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+const FAKE_ATA = new PublicKey('B9W4wPFWjTbZ9ab1okzB4D3SsGY7wntkrBKwpp5RC1Uv')
+const AUCTION_ADMIN_KEYPAIR = Keypair.fromSecretKey(Uint8Array.from([214, 195, 221, 90, 116, 238, 191, 49, 125, 52, 76, 239, 68, 25, 144, 85, 125, 238, 21, 60, 157, 1, 180, 229, 79, 34, 252, 213, 224, 131, 52, 3, 33, 100, 214, 59, 229, 171, 12, 132, 229, 175, 48, 210, 5, 182, 82, 46, 140, 62, 152, 210, 153, 80, 185, 240, 181, 75, 2, 7, 87, 48, 51, 49]));

@@ -1,16 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useMemo } from "react";
 import * as anchor from "@coral-xyz/anchor";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+
 import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import raffleIdl from "../types/raffle.json";
 import type { Raffle } from "../types/raffle";
-import { Keypair, PublicKey } from "@solana/web3.js";
-import { BN } from "@coral-xyz/anchor";
 import { getTokenProgramFromMint, getAtaAddress } from './helpers';
 
-export const RAFFLE_PROGRAM_ID = new anchor.web3.PublicKey("3f4Hj369oD79D71UeVZ5NQSxxh1vJ7WLmzyKghPx8bHF");
+export const RAFFLE_PROGRAM_ID = new anchor.web3.PublicKey(raffleIdl.address);
 
 /** * Returns a fully configured Anchor Program instance */
 export function useRaffleAnchorProgram() {
@@ -19,7 +20,10 @@ export function useRaffleAnchorProgram() {
     const provider = useAnchorProvider();
 
     /* ---------------- Program ---------------- */
-    const raffleProgram = useMemo(() => getRaffleProgram(provider), [provider, RAFFLE_PROGRAM_ID]);
+    const raffleProgram = useMemo(
+        () => getRaffleProgram(provider),
+        [provider, RAFFLE_PROGRAM_ID]
+    );
 
     /* ---------------- PDA helpers ---------------- */
     const raffleConfigPda = useMemo(() => {
