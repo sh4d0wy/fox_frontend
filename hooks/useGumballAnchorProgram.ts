@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useMemo } from "react";
 import * as anchor from "@coral-xyz/anchor";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -9,7 +9,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import gumballIdl from "../types/gumball.json";
 import type { Gumball } from "../types/gumball";
-import { getTokenProgramFromMint, getAtaAddress } from './helpers';
+import { getTokenProgramFromMint, getAtaAddress, ensureAtaIx } from './helpers';
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export const GUMBALL_PROGRAM_ID = new anchor.web3.PublicKey(gumballIdl.address);
@@ -307,43 +307,67 @@ export function useGumballAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
-            const feeTreasuryAta = await getAtaAddress(
-                connection,
-                args.feeMint,
-                gumballConfigPda,
-                true // PDA owner
-            );
+            const tx = new Transaction();
 
-            const receiverFeeAta = await getAtaAddress(
-                connection,
-                args.feeMint,
-                args.receiver,
-                true
-            );
-
+            /* ---------------- Token program ---------------- */
             const tokenProgram = await getTokenProgramFromMint(
                 connection,
                 args.feeMint
             );
 
-            return await gumballProgram.methods
+            /* ---------------- ATAs ---------------- */
+            // Fee treasury ATA (owner = gumball config PDA)
+            const treasuryRes = await ensureAtaIx({
+                connection,
+                mint: args.feeMint,
+                owner: gumballConfigPda,
+                payer: wallet.publicKey,
+                tokenProgram,
+                allowOwnerOffCurve: true, // PDA owner
+            });
+
+            const feeTreasuryAta = treasuryRes.ata;
+            if (treasuryRes.ix) tx.add(treasuryRes.ix);
+
+            // Receiver ATA (owner = receiver wallet or PDA)
+            const receiverRes = await ensureAtaIx({
+                connection,
+                mint: args.feeMint,
+                owner: args.receiver,
+                payer: wallet.publicKey,
+                tokenProgram,
+                allowOwnerOffCurve: true,
+            });
+
+            const receiverFeeAta = receiverRes.ata;
+            if (receiverRes.ix) tx.add(receiverRes.ix);
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await gumballProgram.methods
                 .withdrawSplFees(new BN(args.amount))
                 .accounts({
                     gumballConfig: gumballConfigPda,
                     owner: wallet.publicKey,
+
                     feeMint: args.feeMint,
                     feeTreasuryAta,
                     receiverFeeAta,
+
                     tokenProgram,
                     systemProgram,
                 })
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx);
         },
         onSuccess: (tx) => {
-            console.log("SPL fees withdrawn:", tx);
+            console.log("Gumball SPL Fees withdrawn:", tx);
         },
-        onError: (err) => {
-            console.error("Withdraw SPL fees failed:", err);
+        onError: (error) => {
+            console.log("Withdraw Gumball SPL Fees failed:", error);
         },
     });
 
@@ -479,6 +503,9 @@ export function useGumballAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
+            /* ---------------- PDAs ---------------- */
             const gumballAddress = gumballPda(args.gumballId);
             const prizeAddress = prizePda(args.gumballId, args.prizeIndex);
 
@@ -489,6 +516,7 @@ export function useGumballAnchorProgram() {
 
             const ticketMint: PublicKey | null = gumballState.ticketMint;
 
+            /* ---------------- Token programs ---------------- */
             const prizeTokenProgram = await getTokenProgramFromMint(
                 connection,
                 args.prizeMint
@@ -498,7 +526,8 @@ export function useGumballAnchorProgram() {
                 ? await getTokenProgramFromMint(connection, ticketMint)
                 : TOKEN_PROGRAM_ID;
 
-            // Prize escrow ATA (owned by gumball PDA)
+            /* ---------------- Prize ATAs ---------------- */
+            // Prize escrow (already exists, owned by gumball PDA)
             const prizeEscrow = await getAtaAddress(
                 connection,
                 args.prizeMint,
@@ -506,30 +535,46 @@ export function useGumballAnchorProgram() {
                 true
             );
 
-            // Spinner prize ATA (created if needed)
+            // Spinner prize ATA (created on-chain via init_if_needed)
             const spinnerPrizeAta = await getAtaAddress(
                 connection,
                 args.prizeMint,
                 wallet.publicKey
             );
 
-            const ticketEscrow = ticketMint
-                ? await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    gumballAddress,
-                    true
-                ) : FAKE_ATA;
+            /* ---------------- Ticket ATAs (CLIENT MUST ENSURE) ---------------- */
+            let ticketEscrow = FAKE_ATA;
+            let spinnerTicketAta = FAKE_ATA;
 
-            const spinnerTicketAta = ticketMint
-                ? await getAtaAddress(
+            if (ticketMint) {
+                /* -------- Ticket escrow ATA (owner = gumball PDA) -------- */
+                const ticketEscrowRes = await ensureAtaIx({
                     connection,
-                    ticketMint,
-                    wallet.publicKey,
-                    true
-                ) : FAKE_ATA;
+                    mint: ticketMint,
+                    owner: gumballAddress,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true, // PDA owner
+                });
 
-            return await gumballProgram.methods
+                ticketEscrow = ticketEscrowRes.ata;
+                if (ticketEscrowRes.ix) tx.add(ticketEscrowRes.ix);
+
+                /* -------- Spinner ticket ATA -------- */
+                const spinnerTicketRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                });
+
+                spinnerTicketAta = spinnerTicketRes.ata;
+                if (spinnerTicketRes.ix) tx.add(spinnerTicketRes.ix);
+            }
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await gumballProgram.methods
                 .spinGumball(args.gumballId, args.prizeIndex)
                 .accounts({
                     gumballConfig: gumballConfigPda,
@@ -554,14 +599,20 @@ export function useGumballAnchorProgram() {
                     associatedTokenProgram,
                     systemProgram,
                 })
-                .signers([GUMBALL_ADMIN_KEYPAIR])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                GUMBALL_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Gumball spun successfully:", tx);
         },
         onError: (err) => {
-            console.error("Spin gumball failed:", err);
+            console.log("Spin gumball failed:", err);
         },
     });
 
@@ -619,41 +670,71 @@ export function useGumballAnchorProgram() {
     const endGumballMutation = useMutation({
         mutationKey: ["gumball", "end"],
         mutationFn: async (gumballId: number) => {
-            if (!gumballProgram) {
+            if (!gumballProgram || !wallet.publicKey) {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
+            /* ---------------- PDAs ---------------- */
             const gumballAddress = gumballPda(gumballId);
-            const gumballState =
-                await gumballProgram.account.gumballMachine.fetch(gumballAddress);
+
+            const gumballState = await gumballProgram.account.gumballMachine.fetch(gumballAddress);
 
             const ticketMint: PublicKey | null = gumballState.ticketMint;
 
+            /* ---------------- Token program ---------------- */
             const ticketTokenProgram = ticketMint
                 ? await getTokenProgramFromMint(connection, ticketMint)
                 : TOKEN_PROGRAM_ID;
 
-            const ticketEscrow = ticketMint
-                ? await getAtaAddress(connection, ticketMint, gumballAddress, true)
-                : FAKE_ATA;
+            /* ---------------- Ticket ATAs (CLIENT MUST ENSURE) ---------------- */
+            let ticketEscrow = FAKE_ATA;
+            let ticketFeeEscrowAta = FAKE_ATA;
+            let creatorTicketAta = FAKE_ATA;
 
-            const ticketFeeEscrowAta = ticketMint
-                ? await getAtaAddress(connection, ticketMint, gumballConfigPda, true)
-                : FAKE_ATA;
+            if (ticketMint) {
+                /* -------- Ticket escrow (owner = gumball PDA) -------- */
+                ticketEscrow = await getAtaAddress(connection, ticketMint, gumballAddress, true);
 
-            const creatorTicketAta = ticketMint
-                ? await getAtaAddress(connection, ticketMint, gumballState.creator, true)
-                : FAKE_ATA;
+                /* -------- Fee treasury ATA (owner = gumball config PDA) -------- */
+                const feeTreasuryRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: gumballConfigPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true, // PDA owner
+                });
 
-            return await gumballProgram.methods
+                ticketFeeEscrowAta = feeTreasuryRes.ata;
+                if (feeTreasuryRes.ix) tx.add(feeTreasuryRes.ix);
+
+                /* -------- Creator ticket ATA -------- */
+                const creatorTicketRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: gumballState.creator,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                });
+
+                creatorTicketAta = creatorTicketRes.ata;
+                if (creatorTicketRes.ix) tx.add(creatorTicketRes.ix);
+            }
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await gumballProgram.methods
                 .endGumball(gumballId)
                 .accounts({
                     gumballConfig: gumballConfigPda,
                     gumball: gumballAddress,
+
                     gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
                     creator: gumballState.creator,
 
                     ticketMint: ticketMint ?? FAKE_MINT,
+
                     ticketEscrow,
                     ticketFeeEscrowAta,
                     creatorTicketAta,
@@ -661,143 +742,185 @@ export function useGumballAnchorProgram() {
                     ticketTokenProgram,
                     systemProgram,
                 })
-                .signers([GUMBALL_ADMIN_KEYPAIR])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                GUMBALL_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Gumball ended successfully:", tx);
         },
         onError: (err) => {
-            console.error("Gumball ended failed:", err);
+            console.log("End gumball failed:", err);
         },
     });
 
-    const addPrizeMutation = useMutation({
-        mutationKey: ["gumball", "prize", "add"],
+    const addMultiplePrizesMutation = useMutation({
+        mutationKey: ["gumball", "prize", "addMultiple"],
         mutationFn: async (args: {
             gumballId: number;
-            prizeIndex: number;
-            prizeAmount: number;
-            quantity: number;
-            prizeMint: PublicKey;
+            prizes: AddPrizeInput[];
         }) => {
             if (!gumballProgram || !wallet.publicKey) {
                 throw new Error("Wallet not ready");
             }
 
-            const prizeTokenProgram = await getTokenProgramFromMint(
-                connection,
-                args.prizeMint
-            );
+            const tx = new Transaction();
+            const gumballAddress = gumballPda(args.gumballId);
+
+            for (const prize of args.prizes) {
+                const prizeTokenProgram = await getTokenProgramFromMint(
+                    connection,
+                    prize.prizeMint
+                );
+
+                /* -------- Ensure Prize Escrow ATA (PDA-owned), ATA's are cretated in onchain if does not exist -------- */
+                const prizeEscrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prize.prizeMint,
+                    owner: gumballAddress,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                /* -------- Ensure Creator Prize ATA -------- */
+                const creatorPrizeRes = await ensureAtaIx({
+                    connection,
+                    mint: prize.prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
+
+                /* -------- Add Prize Instruction -------- */
+                const ix = await gumballProgram.methods
+                    .addPrize(
+                        args.gumballId,
+                        prize.prizeIndex,
+                        new BN(prize.prizeAmount),
+                        prize.quantity
+                    )
+                    .accounts({
+                        gumballConfig: gumballConfigPda,
+                        gumball: gumballAddress,
+                        prize: prizePda(args.gumballId, prize.prizeIndex),
+
+                        creator: wallet.publicKey,
+                        gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
+
+                        prizeMint: prize.prizeMint,
+                        prizeEscrow: prizeEscrowRes.ata,
+                        creatorPrizeAta: creatorPrizeRes.ata,
+
+                        prizeTokenProgram,
+                        associatedTokenProgram,
+                        systemProgram,
+                    })
+                    .instruction();
+
+                tx.add(ix);
+            }
+
+            /* -------- Send Single Transaction -------- */
+            return await provider.sendAndConfirm(tx, [
+                GUMBALL_ADMIN_KEYPAIR,
+            ]);
+        },
+        onSuccess: (tx) => {
+            console.log("Multiple prizes added successfully:", tx);
+        },
+        onError: (err) => {
+            console.error("Add multiple prizes failed:", err);
+        },
+    });
+
+    const claimMultiplePrizesBackMutation = useMutation({
+        mutationKey: ["gumball", "prize", "claimBackMultiple"],
+        mutationFn: async (args: {
+            gumballId: number;
+            prizes: ClaimPrizeBackInput[];
+        }) => {
+            if (!gumballProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
+
+            const tx = new Transaction();
 
             const gumballAddress = gumballPda(args.gumballId);
 
-            return await gumballProgram.methods
-                .addPrize(
+            for (const prize of args.prizes) {
+                const prizeAddress = prizePda(
                     args.gumballId,
-                    args.prizeIndex,
-                    new BN(args.prizeAmount),
-                    args.quantity
-                )
-                .accounts({
-                    gumballConfig: gumballConfigPda,
-                    gumball: gumballAddress,
-                    prize: prizePda(args.gumballId, args.prizeIndex),
+                    prize.prizeIndex
+                );
 
-                    creator: wallet.publicKey,
-                    gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
+                // Fetch prize account to get mint
+                const prizeState = await gumballProgram.account.prize.fetch(prizeAddress);
 
-                    prizeMint: args.prizeMint,
+                const prizeMint: PublicKey = prizeState.mint;
 
-                    prizeEscrow: await getAtaAddress(
-                        connection,
-                        args.prizeMint,
-                        gumballAddress,
-                        true
-                    ),
+                const prizeTokenProgram = await getTokenProgramFromMint(
+                    connection,
+                    prizeMint
+                );
 
-                    creatorPrizeAta: await getAtaAddress(
-                        connection,
-                        args.prizeMint,
-                        wallet.publicKey,
-                    ),
+                const prizeEscrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: gumballAddress,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
 
-                    prizeTokenProgram,
-                    associatedTokenProgram,
-                    systemProgram,
-                })
-                .signers([GUMBALL_ADMIN_KEYPAIR])
-                .rpc();
-        },
-        onSuccess: (tx) => {
-            console.log("Gumball prize added successfully:", tx);
-        },
-        onError: (err) => {
-            console.error("Gumball prize adding failed:", err);
-        },
-    });
+                const creatorPrizeRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
 
-    const claimPrizeBackMutation = useMutation({
-        mutationKey: ["gumball", "prize", "claimBack"],
-        mutationFn: async (args: {
-            gumballId: number;
-            prizeIndex: number;
-        }) => {
-            if (!gumballProgram || !wallet.publicKey) {
-                throw new Error("Wallet not ready");
+                const ix = await gumballProgram.methods
+                    .claimPrizeBack(args.gumballId, prize.prizeIndex)
+                    .accounts({
+                        gumballConfig: gumballConfigPda,
+                        gumball: gumballAddress,
+                        prize: prizeAddress,
+
+                        creator: wallet.publicKey,
+                        gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
+
+                        prizeMint,
+
+                        prizeEscrow: prizeEscrowRes.ata,
+                        creatorPrizeAta: creatorPrizeRes.ata,
+
+                        prizeTokenProgram,
+                        associatedTokenProgram,
+                        systemProgram,
+                    })
+                    .instruction();
+
+                tx.add(ix);
             }
 
-            const gumballAddress = gumballPda(args.gumballId);
-            const prizeAddress = prizePda(args.gumballId, args.prizeIndex);
-
-            // Fetch prize account to read mint authoritatively
-            const prizeState =
-                await gumballProgram.account.prize.fetch(prizeAddress);
-            const prizeMint: PublicKey = prizeState.mint;
-
-            // Resolve correct token program (Token v1 / Token-2022)
-            const prizeTokenProgram = await getTokenProgramFromMint(
-                connection,
-                prizeMint
-            );
-
-            return await gumballProgram.methods
-                .claimPrizeBack(args.gumballId, args.prizeIndex)
-                .accounts({
-                    gumballConfig: gumballConfigPda,
-                    gumball: gumballAddress,
-                    prize: prizeAddress,
-
-                    creator: wallet.publicKey,
-                    gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
-
-                    prizeMint,
-
-                    prizeEscrow: await getAtaAddress(
-                        connection,
-                        prizeMint,
-                        gumballAddress,
-                        true
-                    ),
-
-                    creatorPrizeAta: await getAtaAddress(
-                        connection,
-                        prizeMint,
-                        wallet.publicKey
-                    ),
-
-                    prizeTokenProgram,
-                    associatedTokenProgram,
-                    systemProgram,
-                })
-                .signers([GUMBALL_ADMIN_KEYPAIR])
-                .rpc();
+            return await provider.sendAndConfirm(tx, [
+                GUMBALL_ADMIN_KEYPAIR,
+            ]);
         },
+
         onSuccess: (tx) => {
-            console.log("Prize claimed back successfully:", tx);
+            console.log("Multiple prizes claimed back successfully:", tx);
         },
+
         onError: (err) => {
-            console.error("Claim prize back failed:", err);
+            console.error("Claim multiple prizes back failed:", err);
         },
     });
 
@@ -834,9 +957,9 @@ export function useGumballAnchorProgram() {
         endGumballMutation,
 
         /* ---------------- Prize actions ---------------- */
-        addPrizeMutation,
+        addMultiplePrizesMutation,
         spinGumballMutation,
-        claimPrizeBackMutation,
+        claimMultiplePrizesBackMutation,
 
         /* ---------------- Fee withdrawals ---------------- */
         withdrawGumballSolFeesMutation,
@@ -848,6 +971,17 @@ export function useGumballAnchorProgram() {
 function getGumballProgram(provider: anchor.AnchorProvider): anchor.Program<Gumball> {
     return new anchor.Program<Gumball>(gumballIdl as anchor.Idl, provider);
 }
+
+type AddPrizeInput = {
+    prizeIndex: number;
+    prizeAmount: number;
+    quantity: number;
+    prizeMint: PublicKey;
+};
+
+type ClaimPrizeBackInput = {
+    prizeIndex: number;
+};
 
 const associatedTokenProgram = anchor.utils.token.ASSOCIATED_PROGRAM_ID;
 const systemProgram = anchor.web3.SystemProgram.programId;
