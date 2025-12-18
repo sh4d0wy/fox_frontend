@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useMemo } from "react";
 import * as anchor from "@coral-xyz/anchor";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -9,7 +9,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import auctionIdl from "../types/auction.json";
 import type { Auction } from "../types/auction";
-import { getTokenProgramFromMint, getAtaAddress } from './helpers';
+import { getTokenProgramFromMint, getAtaAddress, ensureAtaIx } from './helpers';
 
 export const AUCTION_PROGRAM_ID = new anchor.web3.PublicKey(auctionIdl.address);
 
@@ -419,7 +419,11 @@ export function useAuctionAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
+            /* ---------------- PDAs ---------------- */
             const auctionAccountPda = auctionPda(auctionId);
+
             const auctionData = await auctionProgram.account.auction.fetch(
                 auctionAccountPda
             );
@@ -427,6 +431,7 @@ export function useAuctionAnchorProgram() {
             const prizeMint = auctionData.prizeMint;
             const bidMint = auctionData.bidMint ?? FAKE_MINT;
 
+            /* ---------------- Prize escrow (already exists) ---------------- */
             const prizeEscrow = await getAtaAddress(
                 connection,
                 prizeMint,
@@ -434,42 +439,35 @@ export function useAuctionAnchorProgram() {
                 true
             );
 
+            /* ---------------- Creator prize ATA (already exists) ---------------- */
             const creatorPrizeAta = await getAtaAddress(
                 connection,
                 prizeMint,
                 auctionData.creator
             );
 
-            const winnerPrizeAta = auctionData.highestBidder.equals(PublicKey.default)
-                ? FAKE_ATA
-                : await getAtaAddress(connection, prizeMint, auctionData.highestBidder);
+            /* ---------------- Winner prize ATA (MUST ensure) ---------------- */
+            let winnerPrizeAta = FAKE_ATA;
 
-            let bidEscrow = FAKE_ATA;
-            let bidFeeTreasuryAta = FAKE_ATA;
-            let creatorBidAta = FAKE_ATA;
-
-            if (auctionData.bidMint !== null) {
-                bidEscrow = await getAtaAddress(
+            if (!auctionData.highestBidder.equals(PublicKey.default)) {
+                const prizeTokenProgram = await getTokenProgramFromMint(
                     connection,
-                    bidMint,
-                    auctionAccountPda,
-                    true
+                    prizeMint
                 );
 
-                bidFeeTreasuryAta = await getAtaAddress(
+                const res = await ensureAtaIx({
                     connection,
-                    bidMint,
-                    auctionConfigPda,
-                    true
-                );
+                    mint: prizeMint,
+                    owner: auctionData.highestBidder,
+                    payer: AUCTION_ADMIN_KEYPAIR.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
 
-                creatorBidAta = await getAtaAddress(
-                    connection,
-                    bidMint,
-                    auctionData.creator
-                );
+                winnerPrizeAta = res.ata;
+                if (res.ix) tx.add(res.ix);
             }
 
+            /* ---------------- Token programs ---------------- */
             const prizeTokenProgram = await getTokenProgramFromMint(
                 connection,
                 prizeMint
@@ -480,7 +478,52 @@ export function useAuctionAnchorProgram() {
                 bidMint
             );
 
-            return await auctionProgram.methods
+            /* ---------------- Bid-side accounts (already exist) ---------------- */
+            let bidEscrow = FAKE_ATA;
+            let bidFeeTreasuryAta = FAKE_ATA;
+            let creatorBidAta = FAKE_ATA;
+
+            if (auctionData.bidMint !== null) {
+                // Escrow already exists (created during first buy)
+                bidEscrow = await getAtaAddress(
+                    connection,
+                    bidMint,
+                    auctionAccountPda,
+                    true
+                );
+
+                /* -------- Ensure fee treasury ATA (owner = config PDA) -------- */
+                const feeTreasuryRes = await ensureAtaIx({
+                    connection,
+                    mint: bidMint,
+                    owner: auctionConfigPda,
+                    payer: AUCTION_ADMIN_KEYPAIR.publicKey,
+                    tokenProgram: bidTokenProgram,
+                    allowOwnerOffCurve: true, // PDA owner
+                });
+
+                bidFeeTreasuryAta = feeTreasuryRes.ata;
+                if (feeTreasuryRes.ix) {
+                    tx.add(feeTreasuryRes.ix);
+                }
+
+                /* -------- Ensure creator bid ATA (owner = creator wallet) -------- */
+                const creatorBidRes = await ensureAtaIx({
+                    connection,
+                    mint: bidMint,
+                    owner: auctionData.creator,
+                    payer: AUCTION_ADMIN_KEYPAIR.publicKey,
+                    tokenProgram: bidTokenProgram,
+                });
+
+                creatorBidAta = creatorBidRes.ata;
+                if (creatorBidRes.ix) {
+                    tx.add(creatorBidRes.ix);
+                }
+            }
+
+            /* ---------------- Anchor instruction ---------------- */
+            const ix = await auctionProgram.methods
                 .completeAuction(auctionId)
                 .accounts({
                     auctionConfig: auctionConfigPda,
@@ -508,14 +551,20 @@ export function useAuctionAnchorProgram() {
                     associatedTokenProgram,
                     systemProgram,
                 })
-                .signers([AUCTION_ADMIN_KEYPAIR])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                AUCTION_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Auction completed:", tx);
         },
         onError: (error) => {
-            console.error("Complete auction failed:", error);
+            console.log("Complete auction failed:", error);
         },
     });
 
@@ -633,7 +682,11 @@ export function useAuctionAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
+            /* ---------------- PDAs ---------------- */
             const auctionAccountPda = auctionPda(args.auctionId);
+
             const auctionData = await auctionProgram.account.auction.fetch(
                 auctionAccountPda
             );
@@ -645,35 +698,55 @@ export function useAuctionAnchorProgram() {
             let prevBidderAta: PublicKey = FAKE_ATA;
             let bidEscrow: PublicKey = FAKE_ATA;
 
-            if (!isSolBid) {
-                currentBidderAta = await getAtaAddress(
-                    connection,
-                    bidMint,
-                    wallet.publicKey
-                );
-
-                bidEscrow = await getAtaAddress(
-                    connection,
-                    bidMint,
-                    auctionAccountPda,
-                    true
-                );
-
-                if (!auctionData.highestBidder.equals(PublicKey.default)) {
-                    prevBidderAta = await getAtaAddress(
-                        connection,
-                        bidMint,
-                        auctionData.highestBidder
-                    );
-                }
-            }
-
+            /* ---------------- Token program ---------------- */
             const bidTokenProgram = await getTokenProgramFromMint(
                 connection,
                 bidMint
             );
 
-            return await auctionProgram.methods
+            if (!isSolBid) {
+                /* -------- Ensure Escrow ATA -------- */
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: bidMint,
+                    owner: auctionAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: bidTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                bidEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+
+                /* -------- Ensure current bidder ATA -------- */
+                const currentRes = await ensureAtaIx({
+                    connection,
+                    mint: bidMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: bidTokenProgram,
+                });
+
+                currentBidderAta = currentRes.ata;
+                if (currentRes.ix) tx.add(currentRes.ix);
+
+                /* -------- Ensure previous bidder ATA (refund path) -------- */
+                if (!auctionData.highestBidder.equals(PublicKey.default)) {
+                    const prevRes = await ensureAtaIx({
+                        connection,
+                        mint: bidMint,
+                        owner: auctionData.highestBidder,
+                        payer: wallet.publicKey,
+                        tokenProgram: bidTokenProgram,
+                    });
+
+                    prevBidderAta = prevRes.ata;
+                    if (prevRes.ix) tx.add(prevRes.ix);
+                }
+            }
+
+            /* ---------------- Anchor instruction ---------------- */
+            const ix = await auctionProgram.methods
                 .placeBid(
                     args.auctionId,
                     new BN(args.bidAmount)
@@ -695,14 +768,20 @@ export function useAuctionAnchorProgram() {
                     bidTokenProgram,
                     systemProgram,
                 })
-                .signers([AUCTION_ADMIN_KEYPAIR])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                AUCTION_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Bid placed:", tx);
         },
         onError: (error) => {
-            console.error("Place bid failed:", error);
+            console.log("Place bid failed:", error);
         },
     });
 
