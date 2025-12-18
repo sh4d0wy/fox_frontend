@@ -1,6 +1,43 @@
-import { PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { Connection } from "@solana/web3.js";
+
+// audit: can we use connnection form different imports
+export async function ensureAtaIx(params: {
+    connection: Connection;
+    mint: PublicKey;
+    owner: PublicKey;
+    payer: PublicKey;
+    tokenProgram: PublicKey;
+    allowOwnerOffCurve?: boolean;
+}): Promise<{
+    ata: PublicKey;
+    ix?: TransactionInstruction;
+}> {
+    const ata = getAssociatedTokenAddressSync(
+        params.mint,
+        params.owner,
+        params.allowOwnerOffCurve ?? false,
+        params.tokenProgram,
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    const info = await params.connection.getAccountInfo(ata);
+
+    if (info) {
+        return { ata };
+    }
+
+    const ix = createAssociatedTokenAccountInstruction(
+        params.payer,
+        ata,
+        params.owner,
+        params.mint,
+        params.tokenProgram
+    );
+
+    return { ata, ix };
+}
 
 export async function getTokenProgramFromMint(
     connection: Connection,

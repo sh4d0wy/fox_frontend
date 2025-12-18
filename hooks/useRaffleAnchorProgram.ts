@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useMemo } from "react";
 import * as anchor from "@coral-xyz/anchor";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -9,7 +9,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import raffleIdl from "../types/raffle.json";
 import type { Raffle } from "../types/raffle";
-import { getTokenProgramFromMint, getAtaAddress } from './helpers';
+import { getTokenProgramFromMint, ensureAtaIx } from './helpers';
 
 export const RAFFLE_PROGRAM_ID = new anchor.web3.PublicKey(raffleIdl.address);
 
@@ -152,12 +152,14 @@ export function useRaffleAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
-            // fetch config
+            const tx = new Transaction();
+
+            // ---------------- Fetch config ----------------
             const config = await raffleProgram.account.raffleConfig.fetch(
                 raffleConfigPda
             );
 
-            // derive raffle PDA
+            // ---------------- Derive raffle PDA ----------------
             const rafflePda = PublicKey.findProgramAddressSync(
                 [
                     Buffer.from("raffle"),
@@ -166,17 +168,69 @@ export function useRaffleAnchorProgram() {
                 raffleProgram.programId
             )[0];
 
+            // ---------------- Resolve mints ----------------
             const ticketMint = args.isTicketSol ? FAKE_MINT : args.ticketMint;
             const prizeMint = args.prizeType === PrizeType.Sol ? FAKE_MINT : args.prizeMint;
 
-            const ticketEscrow = args.isTicketSol ? FAKE_ATA : await getAtaAddress(connection, ticketMint, rafflePda, true);
-            const prizeEscrow = args.prizeType === PrizeType.Sol ? FAKE_ATA : await getAtaAddress(connection, prizeMint, rafflePda, true);
-            const creatorPrizeAta = args.prizeType === PrizeType.Sol ? FAKE_ATA : await getAtaAddress(connection, prizeMint, wallet.publicKey);
+            // ---------------- Resolve token programs ----------------
+            const ticketTokenProgram = await getTokenProgramFromMint(
+                connection,
+                ticketMint
+            );
 
-            const ticketTokenProgram = await getTokenProgramFromMint(connection, ticketMint);
-            const prizeTokenProgram = await getTokenProgramFromMint(connection, prizeMint);
+            const prizeTokenProgram = await getTokenProgramFromMint(
+                connection,
+                prizeMint
+            );
 
-            return await raffleProgram.methods
+            // ---------------- Ticket Escrow ATA ----------------
+            let ticketEscrow = FAKE_ATA;
+
+            if (!args.isTicketSol) {
+                const res = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: rafflePda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                ticketEscrow = res.ata;
+                if (res.ix) tx.add(res.ix);
+            }
+
+            // ---------------- Prize Escrow + Creator ATA ----------------
+            let prizeEscrow = FAKE_ATA;
+            let creatorPrizeAta = FAKE_ATA;
+
+            if (args.prizeType !== PrizeType.Sol) {
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: rafflePda,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                prizeEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+
+                const creatorRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
+
+                creatorPrizeAta = creatorRes.ata;
+                if (creatorRes.ix) tx.add(creatorRes.ix);
+            }
+
+            // ---------------- Anchor Instruction ----------------
+            const ix = await raffleProgram.methods
                 .createRaffle(
                     new BN(args.startTime),
                     new BN(args.endTime),
@@ -196,26 +250,32 @@ export function useRaffleAnchorProgram() {
                     raffle: rafflePda,
                     creator: wallet.publicKey,
                     raffleAdmin: RAFFLE_ADMIN_KEYPAIR.publicKey,
+
                     ticketMint,
                     prizeMint,
+
                     ticketEscrow,
                     prizeEscrow,
                     creatorPrizeAta,
+
                     ticketTokenProgram,
                     prizeTokenProgram,
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR,   // admin signs here
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            // ---------------- Send TX ----------------
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR, // admin signer only
+            ]);
         },
-        onSuccess: (tx) => {
-            // returns the hash of transaction `2uFynDfCcfuZUj5dQMtiqGQ2WzsfcNdtd3oZWqKboKMpVg3b8kjmsC4BRtzJGZC7Z1MsVFNDYp6m2g5pmre5HHRw`
-            console.log("Create Raffle: ", tx);
+        onSuccess: (txSig) => {
+            console.log("Create Raffle success:", txSig);
         },
         onError: (error) => {
-            console.log("Create Raffle Failed: ", error);
+            console.log("Create Raffle failed:", error);
         },
     });
 
@@ -252,44 +312,21 @@ export function useRaffleAnchorProgram() {
             raffleId: number;
             winners: PublicKey[];
         }) => {
-            if (!raffleProgram) {
-                throw new Error("Program not ready");
+            if (!raffleProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
             }
+
+            const tx = new Transaction();
 
             // ---------------- PDAs ----------------
             const raffleAccountPda = rafflePda(args.raffleId);
+
             const raffleData = await raffleProgram.account.raffle.fetch(
                 raffleAccountPda
             );
 
             // ---------------- Ticket mint ----------------
-            // ticket_mint == None → SOL raffle
             const ticketMint = raffleData.ticketMint ?? FAKE_MINT;
-
-            // ---------------- Escrow & Treasury ----------------
-            let ticketEscrow: PublicKey;
-            let ticketFeeTreasury: PublicKey;
-
-            if (raffleData.ticketMint === null) {
-                // SOL ticket path (accounts are ignored by program)
-                ticketEscrow = FAKE_ATA;
-                ticketFeeTreasury = FAKE_ATA;
-            } else {
-                // SPL / Token-2022 ticket path
-                ticketEscrow = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    raffleAccountPda,
-                    true // allow PDA owner
-                );
-
-                ticketFeeTreasury = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    raffleConfigPda,
-                    true // allow PDA owner
-                );
-            }
 
             // ---------------- Token program ----------------
             const ticketTokenProgram = await getTokenProgramFromMint(
@@ -297,8 +334,40 @@ export function useRaffleAnchorProgram() {
                 ticketMint
             );
 
-            // ---------------- RPC ----------------
-            return await raffleProgram.methods
+            // ---------------- Escrow & Treasury ----------------
+            let ticketEscrow = FAKE_ATA;
+            let ticketFeeTreasury = FAKE_ATA;
+
+            if (raffleData.ticketMint !== null) {
+                // Ticket escrow ATA (owner = raffle PDA)
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                ticketEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+
+                // Fee treasury ATA (owner = raffle config PDA)
+                const treasuryRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: raffleConfigPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                ticketFeeTreasury = treasuryRes.ata;
+                if (treasuryRes.ix) tx.add(treasuryRes.ix);
+            }
+
+            // ---------------- Anchor Instruction ----------------
+            const ix = await raffleProgram.methods
                 .announceWinners(
                     args.raffleId,
                     args.winners
@@ -315,16 +384,20 @@ export function useRaffleAnchorProgram() {
                     ticketTokenProgram,
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR, // REQUIRED signer
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            // ---------------- Send TX ----------------
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Winners announced:", tx);
         },
         onError: (error) => {
-            console.error("Announce winners failed:", error);
+            console.log("Announce winners failed:", error);
         },
     });
 
@@ -338,6 +411,8 @@ export function useRaffleAnchorProgram() {
             if (!raffleProgram || !wallet.publicKey) {
                 throw new Error("Wallet not ready");
             }
+
+            const tx = new Transaction();
 
             // ---------------- PDAs ----------------
             const raffleAccountPda = rafflePda(args.raffleId);
@@ -353,41 +428,48 @@ export function useRaffleAnchorProgram() {
             );
 
             // ---------------- Ticket mint ----------------
-            // raffle.ticket_mint == None → SOL raffle
             const isSolTicket = raffleData.ticketMint === null;
             const ticketMint = raffleData.ticketMint ?? FAKE_MINT;
 
-            // ---------------- Accounts ----------------
-            let buyerTicketAta: PublicKey;
-            let ticketEscrow: PublicKey;
-
-            if (isSolTicket) {
-                // SOL path → accounts ignored by program
-                buyerTicketAta = FAKE_ATA;
-                ticketEscrow = FAKE_ATA;
-            } else {
-                // SPL / Token-2022 path
-                buyerTicketAta = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    wallet.publicKey
-                );
-
-                ticketEscrow = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    raffleAccountPda,
-                    true // allow PDA owner
-                );
-            }
-
+            // ---------------- Token program ----------------
             const ticketTokenProgram = await getTokenProgramFromMint(
                 connection,
                 ticketMint
             );
 
-            // ---------------- RPC ----------------
-            return await raffleProgram.methods
+            // ---------------- Accounts ----------------
+            let buyerTicketAta: PublicKey = FAKE_ATA;
+            let ticketEscrow: PublicKey = FAKE_ATA;
+
+            if (!isSolTicket) {
+                // Buyer ticket ATA
+                const buyerAtaRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                });
+
+                buyerTicketAta = buyerAtaRes.ata;
+                if (buyerAtaRes.ix) tx.add(buyerAtaRes.ix);
+
+                // Ticket escrow ATA (owner = raffle PDA)
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                ticketEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+            }
+
+            // ---------------- Anchor Instruction ----------------
+            const ix = await raffleProgram.methods
                 .buyTicket(
                     args.raffleId,
                     args.ticketsToBuy
@@ -407,16 +489,20 @@ export function useRaffleAnchorProgram() {
                     ticketTokenProgram,
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR, // REQUIRED by program constraint
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            // ---------------- Send TX ----------------
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Buy Ticket TX:", tx);
         },
         onError: (error) => {
-            console.error("Buy Ticket Failed:", error);
+            console.log("Buy Ticket Failed:", error);
         },
     });
 
@@ -429,6 +515,8 @@ export function useRaffleAnchorProgram() {
             if (!raffleProgram || !wallet.publicKey) {
                 throw new Error("Wallet not ready");
             }
+
+            const tx = new Transaction();
 
             /* ---------------- PDAs ---------------- */
             const raffleAccountPda = rafflePda(args.raffleId);
@@ -447,37 +535,45 @@ export function useRaffleAnchorProgram() {
             const isSolPrize = raffleData.prizeMint === null;
             const prizeMint = raffleData.prizeMint ?? FAKE_MINT;
 
-            /* ---------------- Accounts ---------------- */
-            let prizeEscrow: PublicKey;
-            let winnerPrizeAta: PublicKey;
-
-            if (isSolPrize) {
-                // SOL prize → token accounts ignored
-                prizeEscrow = FAKE_ATA;
-                winnerPrizeAta = FAKE_ATA;
-            } else {
-                // SPL / NFT prize path
-                prizeEscrow = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    raffleAccountPda,
-                    true // PDA owner
-                );
-
-                winnerPrizeAta = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    wallet.publicKey
-                );
-            }
-
+            /* ---------------- Token program ---------------- */
             const prizeTokenProgram = await getTokenProgramFromMint(
                 connection,
                 prizeMint
             );
 
-            /* ---------------- RPC ---------------- */
-            return await raffleProgram.methods
+            /* ---------------- Accounts ---------------- */
+            let prizeEscrow: PublicKey = FAKE_ATA;
+            let winnerPrizeAta: PublicKey = FAKE_ATA;
+
+            if (!isSolPrize) {
+                // Prize escrow ATA (owner = raffle PDA)
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                prizeEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+
+                // Winner prize ATA (owner = winner)
+                const winnerAtaRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
+
+                winnerPrizeAta = winnerAtaRes.ata;
+                if (winnerAtaRes.ix) tx.add(winnerAtaRes.ix);
+            }
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await raffleProgram.methods
                 .buyerClaimPrize(args.raffleId)
                 .accounts({
                     raffleConfig: raffleConfigPda,
@@ -494,16 +590,20 @@ export function useRaffleAnchorProgram() {
                     prizeTokenProgram,
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR, // required by constraint
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Prize claimed:", tx);
         },
         onError: (error) => {
-            console.error("Buyer claim prize failed:", error);
+            console.log("Buyer claim prize failed:", error);
         },
     });
 
@@ -517,6 +617,8 @@ export function useRaffleAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
             /* ---------------- PDAs ---------------- */
             const raffleAccountPda = rafflePda(args.raffleId);
 
@@ -529,37 +631,45 @@ export function useRaffleAnchorProgram() {
             const isSolPrize = raffleData.prizeMint === null;
             const prizeMint = raffleData.prizeMint ?? FAKE_MINT;
 
-            /* ---------------- Accounts ---------------- */
-            let prizeEscrow: PublicKey;
-            let creatorPrizeAta: PublicKey;
-
-            if (isSolPrize) {
-                // SOL path → token accounts ignored
-                prizeEscrow = FAKE_ATA;
-                creatorPrizeAta = FAKE_ATA;
-            } else {
-                // SPL / NFT path
-                prizeEscrow = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    raffleAccountPda,
-                    true // allow PDA owner
-                );
-
-                creatorPrizeAta = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    wallet.publicKey
-                );
-            }
-
+            /* ---------------- Token program ---------------- */
             const prizeTokenProgram = await getTokenProgramFromMint(
                 connection,
                 prizeMint
             );
 
-            /* ---------------- RPC ---------------- */
-            return await raffleProgram.methods
+            /* ---------------- Accounts ---------------- */
+            let prizeEscrow: PublicKey = FAKE_ATA;
+            let creatorPrizeAta: PublicKey = FAKE_ATA;
+
+            if (!isSolPrize) {
+                // Prize escrow ATA (owner = raffle PDA)
+                const escrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                prizeEscrow = escrowRes.ata;
+                if (escrowRes.ix) tx.add(escrowRes.ix);
+
+                // Creator prize ATA (owner = creator wallet)
+                const creatorAtaRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
+
+                creatorPrizeAta = creatorAtaRes.ata;
+                if (creatorAtaRes.ix) tx.add(creatorAtaRes.ix);
+            }
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await raffleProgram.methods
                 .cancelRaffle(args.raffleId)
                 .accounts({
                     raffleConfig: raffleConfigPda,
@@ -575,16 +685,20 @@ export function useRaffleAnchorProgram() {
                     prizeTokenProgram,
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR, // required by config constraint
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Cancel Raffle TX:", tx);
         },
         onError: (error) => {
-            console.error("Cancel Raffle Failed:", error);
+            console.log("Cancel Raffle Failed:", error);
         },
     });
 
@@ -598,6 +712,8 @@ export function useRaffleAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
+            const tx = new Transaction();
+
             /* ---------------- PDAs ---------------- */
             const raffleAccountPda = rafflePda(args.raffleId);
 
@@ -610,62 +726,84 @@ export function useRaffleAnchorProgram() {
             const isSolPrize = raffleData.prizeMint === null;
             const prizeMint = raffleData.prizeMint ?? FAKE_MINT;
 
-            let prizeEscrow: PublicKey;
-            let creatorPrizeAta: PublicKey;
-
-            if (isSolPrize) {
-                prizeEscrow = FAKE_ATA;
-                creatorPrizeAta = FAKE_ATA;
-            } else {
-                prizeEscrow = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    raffleAccountPda,
-                    true // PDA owner
-                );
-
-                creatorPrizeAta = await getAtaAddress(
-                    connection,
-                    prizeMint,
-                    wallet.publicKey
-                );
-            }
-
             /* ---------------- Ticket side ---------------- */
             const isSolTicket = raffleData.ticketMint === null;
             const ticketMint = raffleData.ticketMint ?? FAKE_MINT;
 
-            let ticketEscrow: PublicKey;
-            let creatorTicketAta: PublicKey;
-
-            if (isSolTicket) {
-                ticketEscrow = FAKE_ATA;
-                creatorTicketAta = FAKE_ATA;
-            } else {
-                ticketEscrow = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    raffleAccountPda,
-                    true // PDA owner
-                );
-
-                creatorTicketAta = await getAtaAddress(
-                    connection,
-                    ticketMint,
-                    wallet.publicKey
-                );
-            }
-
-            const ticketTokenProgram = await getTokenProgramFromMint(
-                connection,
-                ticketMint
-            );
+            /* ---------------- Token programs ---------------- */
             const prizeTokenProgram = await getTokenProgramFromMint(
                 connection,
                 prizeMint
             );
-            /* ---------------- RPC ---------------- */
-            return await raffleProgram.methods
+            const ticketTokenProgram = await getTokenProgramFromMint(
+                connection,
+                ticketMint
+            );
+
+            /* ---------------- Accounts ---------------- */
+            let prizeEscrow: PublicKey = FAKE_ATA;
+            let creatorPrizeAta: PublicKey = FAKE_ATA;
+            let ticketEscrow: PublicKey = FAKE_ATA;
+            let creatorTicketAta: PublicKey = FAKE_ATA;
+
+            // ---- Prize SPL / NFT ----
+            if (!isSolPrize) {
+                // Prize escrow ATA (owner = raffle PDA)
+                const prizeEscrowRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                prizeEscrow = prizeEscrowRes.ata;
+                if (prizeEscrowRes.ix) tx.add(prizeEscrowRes.ix);
+
+                // Creator prize ATA
+                const creatorPrizeRes = await ensureAtaIx({
+                    connection,
+                    mint: prizeMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: prizeTokenProgram,
+                });
+
+                creatorPrizeAta = creatorPrizeRes.ata;
+                if (creatorPrizeRes.ix) tx.add(creatorPrizeRes.ix);
+            }
+
+            // ---- Ticket SPL ----
+            if (!isSolTicket) {
+                // Ticket escrow ATA (owner = raffle PDA)
+                const ticketEscrowRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: raffleAccountPda,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true,
+                });
+
+                ticketEscrow = ticketEscrowRes.ata;
+                if (ticketEscrowRes.ix) tx.add(ticketEscrowRes.ix);
+
+                // Creator ticket ATA
+                const creatorTicketRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: wallet.publicKey,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                });
+
+                creatorTicketAta = creatorTicketRes.ata;
+                if (creatorTicketRes.ix) tx.add(creatorTicketRes.ix);
+            }
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await raffleProgram.methods
                 .claimAmountBack(args.raffleId)
                 .accounts({
                     raffleConfig: raffleConfigPda,
@@ -688,16 +826,20 @@ export function useRaffleAnchorProgram() {
 
                     systemProgram,
                 })
-                .signers([
-                    RAFFLE_ADMIN_KEYPAIR, // required by config constraint
-                ])
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx, [
+                RAFFLE_ADMIN_KEYPAIR,
+            ]);
         },
         onSuccess: (tx) => {
             console.log("Claim Amount Back TX:", tx);
         },
         onError: (error) => {
-            console.error("Claim Amount Back Failed:", error);
+            console.log("Claim Amount Back Failed:", error);
         },
     });
 
@@ -849,43 +991,67 @@ export function useRaffleAnchorProgram() {
                 throw new Error("Wallet not ready");
             }
 
-            const feeTreasuryAta = await getAtaAddress(
-                connection,
-                args.feeMint,
-                raffleConfigPda,
-                true // PDA owner
-            );
+            const tx = new Transaction();
 
-            const receiverFeeAta = await getAtaAddress(
-                connection,
-                args.feeMint,
-                args.receiver,
-                true,
-            );
-
+            /* ---------------- Token program ---------------- */
             const tokenProgram = await getTokenProgramFromMint(
                 connection,
                 args.feeMint
             );
 
-            return await raffleProgram.methods
+            /* ---------------- ATAs ---------------- */
+            // Fee treasury ATA (owner = raffle config PDA)
+            const treasuryRes = await ensureAtaIx({
+                connection,
+                mint: args.feeMint,
+                owner: raffleConfigPda,
+                payer: wallet.publicKey,
+                tokenProgram,
+                allowOwnerOffCurve: true,
+            });
+
+            const feeTreasuryAta = treasuryRes.ata;
+            if (treasuryRes.ix) tx.add(treasuryRes.ix);
+
+            // Receiver ATA (owner = receiver wallet)
+            const receiverRes = await ensureAtaIx({
+                connection,
+                mint: args.feeMint,
+                owner: args.receiver,
+                payer: wallet.publicKey,
+                tokenProgram,
+                allowOwnerOffCurve: true,  // receiver may be PDA or wallet
+            });
+
+            const receiverFeeAta = receiverRes.ata;
+            if (receiverRes.ix) tx.add(receiverRes.ix);
+
+            /* ---------------- Anchor Instruction ---------------- */
+            const ix = await raffleProgram.methods
                 .withdrawSplFees(new BN(args.amount))
                 .accounts({
                     raffleConfig: raffleConfigPda,
                     owner: wallet.publicKey,
+
                     feeMint: args.feeMint,
                     feeTreasuryAta,
                     receiverFeeAta,
+
                     tokenProgram,
                     systemProgram,
                 })
-                .rpc();
+                .instruction();
+
+            tx.add(ix);
+
+            /* ---------------- Send TX ---------------- */
+            return await provider.sendAndConfirm(tx);
         },
         onSuccess: (tx) => {
             console.log("Withdraw SPL Fees TX:", tx);
         },
         onError: (error) => {
-            console.error("Withdraw SPL Fees Failed:", error);
+            console.log("Withdraw SPL Fees Failed:", error);
         },
     });
 
