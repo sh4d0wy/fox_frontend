@@ -5,7 +5,7 @@ import { useFetchUserToken } from "../../../hooks/useFetchUserToken";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 
 export default function TokenPrizeInput() {
-    const { tokenPrizeAmount, setTokenPrizeAmount ,tokenPrizeMint, setTokenPrizeMint, setUserVerifiedTokens, getComputedVal } = useCreateRaffleStore();
+    const { tokenPrizeAmount, setTokenPrizeAmount ,tokenPrizeMint, setTokenPrizeMint, setUserVerifiedTokens, getComputedVal,setPrizeType } = useCreateRaffleStore();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [filteredVerifiedTokens, setFilteredVerifiedTokens] = useState(VerifiedTokens);
@@ -30,6 +30,7 @@ export default function TokenPrizeInput() {
     if (userVerifiedTokens.length > 0) {
       setFilteredVerifiedTokens(VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => userToken.address === token.address)));
       setTokenPrizeMint(userVerifiedTokens[0].address);
+      setPrizeType(userVerifiedTokens[0].symbol === "SOL" ? "sol" : "spl");
       setUserVerifiedTokens(userVerifiedTokens.map((token) => token.address));
     }
   }, [userVerifiedTokens]);

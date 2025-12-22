@@ -1,5 +1,4 @@
 import { calculateRent } from "hooks/helpers";
-import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 import { create } from "zustand";
 
 /* ----------------------------- Types ----------------------------- */
@@ -23,7 +22,10 @@ interface CreateRaffleState {
   // Ticket Configuration
   supply: string;
   ticketPrice: string;
-  ticketCurrency: string;
+  ticketCurrency: {
+    symbol: string;
+    address: string;
+  };
 
   // Prize Configuration
   prizeType: PrizeType;
@@ -71,7 +73,7 @@ interface CreateRaffleState {
   // Actions - Ticket Configuration
   setSupply: (supply: string) => void;
   setTicketPrice: (price: string) => void;
-  setTicketCurrency: (currency: string) => void;
+  setTicketCurrency: (currency: { symbol: string; address: string }) => void;
 
   // Actions - Prize Configuration
   setPrizeType: (type: PrizeType) => void;
@@ -122,7 +124,10 @@ const initialState = {
   // Ticket Configuration
   supply: "",
   ticketPrice: "",
-  ticketCurrency: "SOL",
+  ticketCurrency: {
+    symbol: "SOL",
+    address: "So11111111111111111111111111111111111111112",
+  },
 
   // Prize Configuration
   prizeType: "nft" as PrizeType,
@@ -193,9 +198,9 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   },
 
   // Actions - Ticket Configuration
-  setSupply: (supply) => set({ supply }),
+  setSupply: (supply) => set({ supply,ticketLimitPerWallet: "40" }),
   setTicketPrice: (price) => set({ ticketPrice: price }),
-  setTicketCurrency: (currency) => set({ ticketCurrency: currency }),
+  setTicketCurrency: (currency: { symbol: string; address: string }) => set({ ticketCurrency: currency }),
 
   // Actions - Prize Configuration
   setPrizeType: (type) => set({ prizeType: type }),
@@ -224,10 +229,10 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
     // Default to equal shares
     const shares = Array(numWinners).fill(Math.floor(100 / numWinners));
     // Distribute remainder to first winners
-    const remainder = 100 - shares.reduce((a, b) => a + b, 0);
-    for (let i = 0; i < remainder; i++) {
-      shares[i]++;
-    }
+    // const remainder = 100 - shares.reduce((a, b) => a + b, 0);
+    // for (let i = 0; i < remainder; i++) {
+    //   shares[i]++;
+    // }
     set({ numberOfWinners: winners, winShares: shares });
   },
   setWinShares: (shares) => set({ winShares: shares }),

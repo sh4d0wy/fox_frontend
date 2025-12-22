@@ -63,16 +63,16 @@ function RafflesPage() {
         startTime: now + 60, // start in 1 min
         endTime: now + 60 * 60, // end in 1 hour
 
-        totalTickets: 10,
+        totalTickets: 100,
         ticketPrice: 1000000000, // 0.1 SOL
         isTicketSol: true,
 
         maxPerWalletPct: 10,
         prizeType: 2,
         prizeAmount: 2000000000, // 1 SOL
-        numWinners: 1,
-        winShares: [100],
-        isUniqueWinners: true,
+        numWinners: 5,
+        winShares: [20, 20, 20, 20, 20],
+        isUniqueWinners: false,
         startRaffle: true,
 
         ticketMint: new PublicKey(

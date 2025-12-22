@@ -21,11 +21,7 @@ export const Route = createFileRoute("/raffles/create_raffles")({
 import { useCreateRaffle } from "../../../hooks/useCreateRaffle";
 
 function CreateRaffles() {
-
-
-  // Store state
   const {
-    // UI States
     isVerifiedCollectionsModalOpen,
     isCreateTokenModalOpen,
     userVerifiedTokens,
@@ -35,7 +31,6 @@ function CreateRaffles() {
     openCreateTokenModal,
     closeCreateTokenModal,
 
-    // Date & Time
     endDate,
     setEndDate,
     endTimeHour,
@@ -47,46 +42,35 @@ function CreateRaffles() {
     selectedDuration,
     applyDurationPreset,
 
-    // Ticket Configuration
     supply,
     setSupply,
-    ticketPrice,
 
-    // Prize Configuration
     tokenPrizeAmount,
-    setTokenPrizeAmount,
     ttv,
     val,
     percentage,
     rent,
 
-    // Terms
     agreedToTerms,
     setAgreedToTerms,
 
-    // Search
     collectionSearchQuery,
     setCollectionSearchQuery,
 
-    // Computed
     getComputedTTV,
     getComputedRent,
   } = useCreateRaffleStore();
 
-  const {createRaffleMutation} = useCreateRaffle();
+  const {createRaffle} = useCreateRaffle();
 
-  console.log("ttv",ttv)
-  console.log("rent",rent)
-  // Get today's date for minimum date restriction
+
   const today = useMemo(() => new Date(), []);
 
-  // Handler for time change
   const handleTimeChange = (hour: string, minute: string, period: "AM" | "PM") => {
     setEndTimeHour(hour);
     setEndTimeMinute(minute);
     setEndTimePeriod(period);
   };
-  //TODO: Getting rent from the contract to match the create raffle in contract. 
 
 
  
@@ -308,7 +292,7 @@ function CreateRaffles() {
                           onChange={setAgreedToTerms}
                         />
                         <button
-                          onClick={() => createRaffleMutation.mutateAsync()}
+                          onClick={() => createRaffle.mutate()}
                           disabled={!agreedToTerms}
                           className={`text-white cursor-pointer font-semibold hover:from-primary-color hover:to-primary-color hover:via-primary-color text-sm md:text-base leading-normal font-inter h-11 md:h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 ${
                             !agreedToTerms

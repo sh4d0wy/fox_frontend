@@ -100,67 +100,16 @@ export async function getAtaAddress(
 }
 
 export const calculateRent = async (winners: number) => {
-  const MAX_RENT_SOL = 0.72;
-  const MAX_RENT_LAMPORTS = 720_000_000;
-
-  // Raffle account structure sizes based on the IDL
-  const DISCRIMINATOR_SIZE = 8;
-  const RAFFLE_FIXED_SIZE = 162;
-
-  // Dynamic sizes
-  const getWinSharesSize = (numWinners: number) => 4 + numWinners; // Vec<u8> = 4 bytes length + data
-  const getWinnersSize = (numWinners: number) => 4 + 32 * numWinners; // Vec<Pubkey>
-  const getIsWinClaimedSize = (numWinners: number) => 4 + numWinners; // Vec<bool>
-
+  const totalSize = 524;
   try {
-    // Calculate exact space for the Raffle account
-    console.log("rent calculation");
-    const winSharesSize = getWinSharesSize(winners);
-    const winnersVecSize = getWinnersSize(winners);
-    const isWinClaimedSize = getIsWinClaimedSize(winners);
-
-    const totalSize =
-      DISCRIMINATOR_SIZE +
-      RAFFLE_FIXED_SIZE +
-      winSharesSize +
-      winnersVecSize +
-      isWinClaimedSize;
-
     // Get rent exemption from Solana
     const connection = new Connection(SOLANA_RPC, "confirmed");
-    const rentLamports =
-      await connection.getMinimumBalanceForRentExemption(totalSize);
+    const rentLamports = await connection.getMinimumBalanceForRentExemption(totalSize);
     const rentSol = rentLamports / LAMPORTS_PER_SOL;
-
-    const exceedsMax = rentLamports > MAX_RENT_LAMPORTS;
-
-    // Calculate max tickets based on current winners count
-    let maxTickets = null;
-    if (exceedsMax) {
-      // Binary search to find max tickets
-      const testSize = (testTickets: number) => {
-        const ws = getWinSharesSize(winners);
-        const wv = getWinnersSize(winners);
-        const iwc = getIsWinClaimedSize(winners);
-        return DISCRIMINATOR_SIZE + RAFFLE_FIXED_SIZE + ws + wv + iwc;
-      };
-
-      // Since ticket count doesn't affect size, the issue is winners
-      const baseSize = testSize(1);
-      const rentPerByte = rentLamports / totalSize;
-      const maxSize = MAX_RENT_LAMPORTS / rentPerByte;
-      const availableForWinners =
-        maxSize - DISCRIMINATOR_SIZE - RAFFLE_FIXED_SIZE;
-
-      // Each winner needs: 1 (winShares) + 32 (pubkey) + 1 (isClaimed) = 34 bytes + vec overhead
-      const bytesPerWinner = 34;
-      maxTickets = Math.floor(availableForWinners / bytesPerWinner);
-    }
 
     return {
       rentLamports,
       rentSol,
-      maxTickets,
     };
   } catch (err) {
     console.error("Rent calculation error:", err);

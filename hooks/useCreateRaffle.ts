@@ -1,6 +1,8 @@
 import { useCreateRaffleStore } from "../store/createRaffleStore";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useRaffleAnchorProgram } from "./useRaffleAnchorProgram";
+import { PublicKey } from "@solana/web3.js";
 
 export const useCreateRaffle = ()=>{
     const {
@@ -17,14 +19,17 @@ export const useCreateRaffle = ()=>{
         tokenPrizeMint,
         val,
         ttv,
-        percentage,
-        rent,
         ticketLimitPerWallet,
         numberOfWinners,
         winShares,
         isUniqueWinners,
         agreedToTerms,
+        getEndTimestamp
     } = useCreateRaffleStore();
+    
+    const {
+        createRaffleMutation,
+      } = useRaffleAnchorProgram();
 
     const validateForm = ()=>{
         try{
@@ -72,7 +77,7 @@ export const useCreateRaffle = ()=>{
             }
             if(ticketLimitPerWallet && parseInt(ticketLimitPerWallet) < 1){
                 throw new Error("Ticket Limit Per Wallet must be greater than 0");
-            }else if(ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > parseInt(supply)){
+            }else if(ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 100){
                 throw new Error("Ticket Limit Per Wallet must be less than or equal to Supply");
             }
             if(numberOfWinners && parseInt(numberOfWinners) < 1){
@@ -87,15 +92,61 @@ export const useCreateRaffle = ()=>{
             return false;
         }
     }
-    const createRaffleMutation = useMutation({
+    const createRaffle = useMutation({
+        mutationKey: ["createRaffle"],
         mutationFn: async ()=>{
             if(!validateForm()){
                 return;
             }
             console.log("form submitted");
+            console.log("formData",{
+                startTime: Math.floor(Date.now() / 1000) +60,
+                endTime: getEndTimestamp()!,
+                totalTickets: parseInt(supply),
+                ticketPrice: parseFloat(ticketPrice) * 1000000000,
+                isTicketSol: ticketCurrency.symbol === "SOL",
+                maxPerWalletPct: parseInt(ticketLimitPerWallet),
+                prizeType: prizeType === "sol" ? 2 : (prizeType === "spl" ? 1 : 0),
+                prizeAmount: parseFloat(tokenPrizeAmount) * 1000000000,
+                numWinners: parseInt(numberOfWinners),
+                winShares: winShares,
+                isUniqueWinners: parseInt(numberOfWinners) == 1,
+                startRaffle: true,
+                ticketMint: new PublicKey(ticketCurrency.address),
+                prizeMint: new PublicKey(tokenPrizeMint),
+            })
+                  const now = Math.floor(Date.now() / 1000);
+            
+                  const tx = await createRaffleMutation.mutateAsync({
+                    startTime: now + 60, 
+                    endTime: getEndTimestamp()!, 
+            
+                    totalTickets: parseInt(supply),
+                    ticketPrice: parseFloat(ticketPrice) * 1000000000, 
+                    isTicketSol: ticketCurrency.symbol === "SOL",
+            
+                    maxPerWalletPct: parseInt(ticketLimitPerWallet),
+                    prizeType: prizeType === "sol" ? 2 : (prizeType === "spl" ? 1 : 0),
+                    prizeAmount: parseFloat(tokenPrizeAmount) * 1000000000, 
+                    numWinners: parseInt(numberOfWinners),
+                    winShares: winShares,
+                    isUniqueWinners: parseInt(numberOfWinners) == 1,
+                    startRaffle: true,
+            
+                    ticketMint: new PublicKey(
+                        ticketCurrency.address
+                    ),
+                    prizeMint: new PublicKey(tokenPrizeMint),
+                  });
+                  
+        },
+        onSuccess: ()=>{
             toast.success("Raffle created successfully");
+        },
+        onError: (error:any)=>{
+            toast.error(error.message);
         }
     })
 
-    return {createRaffleMutation};
+    return {createRaffle};
 }

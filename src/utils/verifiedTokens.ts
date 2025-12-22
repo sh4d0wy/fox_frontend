@@ -10,6 +10,24 @@ export const VerifiedTokens = [
         address:"JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
         symbol:"JUP",
         image:"/icons/jupiter-logo.png",
+    },
+    {
+        name:"FOX",
+        address:"FoX9UZETJzXJ2qh6B5g2mBSA9hiWWnLEq1GcHoEEg4fv",
+        symbol:"FOX",
+        image:"/icons/fox-logo.png",
+    },
+    {
+        name:"MEA",
+        address:"mecySk7eSawDNfAXvW3CquhLyxyKaXExFXgUUbEZE1T",
+        symbol:"MEA",
+        image:"/icons/mea-logo.png",
+    },
+    {
+        name:"RECON",
+        address:"DPJtqF5gzE7hLzQXgwcBBMStmLDwLotdN3y2VbTis6Nh",
+        symbol:"RECON",
+        image:"/icons/recon-logo.png",
     }
 ]
 

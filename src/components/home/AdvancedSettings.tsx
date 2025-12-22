@@ -4,7 +4,7 @@ import FormInput from "../ui/FormInput";
 import { useCreateRaffleStore } from "store/createRaffleStore";
 
 export default function AdvancedSettingsAccordion() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const {numberOfWinners, ticketLimitPerWallet, setNumberOfWinners, setTicketLimitPerWallet, getComputedRent} = useCreateRaffleStore();
 
   const toggleAccordion = () => setIsOpen((prev) => !prev);
@@ -67,7 +67,7 @@ export default function AdvancedSettingsAccordion() {
                 <label
                   className="text-sm font-medium font-inter text-gray-1200 pb-2.5 block"
                 >
-                  Ticket limit per wallet
+                  Ticket limit per wallet in percentage
                 </label>
                 <FormInput value={ticketLimitPerWallet} onChange={(e) => setTicketLimitPerWallet(e.target.value)} placeholder="No Limit" className="bg-white" />
                 <p className="md:text-sm text-xs font-medium font-inter text-black-1000 pt-2.5">
@@ -80,12 +80,12 @@ export default function AdvancedSettingsAccordion() {
                 >
                   Number of winners
                 </label>
-                <FormInput value={(numberOfWinners ==="1" ? "" : numberOfWinners)} onChange={(e) => {
+                <FormInput value={numberOfWinners} onChange={(e) => {
                   setNumberOfWinners(e.target.value);
                   getComputedRent();
                 }} type="number" placeholder="250" className="bg-white" />
                 <p className="md:text-sm text-xs font-medium font-inter text-black-1000 pt-2.5">
-                  eg. WL spots
+                  Max 10 Winners
                 </p>
               </div>
             </div>
