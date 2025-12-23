@@ -175,29 +175,33 @@ export default function FilterModal() {
                     <div className="grid grid-cols-2 md:flex lg:flex-row flex-row md:flex-col items-end md:gap-x-5 gap-y-5 gap-x-2.5">
                     <DateSelector
                         label="After"
-                        value={endTimeAfter.date}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEndTimeAfter(e.target.value, endTimeAfter.time)
+                        value={new Date(endTimeAfter.date)}
+                        onChange={(date: Date | null) =>
+                          setEndTimeAfter(date?.toISOString() || "", endTimeAfter.time)
                         }/>
                       
                     <TimeSelector
-                        value={endTimeAfter.time}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEndTimeAfter(endTimeAfter.date, e.target.value)
+                        hour={endTimeAfter.time.split(":")[0]}
+                        minute={endTimeAfter.time.split(":")[1]}
+                        period={endTimeAfter.time.split(":")[2] as "AM" | "PM"}
+                        onTimeChange={(hour: string, minute: string, period: "AM" | "PM") =>
+                          setEndTimeAfter(endTimeAfter.date, `${hour}:${minute}:${period}`)
                         }/>
                     </div>
 
                     <div className="grid grid-cols-2 md:flex lg:flex-row flex-row md:flex-col items-end md:gap-x-5 gap-y-5 gap-x-2.5">
                       <DateSelector
                         label="Before"
-                        value={endTimeBefore.date}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEndTimeBefore(e.target.value, endTimeBefore.time)
+                        value={new Date(endTimeBefore.date)}
+                        onChange={(date: Date | null) =>
+                          setEndTimeBefore(date?.toISOString() || "", endTimeBefore.time)
                         }/>
                       <TimeSelector
-                        value={endTimeBefore.time}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEndTimeBefore(endTimeBefore.date, e.target.value)
+                        hour={endTimeBefore.time.split(":")[0]}
+                        minute={endTimeBefore.time.split(":")[1]}
+                        period={endTimeBefore.time.split(":")[2] as "AM" | "PM"}
+                        onTimeChange={(hour: string, minute: string, period: "AM" | "PM") =>
+                          setEndTimeBefore(endTimeBefore.date, `${hour}:${minute}:${period}`)
                         }/>
                     </div>
                   </div>

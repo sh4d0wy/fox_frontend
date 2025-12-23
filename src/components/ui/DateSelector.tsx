@@ -20,9 +20,9 @@ const formatDateToString = (date: Date | null | undefined): string => {
 export default function DateSelector({ 
   label, 
   value, 
-  onChange, 
   minDate,
-  ...props 
+  onChange,
+  ...restProps 
 }: DateSelectorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -54,7 +54,7 @@ export default function DateSelector({
     <div className="w-full flex flex-col justify-end relative">
       {label && (
         <label
-          htmlFor={props.id}
+          htmlFor={restProps.id}
           className="text-sm mb-2.5 block text-gray-1200 font-medium font-inter"
         >
           {label}
@@ -67,7 +67,7 @@ export default function DateSelector({
           value={inputValue}
           onChange={handleChange}
           min={minValue}
-          {...props}
+          {...restProps}
           className="w-full text-sm md:text-base font-medium text-gray-1200 placeholder:text-gray-1200 outline outline-gray-1100 focus:outline-primary-color h-12 md:px-5 px-3 md:pr-5 py-3 rounded-lg border-transparent appearance-none"
         />
         <span

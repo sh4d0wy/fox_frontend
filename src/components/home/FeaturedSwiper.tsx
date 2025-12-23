@@ -7,6 +7,7 @@ import "swiper/css/navigation";
 import { CryptoCard } from "../common/CryptoCard";
 import { useFeaturedRafflesStore } from "../../../store/featured-raffles-store";
 import CryptoCardSkeleton from "../skeleton/RafflesCardSkeleton";
+import type { RaffleTypeBackend } from "types/backend/raffleTypes";
 
 const FeaturedSwiper = () => {
   const { raffles, loading, fetchRaffles } = useFeaturedRafflesStore();
@@ -49,7 +50,7 @@ const FeaturedSwiper = () => {
           {raffles.map((card) => (
             <SwiperSlide key={card.id}>
               <div className="flex-1">
-                <CryptoCard {...card} className="my-0" />
+                <CryptoCard raffle={card as unknown as RaffleTypeBackend} soldTickets={card.soldTickets} className="my-0" />
               </div>
             </SwiperSlide>
           ))}

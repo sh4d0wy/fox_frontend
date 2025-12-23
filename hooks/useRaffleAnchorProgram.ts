@@ -134,7 +134,7 @@ export function useRaffleAnchorProgram() {
                     {
                         memcmp: {
                             offset: 8, // discriminator
-                            bytes: new BN(raffleId).toArrayLike(Buffer, "le", 4),
+                            bytes: Buffer.from(new BN(raffleId).toArrayLike(Buffer, "le", 4)).toString('hex'),
                         },
                     },
                 ]);
