@@ -1,20 +1,26 @@
 import { useState } from "react";
+import { useBuyRaffleTicketStore } from "store/buyraffleticketstore";
 
-export default function QuantityBox() {
-  const MAX = 10;
+export default function QuantityBox({max}: {max: number}) {
+  const MAX = max;
   const MIN = 1;
-  const [qty, setQty] = useState(1);
-
-  const inc = () => setQty((prev) => (prev < MAX ? prev + 1 : MAX));
-  const dec = () => setQty((prev) => (prev > MIN ? prev - 1 : MIN));
-  const setMax = () => setQty(MAX);
+  const { ticketQuantity, setTicketQuantity } = useBuyRaffleTicketStore();
+  const inc = () => {
+    setTicketQuantity(ticketQuantity < MAX ? ticketQuantity + 1 : MAX);
+  }
+  const dec = () => {
+    setTicketQuantity(ticketQuantity > MIN ? ticketQuantity - 1 : MIN);
+  }
+  const setMax = () => {
+    setTicketQuantity(MAX);
+  }
 
   const onInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = Number(e.target.value);
-    if (!v) return setQty(0);
-    if (v > MAX) return setQty(MAX);
-    if (v < MIN) return setQty(MIN);
-    setQty(v);
+    if (!v) return setTicketQuantity(0);
+    if (v > MAX) return setTicketQuantity(MAX);
+    if (v < MIN) return setTicketQuantity(MIN);
+    setTicketQuantity(v);
   };
 
   return (
@@ -38,7 +44,7 @@ export default function QuantityBox() {
 
         <input
           type="number"
-          value={qty}
+          value={ticketQuantity}
           onChange={onInput}
           className="rounded-[14px] outline-none font-medium text-base text-black-1000 text-center w-16"
         />

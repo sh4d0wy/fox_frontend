@@ -1,5 +1,5 @@
 import { RafflesData } from "../data/raffles-data";
-import { getRaffles } from "./routes/raffleRoutes";
+import { getRaffleById, getRaffles } from "./routes/raffleRoutes";
 interface RafflesPage {
   items: typeof RafflesData[number][];
   nextPage: number | null;
@@ -28,3 +28,14 @@ export const fetchRaffles = async ({
     }, 500); 
   });
 };
+
+
+export const fetchRaffleById = async(raffleId:string)=>{
+  const response = await getRaffleById(raffleId);
+  console.log("response",response.raffle);
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response.raffle);
+    }, 500);
+  });
+}

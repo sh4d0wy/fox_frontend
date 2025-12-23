@@ -8,10 +8,12 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { VerifiedTokens } from "../src/utils/verifiedTokens";
 import {
   createRaffleOverBackend,
+  deleteRaffle,
   verifyRaffleCreation,
 } from "../api/routes/raffleRoutes";
 
 export const useCreateRaffle = () => {
+  const {getAllRaffles} = useRaffleAnchorProgram();
   const { publicKey } = useWallet();
   const {
     endDate,
@@ -110,9 +112,23 @@ export const useCreateRaffle = () => {
       return false;
     }
   };
-  const now = Math.floor(Date.now() / 1000);
 
+  const now = Math.floor(Date.now() / 1000);
+  const totalRaffles = getAllRaffles.data?.length || 0;
+  const raffleId = totalRaffles + 1;
+  const deleteRaffleOverBackend = async (raffleId:number)=>{
+    try {
+      const response = await deleteRaffle(raffleId.toString());
+      if (response.error) {
+        throw new Error("Failed to delete raffle");
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
   const raffleBackendPayload: RaffleTypeBackend = {
+    id: raffleId,
     createdAt: new Date(now * 1000),
     endsAt: new Date(getEndTimestamp()! * 1000),
     createdBy: publicKey?.toBase58() || "",
@@ -210,6 +226,7 @@ export const useCreateRaffle = () => {
     },
     onError: (error: any) => {
       toast.error(error.message);
+      deleteRaffleOverBackend(raffleId);
       setIsCreatingRaffle(false);
     },
   });

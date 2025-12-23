@@ -18,6 +18,7 @@ import { useRaffleAnchorProgram } from "hooks/useRaffleAnchorProgram";
 import { useQuery } from "@tanstack/react-query";
 import { PublicKey } from "@solana/web3.js";
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
+import { useBuyRaffleTicketStore } from "store/buyraffleticketstore";
 
 const sortingOptions = [
   { label: "Recently Added", value: "Recently Added" },
@@ -39,6 +40,8 @@ function RafflesPage() {
   const { filter, setFilter } = useRafflesStore();
     const { data, fetchNextPage, hasNextPage, isLoading,isError,error } = useRaffles(filter);
     const { sort, setSort } = useGlobalStore();
+    const { getAllRaffles } = useRaffleAnchorProgram();
+    const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
     console.log("Data",data);
     const [filters, setFilters] = useState<string[]>([]);
     const raffles = useMemo(() => 
@@ -49,15 +52,23 @@ function RafflesPage() {
       { id: "all", label: "All Raffles" },
       { id: "past", label: "Past Raffles" },
     ];
-
-    console.log("Raffles",raffles);
-    console.log("Is Error",isError);
-    console.log("Error",error);
-    console.log("Is Loading",isLoading);
+    useEffect(()=>{
+      if(raffles){
+        raffles.map((r)=>{
+          if(getTicketQuantityById(r.id || 0) === 0){
+            setTicketQuantityById(r.id || 0,1);
+          }
+        });
+      }
+    }, [raffles]);
   return (
     <main className="flex-1 font-inter">
       <section className="w-full md:pt-0 pt-5">
         <div className="w-full max-w-[1440px] md:px-5 px-4 mx-auto">
+          <button onClick={ () => {
+            const raffles = getAllRaffles.data;
+            console.log("Raffles",raffles);
+          }}>Get Raffle From contract</button>
           <Link
             to={"/"}
             className="md:text-base text-sm md:font-normal font-semibold transition duration-500 hover:opacity-90 bg-primary-color py-2.5 md:py-3 px-8 items-center justify-center text-black-1000 text-center md:hidden inline-flex w-full font-inter rounded-full"

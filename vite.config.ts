@@ -35,4 +35,9 @@ export default defineConfig({
   optimizeDeps: {
     include: ["buffer", "process"],
   },
+  server: {
+    allowedHosts: [
+      '0dd409e3d851.ngrok-free.app'
+    ]
+  }
 });

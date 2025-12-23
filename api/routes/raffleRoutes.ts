@@ -42,3 +42,47 @@ export const verifyRaffleCreation = async(raffleId:string, txSignature:string)=>
         throw error;
     }
 }
+ 
+export const getRaffleById = async(raffleId:string)=>{
+    try {
+        const response = await api.get(`/raffle/${raffleId}`);
+        console.log("response",response.data);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const buyRaffleTicket = async(raffleId:string,txSignature:string, ticketsToBuy:number)=>{
+    try {
+        const response = await api.post(`/raffle/buy/${raffleId}`,{
+            quantity:ticketsToBuy,
+            txSignature,
+        },{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const deleteRaffle = async(raffleId:string)=>{
+    try{
+        const response = await api.delete(`/raffle/delete/${raffleId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

@@ -211,6 +211,8 @@ import { Link } from "@tanstack/react-router";
 import React, { useState, useMemo } from "react";
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
 import { DynamicCounter } from "./DynamicCounter";
+import { useBuyRaffleTicket } from "../../../hooks/useBuyRaffleTicket";
+import { useBuyRaffleTicketStore } from "store/buyraffleticketstore";
 
 export interface CryptoCardProps {
   raffle: RaffleTypeBackend;
@@ -233,6 +235,8 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   category = "General",
   rafflesType = "active",
 }) => {
+  const { buyTicket } = useBuyRaffleTicket();
+  const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById, updateTicketQuantityById } = useBuyRaffleTicketStore();
   const remainingTickets = raffle.ticketSupply - soldTickets;
   console.log("remainingTickets",remainingTickets);
   const [favorite, setFavorite] = useState(isFavorite);
@@ -240,22 +244,29 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   const toggleFavorite = () => {
     setFavorite(!favorite);
   };
-
+  console.log("ticketQuantityById",ticketQuantityById);
   const MAX = raffle.maxEntries;
-  const [quantityValue, setQuantityValue] = useState<number>(1);
 
   const decrease = () => {
-    setQuantityValue((prev) => Math.max(1, prev - 1));
+    const previousQuantity = getTicketQuantityById(raffle.id || 0);
+    updateTicketQuantityById(raffle.id || 0, Math.max(1, previousQuantity - 1));
+    if(previousQuantity === 1){
+      updateTicketQuantityById(raffle.id || 0, 1);
+    }
   };
 
   const increase = () => {
-    setQuantityValue((prev) => Math.min(MAX, prev + 1));
+    const previousQuantity = getTicketQuantityById(raffle.id || 0);
+    updateTicketQuantityById(raffle.id || 0, Math.min(MAX, previousQuantity + 1));
+    if(previousQuantity === MAX){
+      updateTicketQuantityById(raffle.id || 0, MAX);
+    }
   };
 
   // Calculate countdown from endsAt date
   
 
-  const totalCost = quantityValue * raffle.ticketPrice;
+  const totalCost = getTicketQuantityById(raffle.id || 0) * raffle.ticketPrice;
 
   return (
     <div
@@ -324,8 +335,8 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
             </button>
 
             <Link
-              to="/auctions/$id"
-              params={{ id: raffle.raffle || "" }}
+              to="/raffles/$id"
+              params={{ id: raffle.id?.toString() || "" }}
               className="w-full transition duration-300 hover:opacity-90 flex items-center justify-center py-1.5 px-6 h-11 text-white font-semibold font-inter bg-primary-color rounded-full"
             >
               View raffle
@@ -428,9 +439,9 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
             </button>
 
             <input
-              value={quantityValue}
+              value={getTicketQuantityById(raffle.id || 0)}
               onChange={(e) =>
-                setQuantityValue(
+                updateTicketQuantityById(raffle.id || 0,
                   Math.min(MAX, Math.max(1, Number(e.target.value)))
                 )
               }
@@ -461,12 +472,17 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               </svg>
             </button>
           </div>
-          <Link
-            to={"."}
+          <button
+            onClick={()=>{
+              buyTicket.mutate({
+                raffleId: raffle.id || 0,
+                ticketsToBuy: getTicketQuantityById(raffle.id || 0),
+              });
+            }}  
             className="inline-flex px-2 py-3 sm:w-fit w-full flex-1 text-sm transition gap-1 duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 rounded-full h-11 items-center justify-center text-white font-semibold font-inter text-center"
           >
             Buy • <span>{totalCost/10**(VerifiedTokens.find((token) => token.address === raffle.ticketTokenAddress)?.decimals || 0)}</span> {VerifiedTokens.find((token) => token.address === raffle.ticketTokenAddress)?.symbol || "SOL"}
-          </Link>
+          </button>
         </div>
       </div>
     </div>
