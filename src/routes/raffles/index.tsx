@@ -17,6 +17,8 @@ import { useRaffleAnchorProgram } from "hooks/useRaffleAnchorProgram";
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
 import { useBuyRaffleTicketStore } from "store/buyraffleticketstore";
 import { NoRaffles } from "@/components/home/NoRaffles";
+import { BN } from "@coral-xyz/anchor";
+import { useQuery } from "@tanstack/react-query";
 
 const sortingOptions = [
   { label: "Recently Added", value: "Recently Added" },
@@ -38,10 +40,12 @@ function RafflesPage() {
   const { filter, setFilter } = useRafflesStore();
     const { data, fetchNextPage, hasNextPage, isLoading,isError,error } = useRaffles(filter);
     const { sort, setSort } = useGlobalStore();
-    const { getAllRaffles } = useRaffleAnchorProgram();
+    const { getAllRaffles, getRaffleConfig, getRaffleById } = useRaffleAnchorProgram();
     const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
-    console.log("Data",data);
     const [filters, setFilters] = useState<string[]>([]);
+    
+    const testRaffleById = useQuery(getRaffleById(39));
+    
     const raffles = useMemo(() => 
       data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[],
       [data]
@@ -66,7 +70,21 @@ function RafflesPage() {
           <button onClick={ () => {
             const raffles = getAllRaffles.data;
             console.log("Raffles",raffles);
+            console.log("Raffles",raffles?.filter((r) => (new BN(r.account.endTime.toString()).toNumber() > (Date.now() / 1000)) && r.account.ticketsSold! > 0));
           }}>Get Raffle From contract</button>
+          <button onClick={ () => {
+            const raffleConfig = getRaffleConfig.data;
+            console.log("Raffle config",raffleConfig);
+          }}>Get Raffle config</button>
+
+<button 
+className="block bg-primary-color text-white px-4 py-2 rounded-md"
+onClick={ () => {
+            console.log("Raffle by Id data:", testRaffleById.data);
+            console.log("Raffle by Id status:", testRaffleById.status);
+            console.log("Raffle by Id isLoading:", testRaffleById.isLoading);
+            console.log("Raffle by Id error:", testRaffleById.error);
+          }}>Get Raffle by Id</button>
           <Link
             to={"/"}
             className="md:text-base text-sm md:font-normal font-semibold transition duration-500 hover:opacity-90 bg-primary-color py-2.5 md:py-3 px-8 items-center justify-center text-black-1000 text-center md:hidden inline-flex w-full font-inter rounded-full"

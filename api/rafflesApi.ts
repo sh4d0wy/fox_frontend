@@ -17,7 +17,7 @@ export const fetchRaffles = async ({
   filteredData = filteredData.raffles;
   if (filter === "Featured") filteredData = filteredData.filter((r: any) => r.isFavorite);
   if (filter === "All Raffles") filteredData = filteredData.filter((r:any) => r.state.toLowerCase() === "active");
-  if (filter === "Past Raffles") filteredData = filteredData.filter((r: any) => r.state === "failedEnded" || r.state === "successEnded");
+  if (filter === "Past Raffles") filteredData = filteredData.filter((r: any) => r.state.toLowerCase() === "failedended" || r.state.toLowerCase()   === "successended");
   
   return new Promise((resolve) => {
     setTimeout(() => {

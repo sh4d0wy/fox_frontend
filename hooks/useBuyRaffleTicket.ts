@@ -12,6 +12,7 @@ export const useBuyRaffleTicket = () => {
       raffleId: number;
       ticketsToBuy: number;
     }) => {
+      console.log("args",args);
       const tx = await buyTicketMutation.mutateAsync(args);
       const response = await buyRaffleTicket(args.raffleId.toString(),tx, args.ticketsToBuy);
       console.log("response",response);

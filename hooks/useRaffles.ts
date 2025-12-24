@@ -7,7 +7,6 @@ export const useRaffles = (filter: string) => {
     queryKey: ["raffles", filter],
     queryFn: async ({ pageParam = 1 }) => {
       const data = await fetchRaffles({ pageParam, filter });
-      console.log("Data from useRaffles",data);
       return data;
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
@@ -23,7 +22,6 @@ export const useRaffleById = (raffleId:string) => {
     queryKey: ["raffle", raffleId],
     queryFn: async () => {
       const data = await fetchRaffleById(raffleId);
-      console.log("data from useRaffleById",data);
       return data as RaffleTypeBackend;
     },
     staleTime: 60000,

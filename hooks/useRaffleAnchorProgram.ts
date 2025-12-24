@@ -232,8 +232,8 @@ export function useRaffleAnchorProgram() {
             // ---------------- Anchor Instruction ----------------
             const ix = await raffleProgram.methods
                 .createRaffle(
-                    new BN(args.startTime),
-                    new BN(args.endTime),
+                    new BN(args.startTime.toString()),
+                    new BN(args.endTime.toString()),
                     args.totalTickets,
                     new BN(args.ticketPrice),
                     args.isTicketSol,

@@ -40,7 +40,7 @@ export const useCreateRaffle = () => {
     setIsCreatingRaffle,
   } = useCreateRaffleStore();
 
-  const { createRaffleMutation } = useRaffleAnchorProgram();
+  const { createRaffleMutation, getRaffleConfig } = useRaffleAnchorProgram();
   const router = useRouter();
   const validateForm = () => {
     try {
@@ -127,7 +127,12 @@ export const useCreateRaffle = () => {
       throw error;
     }
   }
+  const fetchRaffleConfig =  () => {
+    const raffleConfig =  getRaffleConfig.data;
+    return raffleConfig?.raffleCount || 0;
+  }
   const raffleBackendPayload: RaffleTypeBackend = {
+    id: fetchRaffleConfig(),
     createdAt: new Date(now * 1000),
     endsAt: new Date(getEndTimestamp()! * 1000),
     createdBy: publicKey?.toBase58() || "",
