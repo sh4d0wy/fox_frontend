@@ -56,3 +56,49 @@ export const addPrizesSchema = z.object({
 });
 
 export type AddMultiplePrizesTypeBackend = z.infer<typeof addPrizesSchema>;
+
+export const gumballBackendDataSchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  creatorAddress: z.string(),
+  status: z.enum(["INITIALIZED", "ACTIVE", "ENDED", "CANCELLED"]),
+  
+  startTime: z.string().datetime(),
+  endTime: z.string().datetime(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  activatedAt: z.string().datetime().nullable(),
+  endedAt: z.string().datetime().nullable(),
+  cancelledAt: z.string().datetime().nullable(),
+  manualStart: z.boolean(),
+  
+  ticketMint: z.string(),
+  ticketPrice: z.string(),
+  isTicketSol: z.boolean(),
+  totalTickets: z.number().int(),
+  ticketsSold: z.number().int(),
+  
+  minPrizes: z.number().int(),
+  maxPrizes: z.number().int(),
+  prizesAdded: z.number().int(),
+  prizes: z.array(prizeDataSchema),
+  totalPrizeValue: z.string(),
+  
+  maxProceeds: z.string(),
+  totalProceeds: z.string(),
+  maxRoi: z.number(),
+  
+  buyBackEnabled: z.boolean(),
+  buyBackCount: z.number().int(),
+  buyBackEscrow: z.string().nullable(),
+  buyBackPercentage: z.number().nullable(),
+  buyBackProfit: z.string(),
+  
+  // Stats
+  uniqueBuyers: z.number().int(),
+  _count: z.object({
+    spins: z.number().int(),
+  }),
+});
+
+export type GumballBackendDataType = z.infer<typeof gumballBackendDataSchema>;

@@ -1,5 +1,5 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
-import { fetchGumballs } from "../api/GumballsApi"
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { fetchGumballById, fetchGumballs } from "../api/GumballsApi"
 
 export const useGumballsQuery = (filter: string) => {
   return useInfiniteQuery({
@@ -7,5 +7,12 @@ export const useGumballsQuery = (filter: string) => {
     queryFn: ({ pageParam = 1 }) => fetchGumballs({ pageParam, filter }),
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 1,
+  })
+}
+
+export const useGumballById = (id:string) => {
+  return useQuery({
+    queryKey: ["gumball", id],
+    queryFn: () => fetchGumballById(id),
   })
 }

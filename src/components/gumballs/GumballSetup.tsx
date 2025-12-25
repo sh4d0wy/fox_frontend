@@ -204,7 +204,8 @@ export const GumballSetup = () => {
                             const startTime = startType === "manual" 
                               ? Math.floor(Date.now() / 1000) 
                               : getStartTimestamp()!;
-                            
+                            console.log("startTime", startTime);
+                            console.log("endTime", endTime);
                             setIsCreatingGumball(true);
                             try {
                               await createGumball.mutateAsync({

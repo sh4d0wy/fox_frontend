@@ -13,6 +13,7 @@ import { useGlobalStore } from "../../../store/globalStore";
 import CryptoCardSkeleton from '@/components/skeleton/RafflesCardSkeleton';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useGumballAnchorProgram } from '../../../hooks/useGumballAnchorProgram';
+import { BN } from '@coral-xyz/anchor';
 
 
 
@@ -44,7 +45,7 @@ function Gumballs() {
           const { sort, setSort } = useGlobalStore();
         
           const gumballs = data?.pages.flatMap((p) => p.items) || []
-        const {getAllGumballs} = useGumballAnchorProgram();
+        const {getGumballConfig,getAllGumballs} = useGumballAnchorProgram();
         
         // const activeFilters = [
         //   { id: "all", label: "All Gumballs" },
@@ -55,15 +56,16 @@ function Gumballs() {
   return (
 
       <main className="main font-inter">
-
-      <section className="w-full md:pt-0 pt-5">
-        <button
+ <button
         onClick={
           () => {
-              console.log(getAllGumballs.data);
+              console.log(getGumballConfig.data);
+              console.log(getAllGumballs?.data?.map((gumball) => {return {"startTime":new BN(gumball.account.startTime).toNumber(), "endTime":new BN(gumball.account.endTime).toNumber()}}));
           }
         }
         >get all gumballs</button>
+      {/* <section className="w-full md:pt-0 pt-5">
+       
         <div className="w-full max-w-[1440px] px-5 mx-auto">
              <Link
             to={"/"}
@@ -81,7 +83,7 @@ function Gumballs() {
             <FeaturedSwiper/>
           </div>
         </div>
-      </section>
+      </section> */}
 
        <TryToolsSection/>
 
@@ -178,7 +180,7 @@ function Gumballs() {
                     >
                       <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4">
                         {gumballs.map((r) => (
-                          <GumballsCard key={r.id} {...r} />
+                          <GumballsCard key={r.id} gumball={r} />
                         ))}
                       </div>
                     </InfiniteScroll>

@@ -2,18 +2,18 @@ import { useState } from "react";
 import { SoldGumballTable } from "./SoldGumballTable";
 import { AvailableGumballTable } from "./AvailableGumballTable";
 import { Link } from "@tanstack/react-router";
-
+import { useCancelGumball } from "../../../hooks/useCancelGumball";
+import { useGumballStore } from "../../../store/useGumballStore";
 interface GumballStudioProps {
   gumballId: string;
 }
 
 export const GumballStudio = ({ gumballId }: GumballStudioProps) => {
-
+  const { cancelGumball } = useCancelGumball();
    const [tabNames, setTabNames] = useState([
   { name: "Sold", active: true },
   { name: "Available", active: false },
 ]);
-
 const handleTabClick = (clickedName: string) => {
   setTabNames((prev) =>
     prev.map((tab) =>
@@ -24,12 +24,11 @@ const handleTabClick = (clickedName: string) => {
   );
 };
 
-
-
+ console.log(gumballId);
   return (
     <div className="w-full md:pt-[48px]">
         <div className="w-full flex items-center lg:justify-end md:gap-[30px] gap-4 md:mb-7 mb-5">
-            <button className="inline-flex cursor-pointer items-center gap-2.5 md:text-base text-sm font-medium text-red-1000 font-inter">
+            <button onClick={() => cancelGumball.mutate(parseInt(gumballId))} className="inline-flex cursor-pointer items-center gap-2.5 md:text-base text-sm font-medium text-red-1000 font-inter">
                 <img src="/icons/delete-icon-1.svg" className="w-6 h-6" alt="no-img" />
                 <span>Cancel Gumball</span>
             </button>
@@ -88,17 +87,7 @@ const handleTabClick = (clickedName: string) => {
             <AvailableGumballTable/>
             }
         </div>
-
-          
-
-
-
-        </div>
-
-
-
-
-        
+        </div>   
     </div>
   )
 }

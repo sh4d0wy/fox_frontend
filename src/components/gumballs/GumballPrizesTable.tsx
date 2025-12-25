@@ -1,25 +1,21 @@
+import { VerifiedTokens } from '@/utils/verifiedTokens';
+import type { PrizeDataBackend } from '../../../types/backend/gumballTypes';
 
-interface BoughtRow {
-  img: string; 
-  prize: number;
-  quantity: number;
-  floorPrice: number;
+interface GumballPrizesTableProps {
+  prizes: PrizeDataBackend[];
 }
 
-const SoldGumball: BoughtRow[] = [
-  { img: "/images/prize-image.png", prize: 25, quantity: 90, floorPrice: 0 },
-  { img: "/images/prize-image.png", prize: 25, quantity: 90, floorPrice: 0 },
-  { img: "/images/prize-image.png", prize: 25, quantity: 90, floorPrice: 0 },
-  { img: "/images/prize-image.png", prize: 25, quantity: 90, floorPrice: 0 },
-];
-
-export const GumballPrizesTable = () => {
+export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
+  const formatPrice = (price: string, mint: string) => {
+    const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === mint)?.decimals || 0);
+    return `${numPrice}`;
+  }
   return (
     <div className="border relative border-gray-1100 md:pb-32 pb-10 min-h-[494px] rounded-[20px] w-full overflow-hidden">
-      {SoldGumball.length === 0 && (
+      {prizes.length === 0 && (
         <div className="absolute w-full h-full flex items-center justify-center py-10">
           <p className="md:text-base text-sm font-medium text-center font-inter text-black-1000">
-            No Gumball Yet
+            No Prizes Yet
           </p>
         </div>
       )}
@@ -39,25 +35,36 @@ export const GumballPrizesTable = () => {
           </tr>
         </thead>
         <tbody>
-          {SoldGumball.map((row, idx) => {
+          {prizes.map((prize, idx) => {
             return (
               <tr key={idx} className="w-full">
                 <td>
                   <div className="px-6 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <img src={row.img} className="w-[60px] h-[60px] rounded-full" alt="no-img" />
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
-                      {row.prize}
-                    </p>
+                    <img 
+                      src={prize.image || "/images/prize-image.png"} 
+                      className="w-[60px] h-[60px] rounded-full object-cover" 
+                      alt={prize.name || "prize"} 
+                    />
+                    <div className="flex flex-col">
+                      {prize.isNft ? (
+                      <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
+                        {prize.name || prize.symbol || "Prize"}
+                      </p>) : (
+                        <p className="text-md text-black-1000 font-medium font-inter">
+                          {formatPrice(prize.prizeAmount, prize.mint)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.quantity}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{prize.quantity}</p>
                   </div>
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.floorPrice}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{prize.floorPrice || "0"}</p>
                   </div>
                 </td>
       

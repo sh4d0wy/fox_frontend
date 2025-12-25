@@ -7,6 +7,7 @@ import { createGumballSchema } from "../types/backend/gumballTypes";
 import { confirmGumballCreation, createGumballOverBackend, deleteGumballOverBackend } from "../api/routes/gumballRoutes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useGumballStore } from "../store/useGumballStore";
+import { useRouter } from "@tanstack/react-router";
 
 export const useCreateGumball = () => {
     //TODO: Add activation logic from contract if the gumball starting immediately
@@ -14,6 +15,7 @@ export const useCreateGumball = () => {
     const queryClient = useQueryClient();
     const { publicKey } = useWallet();
     const { setCreatedGumballId, setActiveTab } = useGumballStore();
+    const router = useRouter();
     const validateForm = (args: {
         name:string;
         startTime: number;
@@ -103,9 +105,10 @@ export const useCreateGumball = () => {
         },
         onSuccess: (gumballId:number) => {
             queryClient.invalidateQueries({ queryKey: ["gumballs",gumballId.toString()] });
+            toast.success("Gumball created successfully");
             setCreatedGumballId(gumballId);
             setActiveTab("loadPrizes");
-            toast.success("Gumball created successfully");
+            router.navigate({ to: "/gumballs/create_gumballs/$id", params: { id: gumballId.toString() } });
         },
         onError: (error:any) => {
             console.error(error);

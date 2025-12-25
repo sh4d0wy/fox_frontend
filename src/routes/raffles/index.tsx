@@ -19,6 +19,7 @@ import { useBuyRaffleTicketStore } from "store/buyraffleticketstore";
 import { NoRaffles } from "@/components/home/NoRaffles";
 import { BN } from "@coral-xyz/anchor";
 import { useQuery } from "@tanstack/react-query";
+import { useGumballsQuery } from "../../../hooks/useGumballsQuery";
 
 const sortingOptions = [
   { label: "Recently Added", value: "Recently Added" },
@@ -43,9 +44,9 @@ function RafflesPage() {
     const { getAllRaffles, getRaffleConfig, getRaffleById } = useRaffleAnchorProgram();
     const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
     const [filters, setFilters] = useState<string[]>([]);
-    
+    const {data: gumballs} = useGumballsQuery("All Gumballs");
     const testRaffleById = useQuery(getRaffleById(39));
-    
+    console.log(gumballs);
     const raffles = useMemo(() => 
       data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[],
       [data]

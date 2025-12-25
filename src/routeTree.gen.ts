@@ -22,10 +22,11 @@ import { Route as RafflesCreate_rafflesRouteImport } from './routes/raffles/crea
 import { Route as RafflesIdRouteImport } from './routes/raffles/$id'
 import { Route as ProfileUser_profileRouteImport } from './routes/profile/user_profile'
 import { Route as GumballsPreview_gumballRouteImport } from './routes/gumballs/preview_gumball'
-import { Route as GumballsCreate_gumballsRouteImport } from './routes/gumballs/create_gumballs'
 import { Route as GumballsIdRouteImport } from './routes/gumballs/$id'
 import { Route as AuctionsCreate_auctionsRouteImport } from './routes/auctions/create_auctions'
 import { Route as AuctionsIdRouteImport } from './routes/auctions/$id'
+import { Route as GumballsCreate_gumballsIndexRouteImport } from './routes/gumballs/create_gumballs/index'
+import { Route as GumballsCreate_gumballsIdRouteImport } from './routes/gumballs/create_gumballs/$id'
 
 const NotFoundRoute = NotFoundRouteImport.update({
   id: '/not-found',
@@ -92,11 +93,6 @@ const GumballsPreview_gumballRoute = GumballsPreview_gumballRouteImport.update({
   path: '/gumballs/preview_gumball',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GumballsCreate_gumballsRoute = GumballsCreate_gumballsRouteImport.update({
-  id: '/gumballs/create_gumballs',
-  path: '/gumballs/create_gumballs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GumballsIdRoute = GumballsIdRouteImport.update({
   id: '/gumballs/$id',
   path: '/gumballs/$id',
@@ -112,6 +108,18 @@ const AuctionsIdRoute = AuctionsIdRouteImport.update({
   path: '/auctions/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GumballsCreate_gumballsIndexRoute =
+  GumballsCreate_gumballsIndexRouteImport.update({
+    id: '/gumballs/create_gumballs/',
+    path: '/gumballs/create_gumballs/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GumballsCreate_gumballsIdRoute =
+  GumballsCreate_gumballsIdRouteImport.update({
+    id: '/gumballs/create_gumballs/$id',
+    path: '/gumballs/create_gumballs/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -119,7 +127,6 @@ export interface FileRoutesByFullPath {
   '/auctions/$id': typeof AuctionsIdRoute
   '/auctions/create_auctions': typeof AuctionsCreate_auctionsRoute
   '/gumballs/$id': typeof GumballsIdRoute
-  '/gumballs/create_gumballs': typeof GumballsCreate_gumballsRoute
   '/gumballs/preview_gumball': typeof GumballsPreview_gumballRoute
   '/profile/user_profile': typeof ProfileUser_profileRoute
   '/raffles/$id': typeof RafflesIdRoute
@@ -131,6 +138,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileIndexRoute
   '/raffles': typeof RafflesIndexRoute
   '/stats': typeof StatsIndexRoute
+  '/gumballs/create_gumballs/$id': typeof GumballsCreate_gumballsIdRoute
+  '/gumballs/create_gumballs': typeof GumballsCreate_gumballsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -138,7 +147,6 @@ export interface FileRoutesByTo {
   '/auctions/$id': typeof AuctionsIdRoute
   '/auctions/create_auctions': typeof AuctionsCreate_auctionsRoute
   '/gumballs/$id': typeof GumballsIdRoute
-  '/gumballs/create_gumballs': typeof GumballsCreate_gumballsRoute
   '/gumballs/preview_gumball': typeof GumballsPreview_gumballRoute
   '/profile/user_profile': typeof ProfileUser_profileRoute
   '/raffles/$id': typeof RafflesIdRoute
@@ -150,6 +158,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileIndexRoute
   '/raffles': typeof RafflesIndexRoute
   '/stats': typeof StatsIndexRoute
+  '/gumballs/create_gumballs/$id': typeof GumballsCreate_gumballsIdRoute
+  '/gumballs/create_gumballs': typeof GumballsCreate_gumballsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,7 +168,6 @@ export interface FileRoutesById {
   '/auctions/$id': typeof AuctionsIdRoute
   '/auctions/create_auctions': typeof AuctionsCreate_auctionsRoute
   '/gumballs/$id': typeof GumballsIdRoute
-  '/gumballs/create_gumballs': typeof GumballsCreate_gumballsRoute
   '/gumballs/preview_gumball': typeof GumballsPreview_gumballRoute
   '/profile/user_profile': typeof ProfileUser_profileRoute
   '/raffles/$id': typeof RafflesIdRoute
@@ -170,6 +179,8 @@ export interface FileRoutesById {
   '/profile/': typeof ProfileIndexRoute
   '/raffles/': typeof RafflesIndexRoute
   '/stats/': typeof StatsIndexRoute
+  '/gumballs/create_gumballs/$id': typeof GumballsCreate_gumballsIdRoute
+  '/gumballs/create_gumballs/': typeof GumballsCreate_gumballsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -179,7 +190,6 @@ export interface FileRouteTypes {
     | '/auctions/$id'
     | '/auctions/create_auctions'
     | '/gumballs/$id'
-    | '/gumballs/create_gumballs'
     | '/gumballs/preview_gumball'
     | '/profile/user_profile'
     | '/raffles/$id'
@@ -191,6 +201,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/raffles'
     | '/stats'
+    | '/gumballs/create_gumballs/$id'
+    | '/gumballs/create_gumballs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -198,7 +210,6 @@ export interface FileRouteTypes {
     | '/auctions/$id'
     | '/auctions/create_auctions'
     | '/gumballs/$id'
-    | '/gumballs/create_gumballs'
     | '/gumballs/preview_gumball'
     | '/profile/user_profile'
     | '/raffles/$id'
@@ -210,6 +221,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/raffles'
     | '/stats'
+    | '/gumballs/create_gumballs/$id'
+    | '/gumballs/create_gumballs'
   id:
     | '__root__'
     | '/'
@@ -217,7 +230,6 @@ export interface FileRouteTypes {
     | '/auctions/$id'
     | '/auctions/create_auctions'
     | '/gumballs/$id'
-    | '/gumballs/create_gumballs'
     | '/gumballs/preview_gumball'
     | '/profile/user_profile'
     | '/raffles/$id'
@@ -229,6 +241,8 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/raffles/'
     | '/stats/'
+    | '/gumballs/create_gumballs/$id'
+    | '/gumballs/create_gumballs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -237,7 +251,6 @@ export interface RootRouteChildren {
   AuctionsIdRoute: typeof AuctionsIdRoute
   AuctionsCreate_auctionsRoute: typeof AuctionsCreate_auctionsRoute
   GumballsIdRoute: typeof GumballsIdRoute
-  GumballsCreate_gumballsRoute: typeof GumballsCreate_gumballsRoute
   GumballsPreview_gumballRoute: typeof GumballsPreview_gumballRoute
   ProfileUser_profileRoute: typeof ProfileUser_profileRoute
   RafflesIdRoute: typeof RafflesIdRoute
@@ -249,6 +262,8 @@ export interface RootRouteChildren {
   ProfileIndexRoute: typeof ProfileIndexRoute
   RafflesIndexRoute: typeof RafflesIndexRoute
   StatsIndexRoute: typeof StatsIndexRoute
+  GumballsCreate_gumballsIdRoute: typeof GumballsCreate_gumballsIdRoute
+  GumballsCreate_gumballsIndexRoute: typeof GumballsCreate_gumballsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -344,13 +359,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GumballsPreview_gumballRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/gumballs/create_gumballs': {
-      id: '/gumballs/create_gumballs'
-      path: '/gumballs/create_gumballs'
-      fullPath: '/gumballs/create_gumballs'
-      preLoaderRoute: typeof GumballsCreate_gumballsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/gumballs/$id': {
       id: '/gumballs/$id'
       path: '/gumballs/$id'
@@ -372,6 +380,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuctionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gumballs/create_gumballs/': {
+      id: '/gumballs/create_gumballs/'
+      path: '/gumballs/create_gumballs'
+      fullPath: '/gumballs/create_gumballs'
+      preLoaderRoute: typeof GumballsCreate_gumballsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gumballs/create_gumballs/$id': {
+      id: '/gumballs/create_gumballs/$id'
+      path: '/gumballs/create_gumballs/$id'
+      fullPath: '/gumballs/create_gumballs/$id'
+      preLoaderRoute: typeof GumballsCreate_gumballsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -381,7 +403,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuctionsIdRoute: AuctionsIdRoute,
   AuctionsCreate_auctionsRoute: AuctionsCreate_auctionsRoute,
   GumballsIdRoute: GumballsIdRoute,
-  GumballsCreate_gumballsRoute: GumballsCreate_gumballsRoute,
   GumballsPreview_gumballRoute: GumballsPreview_gumballRoute,
   ProfileUser_profileRoute: ProfileUser_profileRoute,
   RafflesIdRoute: RafflesIdRoute,
@@ -393,6 +414,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileIndexRoute: ProfileIndexRoute,
   RafflesIndexRoute: RafflesIndexRoute,
   StatsIndexRoute: StatsIndexRoute,
+  GumballsCreate_gumballsIdRoute: GumballsCreate_gumballsIdRoute,
+  GumballsCreate_gumballsIndexRoute: GumballsCreate_gumballsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

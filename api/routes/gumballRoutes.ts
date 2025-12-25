@@ -75,3 +75,90 @@ export const addMultiplePrizesToGumball = async(gumballId:string, prizes:AddMult
         throw error;
     }
 }
+
+export const cancelGumballOverBackend = async(gumballId:string,txSignature:string)=>{
+    try {
+        const response = await api.post(`/gumball/cancel/${gumballId}`,{
+            txSignature
+        },{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {   
+        throw error;
+    }
+}
+
+export const getGumballs = async(page:number, limit:number)=>{
+    try {
+        const response = await api.get(`/gumball?page=${page}&limit=${limit}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getGumballById = async(id:string)=>{
+    try {
+        const response = await api.get(`/gumball/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const prepareSpin = async(gumballId:string)=>{
+    try {
+        const response = await api.get(`/gumball/prepare-spin/${gumballId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const spinGumball = async(gumballId:string, txSignature:string, prizeIndex:number)=>{
+    try {
+        const response = await api.post(`/gumball/spin/${gumballId}`,{
+            txSignature,
+            prizeIndex
+        },{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const claimPrize = async(gumballId:string, txSignature:string, prizeIndex:number)=>{
+    try {
+        const response = await api.post(`/gumball/claim-prize/${gumballId}`,{
+            txSignature,
+            prizeIndex
+        },{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

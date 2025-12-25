@@ -1,40 +1,79 @@
 import { Link } from "@tanstack/react-router";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import type { GumballBackendDataType } from "../../../types/backend/gumballTypes";
+import { DynamicCounter } from "../common/DynamicCounter";
+import { VerifiedTokens } from "@/utils/verifiedTokens";
 
 export interface GumballsCardProps {
-  id: number;
-  userName: string;
-  userAvatar: string;
-  title: string;
+  gumball: GumballBackendDataType;
   isFavorite?: boolean;
-  MainImage: string;
-  countdown: { hours: number; minutes: number; seconds: number };
-  val: number;
-  evValue: string;
-  growthPercent: number;
-  totalTickets: number;
-  soldTickets: number;
-  pricePerTicket: number;
   className?: string;
 }
 
 export const GumballsCard: React.FC<GumballsCardProps> = ({
-  id,
-  userName,
-  userAvatar,
+  gumball,
   isFavorite = false,
-  title,
-  MainImage,
-  countdown,
-  val,
-  evValue,
-  totalTickets,
-  soldTickets,
-  pricePerTicket,
   className,
 }) => {
+  // Safely destructure with defaults for missing values
+  const {
+    id,
+    name = "Untitled Gumball",
+    creatorAddress = "",
+    endTime = new Date().toISOString(),
+    totalTickets = 0,
+    ticketsSold = 0,
+    ticketPrice = "0",
+    totalPrizeValue = "0",
+    prizes = [],
+  } = gumball || {};
 
-  const remainingTickets = totalTickets - soldTickets;
+  // Compute remaining tickets
+  const remainingTickets = (totalTickets || 0) - (ticketsSold || 0);
+
+  // Get main image from first prize or use placeholder
+  const mainImage = useMemo(() => {
+    const prizeWithImage = prizes?.find((prize) => prize.image);
+    return prizeWithImage?.image || "/images/gumballs/sol-img-frame.png";
+  }, [prizes]);
+
+  // Compute countdown from endTime
+  const countdown = useMemo(() => {
+    const now = new Date();
+    const end = new Date(endTime);
+    const diff = Math.max(0, end.getTime() - now.getTime());
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    return { hours, minutes, seconds };
+  }, [endTime]);
+ 
+  // Calculate EV (Expected Value) = totalPrizeValue / (totalTickets * ticketPrice)
+  const evValue = useMemo(() => {
+    const prizeVal = parseFloat(totalPrizeValue) || 0;
+    const ticketPriceNum = parseFloat(ticketPrice) || 0;
+    const maxProceeds = totalTickets * ticketPriceNum;
+    if (maxProceeds === 0) return "0.00";
+    return (prizeVal / maxProceeds).toFixed(2);
+  }, [totalPrizeValue, totalTickets, ticketPrice]);
+
+  // VAL is the total prize value
+  const val = useMemo(() => {
+    return parseFloat(totalPrizeValue) || 0;
+  }, [totalPrizeValue]);
+
+  // Truncate creator address for display
+  const displayAddress = useMemo(() => {
+    if (!creatorAddress) return "Unknown";
+    return `${creatorAddress.slice(0, 4)}...${creatorAddress.slice(-4)}`;
+  }, [creatorAddress]);
+
+  // Price per ticket as number
+  const pricePerTicket = useMemo(() => {
+    return parseFloat(ticketPrice) || 0;
+  }, [ticketPrice]);
   
      const [favorite, setFavorite] = useState(isFavorite);
     const toggleFavorite = () => {
@@ -42,16 +81,16 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
   };
 
   return (
-      <div className={`bg-white-1000 border border-gray-1100 rounded-2xl ${className}`}>
+      <div className={`bg-white-1000 border border-gray-1100 rounded-2xl ${className || ''}`}>
         <div className="w-full flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
             <img
-              src={userAvatar}
-              alt={userName}
+              src="/images/placeholder-user.png"
+              alt={displayAddress}
               className="w-10 h-10 rounded-full object-cover"
             />
             <h4 className="text-base font-semibold font-inter text-black-1000">
-              {userName}
+              {displayAddress}
             </h4>
           </div>
           <div className="relative inline-flex items-center justify-center">
@@ -64,7 +103,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
         
         <div className="w-full relative group">
           <img
-            src={MainImage}
+            src={mainImage}
             alt="featured-card"
             className="w-full border-y border-gray-1100 object-cover h-[339px]"
           />
@@ -110,7 +149,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
             </div>
 
            <div className="w-full  h-full flex transition duration-300 group-hover:invisible group-hover:opacity-0 visible opacity-100 flex-col items-start justify-between">
-            <div className="w-full flex items-center justify-end">
+            {/* <div className="w-full flex items-center justify-end">
               <div className="inline-flex items-center justify-center px-2.5 py-2 divide-x divide-white/30 rounded-lg bg-black/60 border border-white/30">
                 <p className="text-xs font-semibold font-inter uppercase text-white pr-1.5">
                   {countdown.hours}H
@@ -122,8 +161,8 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
                   {countdown.seconds}S
                 </p>
               </div>
-            </div>
-
+            </div> */}
+            <DynamicCounter endsAt={new Date(endTime)} />
             <div className="w-full flex items-center  gap-1.5">
                 <div className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-black/60">
                   <p className="text-xs font-semibold font-inter uppercase text-white">
@@ -133,7 +172,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
 
               <div className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-black/60">
                 <p className="text-xs font-semibold font-inter uppercase text-white">
-                  VAL : <span>{val}</span>
+                  VAL : <span>{val/10**(VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.decimals || 0)}</span>
                 </p>
               </div>
 
@@ -145,14 +184,14 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
         <div className="w-full flex flex-col px-4 py-4 gap-5">
           <div className="w-full flex items-center gap-5 justify-between">
             <h3 className="md:text-2xl text-lg text-black-1000 font-bold font-inter">
-              {title}
+              {name}
             </h3>
 
           </div>
 
           <div className="w-full flex flex-col items-center justify-between gap-1.5">
             <div className="w-full flex items-center justify-between gap-5">
-               {(totalTickets !== soldTickets) ?   
+               {(totalTickets !== ticketsSold) ?   
               <h4 className="md:text-base text-sm text-black-1000 font-inter font-semibold">
                 {remainingTickets}/{totalTickets}
               </h4>
@@ -160,12 +199,12 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
               <h4 className="text-base text-red-1000 font-semibold font-inter">SOLD OUT</h4>
               }
               <h4 className="md:text-base text-sm text-black-1000 text-right font-inter font-semibold">
-                <span>{pricePerTicket}</span> SOL
+                <span>{pricePerTicket /10**(VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.decimals || 0)}</span> {VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.symbol || "SOL"}
               </h4>
             </div>
             <div className="w-full flex items-center justify-between gap-5">
               <h4 className="text-sm text-gray-1200 font-inter">
-                Gumballs remaining
+                Gumball Prizes left
               </h4>
               <h4 className="text-sm text-gray-1200 text-right font-inter">
                 Price

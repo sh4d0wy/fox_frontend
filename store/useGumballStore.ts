@@ -474,8 +474,8 @@ export const useGumballStore = create<GumballState>((set, get) => ({
       hours = 0;
     }
 
-    date.setHours(hours, parseInt(endTimeMinute) || 0, 0, 0);
-    return Math.floor(date.getTime() / 1000);
+    date.setHours(hours, parseInt(endTimeMinute)+10 || 0, 0, 0);
+    return Math.floor(date.getTime() / 1000)+10;
   },
 
   getComputedRent: () => {
