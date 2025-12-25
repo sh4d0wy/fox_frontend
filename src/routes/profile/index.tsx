@@ -86,7 +86,11 @@ function CreateProfile() {
   const filters = getFilterLabels();
 
   const { getRaffleStats, getGumballStats, getAuctionStats } = useProfileStats(publicKey?.toBase58() ?? '');
+  const raffleStats = getRaffleStats.data.stats;
+  const gumballStats = getGumballStats.data.stats;
+  const auctionStats = getAuctionStats.data.stats;
 
+  console.log(raffleStats, gumballStats, auctionStats);
 
   return (
       <main className="main font-inter">
@@ -97,7 +101,7 @@ function CreateProfile() {
                     <div className="w-full bg-gray-1300 border border-gray-1100 rounded-[18px] py-5">
                         <div className="w-full px-4">
                         <div className="w-full flex items-center justify-between gap-5 mb-4">
-                        <h4 className='text-lg text-black-1000 font-inter font-semibold'>{profile?.username ?? 'Anonymous'}</h4>
+                        <h4 className='text-lg text-primary-color font-inter font-semibold'>{publicKey?.toBase58().slice(0, 6) + '.....' + publicKey?.toBase58().slice(-6)}</h4>
                         <div className="flex items-center gap-4">
                             <a href="#">
                                 <img src="/icons/solana-sol-logo.svg" className="w-6 h-6" alt="" />
@@ -105,16 +109,12 @@ function CreateProfile() {
                         </div>
                         </div>
 
-                        {profile?.foxStaked && (
-                          <a href="#" className="inline-flex items-center gap-2.5 font-semibold font-inter text-sm text-purple-1000">
-                              <span>Fox Staked</span>
-                          </a>
-                        )}
+                        
                         </div>
 
-                        <div className="w-full border-t boredr-gray-1100 my-4"></div>
+                        {/* <div className="w-full border-t boredr-gray-1100 my-4"></div> */}
 
-                        <div className="w-full flex items-center justify-center flex-wrap  gap-3.5">
+                        {/* <div className="w-full flex items-center justify-center flex-wrap  gap-3.5">
                             {profile?.socialLinks?.twitter ? (
                               <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="border group bg-linear-to-l from-transparent via-transparent to-transparent hover:from-neutral-800 hover:via-neutral-500 hover:to-neutral-800 hover:text-white transition duration-300 text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center">
                                 <img src="/icons/twitter-icon.svg" className="w-5 group-hover:invert transition duration-300" alt="" />
@@ -137,7 +137,7 @@ function CreateProfile() {
                                   Link Discord
                               </Link>
                             )}
-                        </div>
+                        </div> */}
 
                     </div>
 
@@ -180,19 +180,19 @@ function CreateProfile() {
                               <>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Bought</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getRaffleStats.data?.rafflesBought ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{raffleStats?.rafflesBought}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Tickets Bought</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getRaffleStats.data?.ticketsBought ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{raffleStats?.ticketsBought }</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Won</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getRaffleStats.data?.rafflesWon ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{raffleStats?.rafflesWon}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Purchase Volume</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getRaffleStats.data?.purchaseVolume ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{raffleStats?.purchaseVolume }</p>
                                 </li>
                               </>
                             )}
@@ -200,15 +200,15 @@ function CreateProfile() {
                               <>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumballs Created</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getGumballStats.data?.gumballsCreated ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{gumballStats?.created}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Total Spins</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getGumballStats.data?.totalSpins ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{gumballStats?.totalSpins}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumball Volume</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getGumballStats.data?.totalVolumeSpent ?? 0}</p>
+                                      <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{gumballStats?.totalVolumeSpent}</p>
                                 </li>
                               </>
                             )}
@@ -216,19 +216,19 @@ function CreateProfile() {
                               <>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Participated</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getAuctionStats.data?.auctionsParticipated ?? 0}</p>
-                                </li>
-                                <li className="flex items-center justify-between">
-                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Created</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getAuctionStats.data?.auctionsCreated ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{auctionStats?.auctionsParticipated ?? 0}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
                                     <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Won</p>
-                                      <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getAuctionStats.data?.auctionsWon ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{auctionStats?.auctionsWon ?? 0}</p>
                                 </li>
                                 <li className="flex items-center justify-between">
-                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auction Volume</p>
-                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{getAuctionStats.data?.auctionVolume ?? 0}</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Total bids</p>
+                                      <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{auctionStats?.totalBids ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Total Volume</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{auctionStats?.totalVolumeBid ?? 0}</p>
                                 </li>
                               </>
                             )}

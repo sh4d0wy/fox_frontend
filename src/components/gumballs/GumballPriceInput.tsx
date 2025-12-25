@@ -30,7 +30,10 @@ export default function GumballPriceInput() {
           id="amount"
           type="number"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            setAmount(e.target.value);
+            setTicketPrice((parseFloat(e.target.value) * (10 ** (VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals || 0))).toString());
+          }}
           className="text-black-1000 outline outline-gray-1100 rounded-lg focus:outline-primary-color placeholder:text-gray-1200 text-base w-full font-inter px-5 h-12 font-medium"
           placeholder="Enter Amount"
         />
@@ -58,7 +61,6 @@ export default function GumballPriceInput() {
                         symbol: cur.symbol,
                         address: cur.address,
                       });
-                      setTicketPrice(amount);
                       setOpen(false);
                     }}
                   >
