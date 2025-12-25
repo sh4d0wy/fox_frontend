@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 type MainFilter = "Rafflers" | "Auctions" | "Gumballs";
 type RafflerFilter = "created" | "purchased" | "favourite" | "followed";
+type ActiveTab = "created" | "purchased";
 
 interface CreatorProfileState {
   mainFilter: MainFilter;
@@ -9,6 +10,9 @@ interface CreatorProfileState {
 
   rafflerFilter: RafflerFilter;
   setRafflerFilter: (value: RafflerFilter) => void;
+
+  activeRafflerTab: ActiveTab;
+  setActiveRafflerTab: (value: ActiveTab) => void;
 
   enabled: boolean;
   setEnabled: (value: boolean) => void;
@@ -20,6 +24,9 @@ export const useCreatorProfileStore = create<CreatorProfileState>((set) => ({
 
   rafflerFilter: "created",
   setRafflerFilter: (value) => set({ rafflerFilter: value }),
+
+  activeRafflerTab: "created",
+  setActiveRafflerTab: (value) => set({ activeRafflerTab: value }),
 
   enabled: false,
   setEnabled: (value) => set({ enabled: value }),

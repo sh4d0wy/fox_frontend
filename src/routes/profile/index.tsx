@@ -7,25 +7,13 @@ import Dropdown from '@/components/ui/Dropdown';
 import InputSwitch from '@/components/ui/Switch';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCreatorProfileStore } from "../../../store/creatorProfile-store";
+import { useProfileStore } from "../../../store/profile-store";
 import { useCreatorProfileData } from "../../../hooks/useCreatorProfileData";
-import { useState } from 'react';
 import CryptoCardSkeleton from '@/components/skeleton/RafflesCardSkeleton';
 
 export const Route = createFileRoute('/profile/')({
   component: CreateProfile,
 })
-
-
-
-const raffleStats = [
-  { label: "Raffles Created", value: 804 },
-  { label: "Tickets Sold", value: 42646 },
-  { label: "Sales Volume", value: 2650.1 },
-  { label: "Raffles Bought", value: 5 },
-  { label: "Tickets Bought", value: 15 },
-  { label: "Raffles Won", value: 1 },
-  { label: "1/Purchase Volume", value: 15 },
-];
 
 const options1 =[
       { label: "Raffles created", value: "Raffles created" },
@@ -41,11 +29,13 @@ function CreateProfile() {
     setMainFilter,
     rafflerFilter,
     setRafflerFilter,
+    activeRafflerTab,
+    setActiveRafflerTab,
     enabled,
     setEnabled,
   } = useCreatorProfileStore();
 
-  const [activeRafflerTab, setActiveRafflerTab] = useState<'created' | 'purchased'>('created');
+  const { profile } = useProfileStore();
 
   const categoryMap: Record<string, "rafflers" | "gumballs" | "auctions"> = {
     Rafflers: "rafflers",
@@ -105,7 +95,7 @@ function CreateProfile() {
                     <div className="w-full bg-gray-1300 border border-gray-1100 rounded-[18px] py-5">
                         <div className="w-full px-4">
                         <div className="w-full flex items-center justify-between gap-5 mb-4">
-                        <h4 className='text-lg text-black-1000 font-inter font-semibold'>CedarElliottSr</h4>
+                        <h4 className='text-lg text-black-1000 font-inter font-semibold'>{profile?.username ?? 'Anonymous'}</h4>
                         <div className="flex items-center gap-4">
                             <a href="#">
                                 <img src="/icons/solana-sol-logo.svg" className="w-6 h-6" alt="" />
@@ -113,22 +103,38 @@ function CreateProfile() {
                         </div>
                         </div>
 
-                        <a href="#" className="inline-flex items-center gap-2.5 font-semibold font-inter text-sm text-purple-1000">
-                            <span>Fox Staked</span>
-                        </a>
+                        {profile?.foxStaked && (
+                          <a href="#" className="inline-flex items-center gap-2.5 font-semibold font-inter text-sm text-purple-1000">
+                              <span>Fox Staked</span>
+                          </a>
+                        )}
                         </div>
 
                         <div className="w-full border-t boredr-gray-1100 my-4"></div>
 
                         <div className="w-full flex items-center justify-center flex-wrap  gap-3.5">
-                            <Link to={"/"}  className="border group bg-linear-to-l from-transparent via-transparent to-transparent hover:from-neutral-800 hover:via-neutral-500 hover:to-neutral-800 hover:text-white transition duration-300 text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center" >
-                              <img src="/icons/twitter-icon.svg" className="w-5 group-hover:invert transition duration-300" alt="" />
-                                Link Twitter
-                            </Link>
-                            <Link to={"/"}  className="border transition hover:bg-purple-1000 hover:border-purple-1000 hover:text-white text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center" >
-                              <img src="/icons/discord_svg.svg" className="w-5" alt="" />
-                                Link Discord
-                            </Link>
+                            {profile?.socialLinks?.twitter ? (
+                              <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="border group bg-linear-to-l from-transparent via-transparent to-transparent hover:from-neutral-800 hover:via-neutral-500 hover:to-neutral-800 hover:text-white transition duration-300 text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center">
+                                <img src="/icons/twitter-icon.svg" className="w-5 group-hover:invert transition duration-300" alt="" />
+                                Twitter
+                              </a>
+                            ) : (
+                              <Link to={"/"}  className="border group bg-linear-to-l from-transparent via-transparent to-transparent hover:from-neutral-800 hover:via-neutral-500 hover:to-neutral-800 hover:text-white transition duration-300 text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center" >
+                                <img src="/icons/twitter-icon.svg" className="w-5 group-hover:invert transition duration-300" alt="" />
+                                  Link Twitter
+                              </Link>
+                            )}
+                            {profile?.socialLinks?.discord ? (
+                              <a href={profile.socialLinks.discord} target="_blank" rel="noopener noreferrer" className="border transition hover:bg-purple-1000 hover:border-purple-1000 hover:text-white text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center">
+                                <img src="/icons/discord_svg.svg" className="w-5" alt="" />
+                                Discord
+                              </a>
+                            ) : (
+                              <Link to={"/"}  className="border transition hover:bg-purple-1000 hover:border-purple-1000 hover:text-white text-sm gap-2 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-4 py-2.5 flex items-center justify-center" >
+                                <img src="/icons/discord_svg.svg" className="w-5" alt="" />
+                                  Link Discord
+                              </Link>
+                            )}
                         </div>
 
                     </div>
@@ -160,22 +166,74 @@ function CreateProfile() {
                         </div>
 
                       </div>
-
+                      
                     <div className="w-full border border-gray-1100 rounded-[18px] p-5">
                         <h3 className="text-lg text-black-1000 font-semibold font-inter">
-                            Raffle Stats
+                            {mainFilter === "Rafflers" && "Raffle Stats"}
+                            {mainFilter === "Gumballs" && "Gumball Stats"}
+                            {mainFilter === "Auctions" && "Auction Stats"}
                         </h3>
-                        <ul className="space-y-6 hidden">
-                            {raffleStats.map((stat, index) => (
-                            <li key={index} className="flex items-center justify-between">
-                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
-                                {stat.label}
-                                </p>
-                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                                {stat.value}
-                                </p>
-                            </li>
-                            ))}
+                        <ul className="mt-2">
+                            {mainFilter === "Rafflers" && (
+                              <>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Bought</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.rafflesBought ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Tickets Bought</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.ticketsBought ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Won</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.rafflesWon ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Purchase Volume</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.purchaseVolume ?? 0}</p>
+                                </li>
+                              </>
+                            )}
+                            {mainFilter === "Gumballs" && (
+                              <>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumballs Bought</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.gumballsBought ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumballs Created</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.gumballsCreated ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumballs Won</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.gumballsWon ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Gumball Volume</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.gumballVolume ?? 0}</p>
+                                </li>
+                              </>
+                            )}
+                            {mainFilter === "Auctions" && (
+                              <>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Participated</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.auctionsParticipated ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Created</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.auctionsCreated ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auctions Won</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.auctionsWon ?? 0}</p>
+                                </li>
+                                <li className="flex items-center justify-between">
+                                    <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Auction Volume</p>
+                                    <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.auctionVolume ?? 0}</p>
+                                </li>
+                              </>
+                            )}
                         </ul>
                         </div>
 
@@ -219,7 +277,7 @@ function CreateProfile() {
                       />
                 </div>
 
-             <div className="w-full">
+             {/* <div className="w-full">
                 {mainFilter === "Rafflers" && (
                   <>
                     {isLoading ? (
@@ -279,7 +337,7 @@ function CreateProfile() {
                     )}
                   </>
                 )}
-              </div>
+              </div> */}
 
                 </div>
 

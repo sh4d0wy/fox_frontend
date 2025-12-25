@@ -7,32 +7,19 @@ import Dropdown from '@/components/ui/Dropdown';
 import { PrimaryLink } from '@/components/ui/PrimaryLink';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCreatorProfileStore } from "../../../store/creatorProfile-store";
+import { useProfileStore } from "../../../store/profile-store";
 import { useCreatorProfileData } from "../../../hooks/useCreatorProfileData";
 import CryptoCardSkeleton from '@/components/skeleton/RafflesCardSkeleton';
-import { useState } from 'react';
 
 export const Route = createFileRoute('/profile/user_profile')({
   component: RouteComponent,
 })
 
-
-
-
-const raffleStats = [
-  { label: "Raffles Created", value: 804 },
-  { label: "Tickets Sold", value: 42646 },
-  { label: "Sales Volume", value: 2650.1 },
-  { label: "Raffles Bought", value: 5 },
-  { label: "Tickets Bought", value: 15 },
-  { label: "Raffles Won", value: 1 },
-  { label: "1/Purchase Volume", value: 15 },
-];
-
-   const options1 =[
-          { label: "Raffles created", value: "Raffles created" },
-          { label: "Tickets Sold", value: "Tickets Sold" },
-          { label: "Volume", value: "Volume" },
-        ]
+const options1 =[
+      { label: "Raffles created", value: "Raffles created" },
+      { label: "Tickets Sold", value: "Tickets Sold" },
+      { label: "Volume", value: "Volume" },
+    ]
 
 function RouteComponent() {
       
@@ -41,9 +28,11 @@ function RouteComponent() {
     setMainFilter,
     rafflerFilter,
     setRafflerFilter,
+    activeRafflerTab,
+    setActiveRafflerTab,
   } = useCreatorProfileStore();
 
-  const [activeRafflerTab, setActiveRafflerTab] = useState<'created' | 'purchased'>('created');
+  const { profile } = useProfileStore();
 
   const categoryMap: Record<string, "rafflers" | "gumballs" | "auctions"> = {
     Rafflers: "rafflers",
@@ -95,45 +84,51 @@ function RouteComponent() {
                     <div className="w-full bg-gray-1300 border border-gray-1100 rounded-[18px] py-5">
                         <div className="w-full px-4">
                         <div className="w-full flex items-center justify-between gap-5 mb-4">
-                        <h4 className='text-lg text-black-1000 font-inter font-semibold'>CedarElliottSr</h4>
+                        <h4 className='text-lg text-black-1000 font-inter font-semibold'>{profile?.username ?? 'Anonymous'}</h4>
                         <div className="flex items-center gap-4">
+                            {profile?.socialLinks?.twitter && (
+                              <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className=' transition duration-300 hover:opacity-80'>
+                                  <img src="/icons/twitter-icon.svg" className="w-6 h-6" alt="" />
+                              </a>
+                            )}
                             <a href="#" className=' transition duration-300 hover:opacity-80'>
-                                <img src="/icons/twitter-icon.svg" className="w-6 h-6" alt="" />
-                            </a>
-                                <a href="#" className=' transition duration-300 hover:opacity-80'>
                                 <img src="/icons/solana-sol-logo.svg" className="w-6 h-6" alt="" />
                             </a>
                         </div>
                         </div>
 
-                        <a href="#" className="inline-flex items-center gap-2.5 font-semibold font-inter text-sm text-purple-1000">
-                            <img src="/icons/discord_svg.svg" className="w-6 h-6" alt="" />
-                            <span>raffledao</span>
-                        </a>
+                        {profile?.socialLinks?.discord && (
+                          <a href={profile.socialLinks.discord} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 font-semibold font-inter text-sm text-purple-1000">
+                              <img src="/icons/discord_svg.svg" className="w-6 h-6" alt="" />
+                              <span>{profile.socialLinks.discord}</span>
+                          </a>
+                        )}
                         </div>
 
                         <div className="w-full border-t boredr-gray-1100 my-4"></div>
 
                         <div className="w-full flex items-center justify-center  gap-3.5">
                             <PrimaryLink link='#' text='Follow' />
-                            <Link to={"/"}  className="border transition hover:bg-primary-color hover:border-primary-color text-sm gap-2.5 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-6 py-2.5 flex items-center justify-center" >
-                                <svg
-                                    width={20}
-                                    height={20}
-                                    viewBox="0 0 20 20"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                    <path
-                                        fillRule="evenodd"
-                                        clipRule="evenodd"
-                                        d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10ZM14.0303 6.96967C14.3232 7.26256 14.3232 7.73744 14.0303 8.0303L9.0303 13.0303C8.7374 13.3232 8.2626 13.3232 7.96967 13.0303L5.96967 11.0303C5.67678 10.7374 5.67678 10.2626 5.96967 9.9697C6.26256 9.6768 6.73744 9.6768 7.03033 9.9697L8.5 11.4393L10.7348 9.2045L12.9697 6.96967C13.2626 6.67678 13.7374 6.67678 14.0303 6.96967Z"
-                                        fill="#212121"
-                                    />
-                                    </svg>
+                            {profile?.foxStaked && (
+                              <Link to={"/"}  className="border transition hover:bg-primary-color hover:border-primary-color text-sm gap-2.5 text-black-1000 font-semibold font-inter border-black-1000 rounded-full px-6 py-2.5 flex items-center justify-center" >
+                                  <svg
+                                      width={20}
+                                      height={20}
+                                      viewBox="0 0 20 20"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                      <path
+                                          fillRule="evenodd"
+                                          clipRule="evenodd"
+                                          d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10ZM14.0303 6.96967C14.3232 7.26256 14.3232 7.73744 14.0303 8.0303L9.0303 13.0303C8.7374 13.3232 8.2626 13.3232 7.96967 13.0303L5.96967 11.0303C5.67678 10.7374 5.67678 10.2626 5.96967 9.9697C6.26256 9.6768 6.73744 9.6768 7.03033 9.9697L8.5 11.4393L10.7348 9.2045L12.9697 6.96967C13.2626 6.67678 13.7374 6.67678 14.0303 6.96967Z"
+                                          fill="#212121"
+                                      />
+                                      </svg>
 
-                                Fox Staked
-                            </Link>
+                                  Fox Staked
+                              </Link>
+                            )}
 
                         </div>
 
@@ -171,16 +166,34 @@ function RouteComponent() {
                             Raffle Stats
                         </h3>
                         <ul className="space-y-6">
-                            {raffleStats.map((stat, index) => (
-                            <li key={index} className="flex items-center justify-between">
-                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
-                                {stat.label}
-                                </p>
-                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                                {stat.value}
-                                </p>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Created</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.rafflesCreated ?? 0}</p>
                             </li>
-                            ))}
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Tickets Sold</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.ticketsSold ?? 0}</p>
+                            </li>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Sales Volume</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.salesVolume ?? 0}</p>
+                            </li>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Bought</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.rafflesBought ?? 0}</p>
+                            </li>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Tickets Bought</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.ticketsBought ?? 0}</p>
+                            </li>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Raffles Won</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.rafflesWon ?? 0}</p>
+                            </li>
+                            <li className="flex items-center justify-between">
+                                <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">Purchase Volume</p>
+                                <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">{profile?.stats?.purchaseVolume ?? 0}</p>
+                            </li>
                         </ul>
                     </div>
 
