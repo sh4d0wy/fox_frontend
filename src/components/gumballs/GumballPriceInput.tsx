@@ -1,11 +1,13 @@
+import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { useState, useRef, useEffect } from "react";
+import { useGumballStore } from "../../../store/useGumballStore";
 
 export default function GumballPriceInput() {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("SOL");
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
+  const { ticketCurrency,ticketPrice, setTicketCurrency, setTicketPrice } = useGumballStore();
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -16,7 +18,6 @@ export default function GumballPriceInput() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const currencies = ["SOL", "BTC", "DODGE", "BNB"];
 
   return (
     <div className="w-full">
@@ -46,17 +47,22 @@ export default function GumballPriceInput() {
 
           {open && (
             <ol className="absolute right-0 mt-1 bg-white shadow-lg rounded-md overflow-hidden z-10 w-20">
-              {currencies.map((cur) => (
-                <li key={cur}>
+              {VerifiedTokens.map((cur) => (
+                <li key={cur.address}>
                   <button
                     type="button"
                     className="w-full text-left px-4 py-2 hover:bg-gray-1100 font-inter text-sm text-black-1000"
                     onClick={() => {
-                      setCurrency(cur);
+                      setCurrency(cur.symbol);
+                      setTicketCurrency({
+                        symbol: cur.symbol,
+                        address: cur.address,
+                      });
+                      setTicketPrice(amount);
                       setOpen(false);
                     }}
                   >
-                    {cur}
+                    {cur.symbol}
                   </button>
                 </li>
               ))}

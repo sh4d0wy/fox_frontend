@@ -3,21 +3,23 @@ import { GumballSetup } from '@/components/gumballs/GumballSetup';
 import { GumballStudio } from '@/components/gumballs/GumballStudio';
 import { LoadPrizesTab } from '@/components/gumballs/LoadPrizesTab';
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react';
+import { useGumballStore, type GumballTab } from 'store/useGumballStore';
+import { useCreateGumball } from '../../../hooks/useCreateGumball';
 
 export const Route = createFileRoute('/gumballs/create_gumballs')({
   component: CreateGumballs,
 })
 
+const tabs: { name: string; key: GumballTab }[] = [
+  { name: "Gumball set-up", key: "setup" },
+  { name: "Load Prizes", key: "loadPrizes" },
+  { name: "Buy back Settings", key: "buySettings" },
+  { name: "Gumball Studio", key: "studio" },
+];
+
 function CreateGumballs() {
-
-     const [gumballTab, setGumballTab] = useState([
-    { name: "Gumball set-up", active: true },
-    { name: "Load Prizes", active: false },
-    { name: "Buy back Settings", active: false },
-    { name: "Gumball Studio", active: false },
-  ]);
-
+  const { activeTab, setActiveTab } = useGumballStore();
+  const { createGumball } = useCreateGumball();
 
     
 
@@ -35,39 +37,25 @@ function CreateGumballs() {
           </Link>
 
             <ul className="pb-12 flex lg:flex-nowrap flex-wrap items-center sm:justify-center md:justify-start justify-start md:gap-5 gap-1">
-                {gumballTab.map((tab, index) => (
-                    <li key={index}>
+                {tabs.map((tab) => (
+                    <li key={tab.key}>
                       <button
                         type="button"
-                        onClick={() => {
-                          const updatedTabs = gumballTab.map((t, i) => ({
-                            ...t,
-                            active: i === index,
-                          }));
-                          setGumballTab(updatedTabs);
-                        }}
-                        className={`border cursor-pointer border-solid w-full border-gray-1100 flex items-center justify-center rounded-full lg:px-10 px-4 sm:h-12 h-8 md:text-base sm:text-sm text-xs font-medium text-black-1000 font-inter ${tab.active ? "bg-primary-color" : "bg-gray-1400"}`}>
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`border cursor-pointer border-solid w-full border-gray-1100 flex items-center justify-center rounded-full lg:px-10 px-4 sm:h-12 h-8 md:text-base sm:text-sm text-xs font-medium text-black-1000 font-inter ${activeTab === tab.key ? "bg-primary-color" : "bg-gray-1400"}`}>
                         {tab.name}
                       </button>
                     </li>
                   ))}
             </ul>
 
-            {gumballTab[0].active && 
-            <GumballSetup/>
-            }
+            {activeTab === "setup" && <GumballSetup />}
 
-            {gumballTab[1].active && 
-            <LoadPrizesTab/>
-            }
+            {activeTab === "loadPrizes" && <LoadPrizesTab />}
 
-            {gumballTab[2].active && 
-            <BuySettings/>
-            }
+            {activeTab === "buySettings" && <BuySettings />}
 
-             {gumballTab[3].active && 
-            <GumballStudio gumballId='1'/>
-            }
+            {activeTab === "studio" && <GumballStudio gumballId='1' />}
 
 
        

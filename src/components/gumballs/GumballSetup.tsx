@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import DateSelector from '../ui/DateSelector';
 import TimeSelector from '../ui/TimeSelector';
 import DaysSelector from './DaysSelector';
@@ -6,15 +6,54 @@ import GumballPriceInput from './GumballPriceInput';
 import { AdvancedSettings } from './AdvancedSettings';
 import { AgreeCheckbox } from '../common/AgreeCheckbox';
 import CreateTokenModel from './CreateTokenModel';
+import { useGumballStore } from '../../../store/useGumballStore';
+import { useCreateGumball } from '../../../hooks/useCreateGumball';
+import toast from 'react-hot-toast';
 
 export const GumballSetup = () => {
+    const { createGumball } = useCreateGumball();
+    
+    const { 
+        name, 
+        startType, 
+        prizeCount, 
+        ticketPrice, 
+        isTicketSol, 
+        ticketCurrency, 
+        rent, 
+        agreedToTerms,
+        isCreatingGumball,
+        isCreateTokenModalOpen,
+        getStartTimestamp,
+        getEndTimestamp,
+    } = useGumballStore();
+    
+    const { 
+        setName, 
+        setStartType, 
+        setPrizeCount,
+        openCreateTokenModal,
+        closeCreateTokenModal,
+        setIsCreatingGumball,
+        setAgreedToTerms,
+        setStartDate,
+        setStartTimeHour,
+        setStartTimeMinute,
+        setStartTimePeriod,
+    } = useGumballStore();
 
-    const [showModel, setShowModel] = useState(false)
+    // Get start date/time state for scheduled start
+    const {
+        startDate,
+        startTimeHour,
+        startTimeMinute,
+        startTimePeriod,
+    } = useGumballStore();
 
-         const [tabs, setTabs] = useState([
-        { name: "Manual start", active: true },
-        { name: "Schedule", active: false },
-      ])
+    const tabs = [
+        { name: "Start Immediately", type: "manual" as const },
+        { name: "Schedule Start", type: "schedule" as const },
+    ];
 
 
   return (
@@ -50,6 +89,9 @@ export const GumballSetup = () => {
                   type="text"
                   className="text-black-1000 outline outline-gray-1100 focus:outline-primary-color  placeholder:text-gray-1200 md:text-base text-sm w-full font-inter px-5 h-12 rounded-lg font-medium"
                   placeholder="Name your Gumball"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isCreatingGumball}
                 />
               </div>
               <div className="pb-10">
@@ -61,15 +103,10 @@ export const GumballSetup = () => {
                     <li key={index}>
                       <button
                         type="button"
-                        onClick={() => {
-                          const updatedTabs = tabs.map((t, i) => ({
-                            ...t,
-                            active: i === index,
-                          }));
-                          setTabs(updatedTabs);
-                        }}
-                        className={`border cursor-pointer border-solid w-full border-gray-1100 flex items-center justify-center rounded-lg px-5 h-12 md:text-base text-sm font-medium text-black-1000 font-inter ${tab.active ? "border-primary-color bg-primary-color/5" : "bg-white"
-                          }`}
+                        onClick={() => setStartType(tab.type)}
+                        disabled={isCreatingGumball}
+                        className={`border cursor-pointer border-solid w-full border-gray-1100 flex items-center justify-center rounded-lg px-5 h-12 md:text-base text-sm font-medium text-black-1000 font-inter ${startType === tab.type ? "border-primary-color bg-primary-color/5" : "bg-white"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {tab.name}
                       </button>
@@ -78,13 +115,30 @@ export const GumballSetup = () => {
                 </ul>
 
                <div className="w-full mt-10">
-                {!tabs[0].active &&
+                {startType === "schedule" &&
                     <div className='pb-10 grid grid-cols-2 md:gap-5 gap-3'>
                       <div className="">
-                        <DateSelector label='Raffle end date' /> 
+                        <DateSelector 
+                          label='Start Date' 
+                          value={startDate}
+                          onChange={setStartDate}
+                          minDate={new Date()}
+                          disabled={isCreatingGumball}
+                        /> 
                       </div>
                        <div className="">
-                        <TimeSelector label='End Time' />
+                        <TimeSelector 
+                          label='Start Time'
+                          hour={startTimeHour}
+                          minute={startTimeMinute}
+                          period={startTimePeriod}
+                          onTimeChange={(hour, minute, period) => {
+                            setStartTimeHour(hour);
+                            setStartTimeMinute(minute);
+                            setStartTimePeriod(period);
+                          }}
+                          disabled={isCreatingGumball}
+                        />
                       </div>
                     </div>}
 
@@ -106,9 +160,12 @@ export const GumballSetup = () => {
                             type="text"
                             className="text-black-1000 outline outline-gray-1100 focus:outline-primary-color placeholder:text-gray-1200 md:text-base text-sm w-full font-inter md:px-5 px-[14px] h-12 rounded-lg font-medium"
                             placeholder="Enter Count"
+                            value={prizeCount}
+                            onChange={(e) => setPrizeCount(e.target.value)}
+                            disabled={isCreatingGumball}
                           />
                           <p className="text-sm font-medium text-black-1000 pt-2.5 font-inter">
-                            Rent: 0 SOL
+                            Rent: {rent} SOL
                           </p>
                         </div>
                         <GumballPriceInput/>
@@ -116,16 +173,59 @@ export const GumballSetup = () => {
                     </div>
                     </div>
 
-                    <AdvancedSettings/>
+                    {/* <AdvancedSettings/> */}
 
 
                     <div className="flex-1">
                       <div className="md:mb-10 mb-5 grid md:grid-cols-2 gap-4">
-                        <AgreeCheckbox/>
-                        <button onClick={(e)=> {e.preventDefault(); setShowModel(true)}}
-                          className="cursor-pointer text-white font-semibold md:text-base text-sm leading-normal font-inter h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 hover:from-primary-color hover:via-primary-color hover:to-primary-color"
+                        <AgreeCheckbox checked={agreedToTerms} onChange={setAgreedToTerms} />
+                        <button 
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const endTime = getEndTimestamp();
+                            
+                            // For scheduled start, validate start date is selected
+                            if (startType === "schedule") {
+                              const startTime = getStartTimestamp();
+                              if (!startTime) {
+                                toast.error("Please select a start date and time");
+                                return;
+                              }
+                            }
+                            
+                            if (!endTime) {
+                              toast.error("Please select an end date and time");
+                              return;
+                            }
+                            
+                            // For immediate start, use current timestamp
+                            const startTime = startType === "manual" 
+                              ? Math.floor(Date.now() / 1000) 
+                              : getStartTimestamp()!;
+                            
+                            setIsCreatingGumball(true);
+                            try {
+                              await createGumball.mutateAsync({
+                                startTime,
+                                endTime,
+                                totalTickets: parseInt(prizeCount) || 0,
+                                ticketPrice: parseFloat(ticketPrice) || 0,
+                                isTicketSol,
+                                startGumball: startType === "manual",
+                              });
+                              openCreateTokenModal();
+                            } catch (error) {
+                              toast.error("Failed to create gumball");
+                              console.error(error);
+                            } finally {
+                              setIsCreatingGumball(false);
+                            }
+                            
+                          }}
+                          disabled={isCreatingGumball || !agreedToTerms}
+                          className="cursor-pointer text-white font-semibold md:text-base text-sm leading-normal font-inter h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 hover:from-primary-color hover:via-primary-color hover:to-primary-color disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Create Gumball
+                          {isCreatingGumball ? "Creating..." : "Create Gumball"}
                         </button>
                       </div>
                       <div className="bg-gray-1300 rounded-[20px] md:p-6 p-4 overflow-hidden">
@@ -204,7 +304,7 @@ export const GumballSetup = () => {
             </form>
           </div>
 
-          <CreateTokenModel  isOpen={showModel} onClose={()=>setShowModel(false)} />
+          <CreateTokenModel isOpen={isCreateTokenModalOpen} onClose={closeCreateTokenModal} />
     </div>
   )
 }
