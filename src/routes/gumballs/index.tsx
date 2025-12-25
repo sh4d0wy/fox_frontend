@@ -12,6 +12,7 @@ import { useGumballsQuery } from "../../../hooks/useGumballsQuery"
 import { useGlobalStore } from "../../../store/globalStore";
 import CryptoCardSkeleton from '@/components/skeleton/RafflesCardSkeleton';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { useGumballAnchorProgram } from '../../../hooks/useGumballAnchorProgram';
 
 
 
@@ -43,7 +44,7 @@ function Gumballs() {
           const { sort, setSort } = useGlobalStore();
         
           const gumballs = data?.pages.flatMap((p) => p.items) || []
-        
+        const {getAllGumballs} = useGumballAnchorProgram();
         
         // const activeFilters = [
         //   { id: "all", label: "All Gumballs" },
@@ -56,6 +57,13 @@ function Gumballs() {
       <main className="main font-inter">
 
       <section className="w-full md:pt-0 pt-5">
+        <button
+        onClick={
+          () => {
+              console.log(getAllGumballs.data);
+          }
+        }
+        >get all gumballs</button>
         <div className="w-full max-w-[1440px] px-5 mx-auto">
              <Link
             to={"/"}

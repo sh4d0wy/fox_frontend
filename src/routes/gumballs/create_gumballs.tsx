@@ -13,7 +13,7 @@ export const Route = createFileRoute('/gumballs/create_gumballs')({
 const tabs: { name: string; key: GumballTab }[] = [
   { name: "Gumball set-up", key: "setup" },
   { name: "Load Prizes", key: "loadPrizes" },
-  { name: "Buy back Settings", key: "buySettings" },
+  // { name: "Buy back Settings", key: "buySettings" },
   { name: "Gumball Studio", key: "studio" },
 ];
 

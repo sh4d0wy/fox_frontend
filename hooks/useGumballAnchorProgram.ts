@@ -759,6 +759,7 @@ export function useGumballAnchorProgram() {
                 /* -------- Add Prize Instruction -------- */
                 const ix = await gumballProgram.methods
                     .addPrize(
+                        
                         args.gumballId,
                         prize.prizeIndex,
                         new BN(prize.prizeAmount),

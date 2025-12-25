@@ -1,4 +1,4 @@
-import type { GumballBackendType } from "../../types/backend/gumballTypes";
+import type { AddMultiplePrizesTypeBackend, AddPrizeTypeBackend, GumballBackendType } from "../../types/backend/gumballTypes";
 import { api } from "..";
 
 export const createGumballOverBackend = async(gumball:GumballBackendType)=>{
@@ -36,6 +36,35 @@ export const confirmGumballCreation = async(gumballId:string, txSignature:string
 export const deleteGumballOverBackend = async(gumballId:string)=>{
     try {
         const response = await api.delete(`/gumball/delete/${gumballId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const addSinglePrizeToGumball = async(gumballId:string, prize:AddPrizeTypeBackend)=>{
+    try {
+        const response = await api.post(`/gumball/addprize/${gumballId}`, prize,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+
+}
+
+export const addMultiplePrizesToGumball = async(gumballId:string, prizes:AddMultiplePrizesTypeBackend)=>{
+    try {
+        const response = await api.post(`/gumball/addprizes/${gumballId}`, prizes,{
             headers:{
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,

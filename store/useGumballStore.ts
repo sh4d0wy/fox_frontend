@@ -1,3 +1,4 @@
+import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { create } from "zustand";
 
 /* ----------------------------- Types ----------------------------- */
@@ -17,7 +18,19 @@ export interface GumballPrize {
   name?: string;
   image?: string;
   symbol?: string;
+  decimals?: number;
   floorPrice?: number;
+}
+
+export interface LoadedPrize {
+  publicKey: string;
+  gumballId: number;
+  prizeIndex: number;
+  ifPrizeNft: boolean;
+  mint: string;
+  totalAmount: number;
+  prizeAmount: number;
+  quantity: number;
 }
 
 export interface GumballData {
@@ -82,9 +95,10 @@ interface GumballState {
 
   // ======================= Load Prizes =======================
   prizes: GumballPrize[];
+  loadedPrizes: LoadedPrize[];
   totalPrizeValue: number;
   maxProceeds: number;
-
+  totalPrizesLoaded:number; 
   // ======================= Buy Back Settings =======================
   buyBackEnabled: boolean;
   buyBackPercentage: number;
@@ -145,7 +159,11 @@ interface GumballState {
   updatePrize: (id: string, updates: Partial<GumballPrize>) => void;
   clearPrizes: () => void;
   setTotalPrizeValue: (value: number) => void;
-
+  setMaxProceeds: (value: number) => void;
+  setLoadedPrizes: (prizes: LoadedPrize[]) => void;
+  clearLoadedPrizes: () => void;
+  setTotalPrizesLoaded: (count: number) => void;
+  updatePrizeStats: (prizesLoaded: number, prizeValueInSol: number) => void;
   // ======================= Actions - Buy Back Settings =======================
   setBuyBackEnabled: (enabled: boolean) => void;
   setBuyBackPercentage: (percentage: number) => void;
@@ -220,9 +238,10 @@ const initialState = {
 
   // Load Prizes
   prizes: [] as GumballPrize[],
+  loadedPrizes: [] as LoadedPrize[],
   totalPrizeValue: 0,
   maxProceeds: 0,
-
+  totalPrizesLoaded: 0,
   // Buy Back Settings
   buyBackEnabled: false,
   buyBackPercentage: 80,
@@ -368,7 +387,25 @@ export const useGumballStore = create<GumballState>((set, get) => ({
     }),
 
   setTotalPrizeValue: (value) => set({ totalPrizeValue: value }),
+  setMaxProceeds: (value) => set({ maxProceeds: value }),
 
+  setLoadedPrizes: (prizes) => set({ loadedPrizes: prizes }),
+  clearLoadedPrizes: () => set({ loadedPrizes: [] }),
+  setTotalPrizesLoaded: (count) => set({ totalPrizesLoaded: count }),
+
+  updatePrizeStats: (prizesLoaded, prizeValueInSol) =>
+    set((state) => {
+      const newTotalLoaded = state.totalPrizesLoaded + prizesLoaded;
+      const newTotalPrizeValue = state.totalPrizeValue + prizeValueInSol;
+      const ticketPriceNum = parseFloat(state.ticketPrice) || 0;
+      const prizeCountNum = parseInt(state.prizeCount) || 0;
+      const newMaxProceeds = prizeCountNum * (ticketPriceNum/10**(VerifiedTokens.find((token) => token.address === state.ticketCurrency.address)?.decimals || 0));
+      return {
+        totalPrizesLoaded: newTotalLoaded,
+        totalPrizeValue: newTotalPrizeValue,
+        maxProceeds: newMaxProceeds,
+      };
+    }),
   // ======================= Actions - Buy Back Settings =======================
   setBuyBackEnabled: (enabled) => set({ buyBackEnabled: enabled }),
   setBuyBackPercentage: (percentage) => set({ buyBackPercentage: percentage }),
@@ -449,9 +486,9 @@ export const useGumballStore = create<GumballState>((set, get) => ({
   },
 
   getMaxROI: () => {
-    const { totalPrizeValue, prizeCount, ticketPrice } = get();
+    const { totalPrizeValue, prizeCount, ticketPrice, ticketCurrency } = get();
     const count = parseInt(prizeCount) || 0;
-    const price = parseFloat(ticketPrice) || 0;
+    const price = parseFloat(ticketPrice)/(10**(VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals || 0)) || 0;
 
     if (totalPrizeValue === 0 || count === 0 || price === 0) {
       return "-";
@@ -482,6 +519,7 @@ export const useGumballStore = create<GumballState>((set, get) => ({
 
 export const selectActiveTab = (state: GumballState) => state.activeTab;
 export const selectPrizes = (state: GumballState) => state.prizes;
+export const selectLoadedPrizes = (state: GumballState) => state.loadedPrizes;
 export const selectIsCreatingGumball = (state: GumballState) => state.isCreatingGumball;
 export const selectCurrentGumball = (state: GumballState) => state.currentGumball;
 export const selectBuyBackEnabled = (state: GumballState) => state.buyBackEnabled;

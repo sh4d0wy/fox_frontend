@@ -1,6 +1,22 @@
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react';
+import { useGumballStore } from 'store/useGumballStore';
+import AddTokenModal from './AddTokenModal';
 
 export const LoadPrizesTab = () => {
+  const { 
+    totalPrizesLoaded, 
+    prizeCount, 
+    getTokenPrizesCount, 
+    createdGumballId,
+    totalPrizeValue,
+    maxProceeds,
+    getMaxROI,
+  } = useGumballStore();
+  const [isAddTokenModalOpen, setIsAddTokenModalOpen] = useState(false);
+  const tokenPrizesCount = getTokenPrizesCount();
+  const gumballId = String(createdGumballId);
+  const maxROI = getMaxROI(); 
   return (
     <div className='w-full'>
          <div className="flex items-center gap-5 border border-solid border-primary-color rounded-[10px] bg-primary-color/5 py-4 px-5">
@@ -17,22 +33,22 @@ export const LoadPrizesTab = () => {
           <div className="w-full grid md:grid-cols-4 grid-cols-2 my-10 bg-gray-1300 border border-gray-1100 p-6 gap-20 rounded-[10px]">
             <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Price Loaded</h3>
-                <h4 className='text-2xl font-bold font-inter text-black-1000'>0/10</h4>
+                <h4 className='text-2xl font-bold font-inter text-black-1000'>{totalPrizesLoaded}/{parseInt(prizeCount || "0")}</h4>
             </div>
 
                <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Total Prize Value</h3>
-                <h4 className='text-2xl font-bold font-inter text-black-1000'>0 SOL</h4>
+                <h4 className='text-2xl font-bold font-inter text-black-1000'>{totalPrizeValue.toFixed(2)} SOL</h4>
             </div>
 
                <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Max Proceeds</h3>
-                <h4 className='text-2xl font-bold font-inter text-black-1000'>0 SOL</h4>
+                <h4 className='text-2xl font-bold font-inter text-black-1000'>{maxProceeds.toFixed(2)} SOL</h4>
             </div>
 
                <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Max ROI</h3>
-                <h4 className='text-2xl font-bold font-inter text-black-1000'>-</h4>
+                <h4 className='text-2xl font-bold font-inter text-black-1000'>{maxROI}</h4>
             </div>
 
           </div>
@@ -61,9 +77,9 @@ export const LoadPrizesTab = () => {
                         <path
                             d="M0.75 6.75H12.75M6.75 0.75V12.75"
                             stroke="#fff"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                         />
                         </svg>
                     </span>
@@ -86,9 +102,9 @@ export const LoadPrizesTab = () => {
                     <h4 className="font-inter mb-5 lg:mb-6 font-bold lg:text-xl text-lg text-black-1000/30">
                     Add Tokens prize
                     </h4>
-                    <Link
-                    to={"."}
-                    className="text-white font-semibold hover:from-primary-color hover:via-primary-color hover:to-primary-color text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2"
+                    <button
+                    onClick={() => setIsAddTokenModalOpen(true)}
+                    className="text-white font-semibold hover:from-primary-color hover:via-primary-color hover:to-primary-color text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2 cursor-pointer"
                     >
                     <span className="w-6 h-6 flex items-center justify-center">
                         <svg
@@ -101,23 +117,30 @@ export const LoadPrizesTab = () => {
                         <path
                             d="M0.75 6.75H12.75M6.75 0.75V12.75"
                             stroke="#fff"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                         />
                         </svg>
                     </span>
                     Add
-                    </Link>
+                    </button>
                     </div>
                    </div>
 
                    <div className="w-full p-5 border-t border-gray-1100">
-                    <p className='text-base text-black-1000/30 font-semibold font-inter'>0 Prizes Added</p>
+                    <p className='text-base text-black-1000/30 font-semibold font-inter'>{tokenPrizesCount} Prizes Added</p>
 
                    </div>
 
                 </div>
+
+                {/* Add Token Modal */}
+                <AddTokenModal 
+                  isOpen={isAddTokenModalOpen} 
+                  onClose={() => setIsAddTokenModalOpen(false)}
+                  gumballId={gumballId}
+                />
 
             
           </div>

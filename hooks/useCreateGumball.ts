@@ -9,6 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useGumballStore } from "../store/useGumballStore";
 
 export const useCreateGumball = () => {
+    //TODO: Add activation logic from contract if the gumball starting immediately
     const {createGumballMutation} = useGumballAnchorProgram();
     const queryClient = useQueryClient();
     const { publicKey } = useWallet();
@@ -59,12 +60,13 @@ export const useCreateGumball = () => {
         }) => {
             console.log("createGumball");
             console.log(args);
+            console.log("gumballCount", gumballCount);
             const validatedData = validateForm(args);
             if(!validatedData) {
                 throw new Error();
             }
             const createGumball = await createGumballOverBackend({
-                id: gumballCount + 1,
+                id: gumballCount,
                 creatorAddress: publicKey?.toBase58().toString() || "",
                 name: args.name,
                 manualStart: args.startGumball,
