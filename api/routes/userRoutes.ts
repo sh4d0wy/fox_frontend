@@ -46,3 +46,33 @@ export const refreshToken = async (oldToken: string): Promise<string | null> => 
         return null;
     }
 };
+
+export const getProfileRaffleStats = async (publicKey:string)=>{
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/raffles/stats`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getProfileGumballStats = async (publicKey:string)=>{
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/gumballs/stats`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getProfileAuctionStats = async (publicKey:string)=>{
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/auctions/stats`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
