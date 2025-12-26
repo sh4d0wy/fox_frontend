@@ -7,7 +7,8 @@ import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 import { useAddPrizes, type AddPrizeInputData } from "hooks/useAddPrizes";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-
+import { useGumballById } from "hooks/useGumballsQuery";
+import type { GumballBackendDataType } from "types/backend/gumballTypes";
 interface TokenPrize {
   id: string;
   token: typeof VerifiedTokens[0];
@@ -23,7 +24,6 @@ interface AddTokenModalProps {
   remainingPrizes: number;
 }
 
-// Separate component for each token prize row to have its own price hook
 interface TokenPrizeRowProps {
   prize: TokenPrize;
   onUpdate: (id: string, field: 'prizeSize' | 'numberOfPrizes', value: string) => void;
@@ -45,7 +45,6 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
     return prizeValue;
   }, [prize.prizeSize, prize.numberOfPrizes, tokenPrice?.price, solPrice?.price]);
 
-  // Report value changes to parent
   useEffect(() => {
     onValueChange(prize.id, totalValue);
   }, [totalValue, prize.id, onValueChange]);
@@ -53,7 +52,6 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
   return (
     <div className="mb-6">
       <div className="flex items-start gap-4">
-        {/* Token Image */}
         <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-1300 flex-shrink-0 border border-gray-1100">
           <img 
             src={prize.token.image} 
@@ -62,7 +60,6 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
           />
         </div>
 
-        {/* Inputs */}
         <div className="flex-1 grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-black-1000 font-medium font-inter mb-2 block">
@@ -90,8 +87,6 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
             />
           </div>
         </div>
-
-        {/* Remove Button */}
         <button
           onClick={() => onRemove(prize.id)}
           className="w-8 h-8 mt-8 flex-shrink-0 rounded-md bg-red-1000 flex items-center justify-center cursor-pointer hover:opacity-80 transition"
@@ -102,7 +97,6 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
         </button>
       </div>
 
-      {/* Total Value & Balance Info */}
       <div className="flex items-center gap-4 mt-3 ml-20 text-sm font-medium font-inter">
         <span className="text-primary-color">
           Total value: <span className="text-black-1000">{totalValue.toFixed(2)} SOL</span>
@@ -120,23 +114,24 @@ export default function AddTokenModal({ isOpen, onClose, gumballId,remainingPriz
   const [selectedToken, setSelectedToken] = useState<typeof VerifiedTokens[0] | null>(null);
   const [prizeValues, setPrizeValues] = useState<Record<string, number>>({});
   const queryClient = useQueryClient();
+  const { data: gumball } = useGumballById(gumballId) as { data: GumballBackendDataType };
   // Handler for value changes from child components
   const handleValueChange = useCallback((id: string, solValue: number) => {
     setPrizeValues(prev => ({ ...prev, [id]: solValue }));
   }, []);
 
-  // Calculate remaining prizes
   const totalPrizesAdded = useMemo(() => {
-    return tokenPrizes.reduce((sum, tp) => sum + (parseInt(tp.numberOfPrizes) || 0), 0);
+    return gumball?.prizes.reduce((sum, prize) => sum + prize.quantity, 0) || 0;
   }, [tokenPrizes]);
 
-  const maxPrizes = parseInt(prizeCount) || 0;
-  // const remainingPrizes = Math.max(0, maxPrizes - totalPrizesAdded);
+  const maxPrizes = gumball?.maxPrizes || 0;
 
-  // Get available tokens (not already added)
   const availableTokens = useMemo(() => {
-    return VerifiedTokens;
-  }, [tokenPrizes]);
+    return VerifiedTokens.filter(token => 
+      !tokenPrizes.some(tp => tp.token.address === token.address) &&
+      !existingPrizes.some(ep => ep.mint === token.address)
+    );
+  }, [tokenPrizes, existingPrizes]);
 
   const handleAddToken = () => {
     if (!selectedToken) return;
@@ -417,7 +412,7 @@ export default function AddTokenModal({ isOpen, onClose, gumballId,remainingPriz
               {/* Remaining Prizes Count */}
               <div className="text-right mb-4">
                 <span className="text-sm font-medium font-inter text-primary-color">
-                  {remainingPrizes} prizes remaining
+                  {maxPrizes - totalPrizesAdded} prizes remaining
                 </span>
               </div>
 

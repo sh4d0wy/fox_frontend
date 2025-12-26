@@ -1,164 +1,190 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react';
-import SearchBox from '../../components/home/SearchBox';
-import SortDropdown from '../../components/home/SortDropdown';
-import FilterModel from '../../components/home/FilterModel';
-import { NoAuctions } from '../../components/auctions/NoAuctions';
-import { AucationsCard } from '../../components/auctions/AucationsCard';
-import { useAucationsStore } from 'store/auctions-store';
-import { useAucationsQuery } from 'hooks/useAucationsQuery';
-import { useGlobalStore } from 'store/globalStore';
-import CryptoCardSkeleton from '@/components/skeleton/RafflesCardSkeleton';
-import InfiniteScroll from 'react-infinite-scroll-component';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo, useEffect } from "react";
+import SearchBox from "../../components/home/SearchBox";
+import SortDropdown from "../../components/home/SortDropdown";
+import FilterModel from "../../components/home/FilterModel";
+import { NoAuctions } from "../../components/auctions/NoAuctions";
+import { AucationsCard } from "../../components/auctions/AucationsCard";
+import { useAucationsStore } from "store/auctions-store";
+import { useAucationsQuery } from "hooks/useAucationsQuery";
+import { useGlobalStore } from "store/globalStore";
+import CryptoCardSkeleton from "@/components/skeleton/RafflesCardSkeleton";
+import InfiniteScroll from "react-infinite-scroll-component";
 
+const options = [
+  { label: "Recently Added", value: "Recently Added" },
+  { label: "Expiring Soon", value: "Expiring Soon" },
+  { label: "Selling out soon", value: "Selling out soon" },
+  { label: "Price: Low to High", value: "Price: Low to High" },
+  { label: "Price: High to Low", value: "Price: High to Low" },
+  { label: "TTV/Floor: Low to High", value: "TTV/Floor: Low to High" },
+  { label: "TTV/Floor: High to Low", value: "TTV/Floor: High to Low" },
+  { label: "Floor: Low to High", value: "Floor: Low to High" },
+  { label: "Floor: High to Low", value: "Floor: High to Low" },
+];
 
-
-
-   const options =[
-          { label: "Recently Added", value: "Recently Added" },
-          { label: "Expiring Soon", value: "Expiring Soon" },
-          { label: "Selling out soon", value: "Selling out soon" },
-          { label: "Price: Low to High", value: "Price: Low to High" },
-          { label: "Price: High to Low", value: "Price: High to Low" },
-          { label: "TTV/Floor: Low to High", value: "TTV/Floor: Low to High" },
-          { label: "TTV/Floor: High to Low", value: "TTV/Floor: High to Low" },
-          { label: "Floor: Low to High", value: "Floor: Low to High" },
-          { label: "Floor: High to Low", value: "Floor: High to Low" },
-        ]
-
-
-export const Route = createFileRoute('/auctions/')({
+export const Route = createFileRoute("/auctions/")({
   component: Auctions,
-})
+});
 
 function Auctions() {
-      const { filter, setFilter } = useAucationsStore()
-       const { data, fetchNextPage, hasNextPage, isLoading } = useAucationsQuery(filter)
-       const { sort, setSort } = useGlobalStore();
-     
-       const aucations = data?.pages.flatMap((p) => p.items) || []
-     
-       const [filters, setFilters] = useState<string[]>([]);
+  const { filter, setFilter } = useAucationsStore();
+  const { data, fetchNextPage, hasNextPage, isLoading } =
+    useAucationsQuery(filter);
+  const { sort, setSort, searchQuery, setSearchQuery } = useGlobalStore();
 
-       const activeFilters = [
-      { id: "all", label: "All Auctions" },
-      { id: "past", label: "Past Auctions" },
-    ];
+  const aucations = useMemo(() => {
+    const allAuctions = data?.pages.flatMap((p) => p.items) || [];
 
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      return allAuctions.filter(
+        (auction) =>
+          auction.heading?.toLowerCase().includes(query) ||
+          auction.userName?.toLowerCase().includes(query)
+      );
+    }
 
-  return (  
-  <main className="main font-inter">
-    <section className='w-full lg:pt-[60px] pt-5 pb-20 md:pb-[120px]'>
-       <div className="w-full max-w-[1440px] px-5 mx-auto">
-            <div className="w-full flex items-center justify-between gap-5 lg:gap-10 flex-wrap">
-        
-                  <ul className="flex items-center gap-3 md:gap-5 md:w-auto w-full">
-                  {["All Auctions", "Past Auctions"].map((f, index) => (
-                    <li key={index} className='flex-1 md:flex-auto'>
-                      <button onClick={() => setFilter(f)} className={`md:text-base text-sm md:w-auto w-full cursor-pointer font-inter font-medium transition duration-300 hover:bg-primary-color text-black-1000 rounded-full py-2.5 md:py-3.5 px-5
-                      ${filter === f ? 'bg-primary-color' : 'bg-gray-1400'}`}> {f}</button>
-                    </li>
-                  ))}
-              
-                </ul>
-                  <div className="flex justify-start lg:justify-end gap-3.5 md:gap-5">
-                
-                  <SearchBox
-                  onSearch={(value) => {
-                    console.log("Searching for:", value);
-                    // You can filter list, call API, etc.
-                  }}
-                />
-                <SortDropdown
-                    options={options}
-                    selected={sort}
-                    onChange={(value) => {
-                      setSort(value); 
-                      console.log("Selected sort option:", value);
-                    }}
-                  />
-                  <FilterModel/>
-                  </div>
-                </div>
-        
-                {/* Filters List */}
-                <div className="lg:py-10 py-5 overflow-x-auto flex gap-4">
-                   <div className="hidden items-center gap-4">
-                   {activeFilters.length > 0 && (
-                  <>
-                    <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
-                      Filters :
-                    </p>
+    return allAuctions;
+  }, [data, searchQuery]);
 
-                    <ul className="flex items-center gap-4">
-                      <li>
-                        <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
-                          <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
-                            Clear All
-                          </p>
-                          <button
-                            onClick={() => setFilter("")}
-                            className="cursor-pointer"
-                          >
-                            <img src="/icons/cross-icon.svg" className='min-w-4' alt="cross icon" />
-                          </button>
-                        </div>
-                      </li>
+  const [filters, setFilters] = useState<string[]>([]);
 
-                    {activeFilters.map((filterItem) => (
-                      <li key={filterItem.id}>
+  const activeFilters = [
+    { id: "all", label: "All Auctions" },
+    { id: "past", label: "Past Auctions" },
+  ];
+
+  useEffect(() => {
+    setSearchQuery("");
+  }, []);
+
+  return (
+    <main className="main font-inter">
+      <section className="w-full lg:pt-[60px] pt-5 pb-20 md:pb-[120px]">
+        <div className="w-full max-w-[1440px] px-5 mx-auto">
+          <div className="w-full flex items-center justify-between gap-5 lg:gap-10 flex-wrap">
+            <ul className="flex items-center gap-3 md:gap-5 md:w-auto w-full">
+              {["All Auctions", "Past Auctions"].map((f, index) => (
+                <li key={index} className="flex-1 md:flex-auto">
+                  <button
+                    onClick={() => setFilter(f)}
+                    className={`md:text-base text-sm md:w-auto w-full cursor-pointer font-inter font-medium transition duration-300 hover:bg-primary-color text-black-1000 rounded-full py-2.5 md:py-3.5 px-5
+                      ${filter === f ? "bg-primary-color" : "bg-gray-1400"}`}
+                  >
+                    {" "}
+                    {f}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="flex justify-start lg:justify-end gap-3.5 md:gap-5">
+              <SearchBox
+                placeholder="Search auctions..."
+                value={searchQuery}
+                onSearch={(value) => {
+                  setSearchQuery(value);
+                }}
+              />
+              <SortDropdown
+                options={options}
+                selected={sort}
+                onChange={(value) => {
+                  setSort(value);
+                  console.log("Selected sort option:", value);
+                }}
+              />
+              <FilterModel />
+            </div>
+          </div>
+
+          {/* Filters List */}
+          <div className="lg:py-10 py-5 overflow-x-auto flex gap-4">
+            <div className="hidden items-center gap-4">
+              {activeFilters.length > 0 && (
+                <>
+                  <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
+                    Filters :
+                  </p>
+
+                  <ul className="flex items-center gap-4">
+                    <li>
                       <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
                         <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
-                          {filterItem.label}
+                          Clear All
                         </p>
                         <button
-                          onClick={() => setFilters(filters.filter((f) => f !== filterItem.id))}
+                          onClick={() => setFilter("")}
                           className="cursor-pointer"
                         >
-                          <img src="/icons/cross-icon.svg" className='min-w-4' alt="remove icon" />
+                          <img
+                            src="/icons/cross-icon.svg"
+                            className="min-w-4"
+                            alt="cross icon"
+                          />
                         </button>
                       </div>
                     </li>
-                      ))}
+
+                    {activeFilters.map((filterItem) => (
+                      <li key={filterItem.id}>
+                        <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
+                          <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
+                            {filterItem.label}
+                          </p>
+                          <button
+                            onClick={() =>
+                              setFilters(
+                                filters.filter((f) => f !== filterItem.id)
+                              )
+                            }
+                            className="cursor-pointer"
+                          >
+                            <img
+                              src="/icons/cross-icon.svg"
+                              className="min-w-4"
+                              alt="remove icon"
+                            />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </>
               )}
-              </div>
-                  </div>
-                
-        
-                {isLoading ? (
-                <div className="flex items-center min-h-[60vh] justify-center">
-                  <img src="/loading-vector.svg" alt="" />
-                </div>
-              ) : aucations.length > 0 ? (
-                <InfiniteScroll
-                  dataLength={aucations.length}
-                  next={fetchNextPage}
-                  hasMore={!!hasNextPage}
-                  loader={
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-5">
-                      {Array(4)
-                        .fill(0)
-                        .map((_, i) => (
-                          <CryptoCardSkeleton key={i} />
-                        ))}
-                    </div>
-                  }
-                >
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {aucations.map((r) => (
-                      <AucationsCard key={r.id} {...r} />
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center min-h-[60vh] justify-center">
+              <img src="/loading-vector.svg" alt="" />
+            </div>
+          ) : aucations.length > 0 ? (
+            <InfiniteScroll
+              dataLength={aucations.length}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              loader={
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-5">
+                  {Array(4)
+                    .fill(0)
+                    .map((_, i) => (
+                      <CryptoCardSkeleton key={i} />
                     ))}
-                  </div>
-                </InfiniteScroll>
-              ) : (
-                <NoAuctions />
-              )}
-
-
-       </div>
-    </section>
-  </main>
-
-)}
+                </div>
+              }
+            >
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {aucations.map((r) => (
+                  <AucationsCard key={r.id} {...r} />
+                ))}
+              </div>
+            </InfiniteScroll>
+          ) : (
+            <NoAuctions />
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}

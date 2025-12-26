@@ -13,10 +13,12 @@ interface GlobalStore {
   sort: string;
   filter: string;
   raffles: Raffle[];
+  searchQuery: string;
 
   setSort: (val: string) => void;
   setFilter: (val: string) => void;
   setRaffles: (data: Raffle[]) => void;
+  setSearchQuery: (val: string) => void;
 }
 
 interface NavbarState {
@@ -57,10 +59,12 @@ export const useGlobalStore = create<GlobalStore>((set) => ({
   sort: "Sort",
   filter: "",
   raffles: [],
+  searchQuery: "",
 
   setSort: (val) => set({ sort: val }),
   setFilter: (val) => set({ filter: val }),
   setRaffles: (data) => set({ raffles: data }),
+  setSearchQuery: (val) => set({ searchQuery: val }),
 }));
 
 /* ----------------------------- Navbar Store ----------------------------- */

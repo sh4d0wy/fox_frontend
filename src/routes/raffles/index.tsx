@@ -40,21 +40,36 @@ export const Route = createFileRoute("/raffles/")({
 function RafflesPage() {
   const { filter, setFilter } = useRafflesStore();
     const { data, fetchNextPage, hasNextPage, isLoading,isError,error } = useRaffles(filter);
-    const { sort, setSort } = useGlobalStore();
+    const { sort, setSort, searchQuery, setSearchQuery } = useGlobalStore();
     const { getAllRaffles, getRaffleConfig, getRaffleById } = useRaffleAnchorProgram();
     const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
     const [filters, setFilters] = useState<string[]>([]);
     const {data: gumballs} = useGumballsQuery("All Gumballs");
     const testRaffleById = useQuery(getRaffleById(39));
     console.log(gumballs);
-    const raffles = useMemo(() => 
-      data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[],
-      [data]
-    );
+    const raffles = useMemo(() => {
+      const allRaffles = data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[];
+      if (!allRaffles) return [];
+      
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        return allRaffles.filter((raffle) => 
+          raffle.prizeData?.name?.toLowerCase().includes(query) ||
+          raffle.prizeData?.symbol?.toLowerCase().includes(query) ||
+          raffle.prizeData?.description?.toLowerCase().includes(query)
+        );
+      }
+      
+      return allRaffles;
+    }, [data, searchQuery]);
     const activeFilters = [
       { id: "all", label: "All Raffles" },
       { id: "past", label: "Past Raffles" },
     ];
+    useEffect(() => {
+      setSearchQuery("");
+    }, []);
+
     useEffect(()=>{
       if(raffles){
         raffles.map((r)=>{
@@ -118,8 +133,10 @@ function RafflesPage() {
             </ul>
             <div className="flex lg:justify-end gap-1.5 xs:gap-3 md:gap-5">
               <SearchBox
+                placeholder="Search raffles..."
+                value={searchQuery}
                 onSearch={(value) => {
-                  console.log("Searching for:", value);
+                  setSearchQuery(value);
                 }}
               />
 
