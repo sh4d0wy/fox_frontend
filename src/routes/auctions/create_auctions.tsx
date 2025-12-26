@@ -59,6 +59,8 @@ function CreateAuctions() {
   const [basePrice, setBasePrice] = useState("");
   const [symbol, setSymbol] = useState("SOL");
   const [baseMint, setBaseMint] = useState("");
+  const [bidIncrement, setBidIncrement] = useState("");
+  const [timeExtension, setTimeExtension] = useState("");
 
   const handleSelect = (address: string, symbol: string) => {
     setSymbol(symbol);
@@ -107,9 +109,9 @@ function CreateAuctions() {
         baseBid: parseInt(basePrice),
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,
-        minIncrement: 5,
+        minIncrement: parseInt(bidIncrement),
         prizeMint: "2KXGzavYa41bXGUdnMRRvmDpeZixu9MRQj7PMbjadkoX",
-        timeExtension: 0,
+        timeExtension: parseInt(timeExtension),
       });
     } catch (error) {
       console.error(error);
@@ -338,8 +340,93 @@ function CreateAuctions() {
                             )}
                           </div>
                         </div>
+                      </div>
 
-                        <p className="text-sm font-medium text-black-1000 pt-2.5 font-inter">
+                      <div className="w-full">
+                        <div className="flex items-center justify-between pb-2.5">
+                          <p className="text-gray-1200 font-inter text-sm font-medium">
+                            Bid Increment
+                          </p>
+                        </div>
+                        <div className="relative">
+                          <input
+                            id="amount"
+                            type="number"
+                            value={bidIncrement}
+                            onChange={(e) => {
+                              setBidIncrement(e.target.value);
+                            }}
+                            className="text-black-1000 focus:outline-0 bg-white focus:border-primary-color placeholder:text-gray-1200 text-base w-full font-inter px-5 h-12 border border-solid border-gray-1100 rounded-lg font-medium"
+                            autoComplete="off"
+                            placeholder=""
+                          />
+                          <div className="absolute z-20 top-1/2 right-5 -translate-y-1/2 bg-white border-l border-solid border-gray-1100">
+                            <div className="flex items-center gap-1.5 px-3 cursor-pointer font-inter text-base font-medium text-black-1000 py-1">
+                              <p>{"%"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <ol className="flex items-center gap-4 pt-2.5 pb-10">
+                          {(["5", "10", "20"] as const).map((duration) => (
+                            <li key={duration} className="w-full">
+                              <button
+                                type="button"
+                                onClick={() => setBidIncrement(duration)}
+                                className={`rounded-[7px] cursor-pointer px-2.5 h-10 flex items-center justify-center text-sm font-semibold font-inter text-black-1000 w-full transition-colors ${
+                                  bidIncrement === duration
+                                    ? "bg-primary-color text-white"
+                                    : "bg-gray-1300 hover:bg-gray-1100"
+                                }`}
+                              >
+                                {duration}%
+                              </button>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      <div className="w-full">
+                        <div className="flex items-center justify-between pb-2.5">
+                          <p className="text-gray-1200 font-inter text-sm font-medium">
+                            Time extension period
+                          </p>
+                        </div>
+                        <div className="relative">
+                          <input
+                            id="amount"
+                            type="number"
+                            value={timeExtension}
+                            onChange={(e) => {
+                              setTimeExtension(e.target.value);
+                            }}
+                            className="text-black-1000 focus:outline-0 bg-white focus:border-primary-color placeholder:text-gray-1200 text-base w-full font-inter px-5 h-12 border border-solid border-gray-1100 rounded-lg font-medium"
+                            autoComplete="off"
+                            placeholder=""
+                          />
+                          <div className="absolute z-20 top-1/2 right-5 -translate-y-1/2 bg-white border-l border-solid border-gray-1100">
+                            <div className="flex items-center gap-1.5 px-3 cursor-pointer font-inter text-base font-medium text-black-1000 py-1">
+                              <p>{"mins"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <ol className="flex items-center gap-4 pt-2.5 pb-10">
+                          {(["5", "10", "15"] as const).map((duration) => (
+                            <li key={duration} className="w-full">
+                              <button
+                                type="button"
+                                onClick={() => setTimeExtension(duration)}
+                                className={`rounded-[7px] cursor-pointer px-2.5 h-10 flex items-center justify-center text-sm font-semibold font-inter text-black-1000 w-full transition-colors ${
+                                  timeExtension === duration
+                                    ? "bg-primary-color text-white"
+                                    : "bg-gray-1300 hover:bg-gray-1100"
+                                }`}
+                              >
+                                {duration}
+                              </button>
+                            </li>
+                          ))}
+                        </ol>
+                        <p className="text-sm font-medium text-black-1000 py-2.5 font-inter">
                           Your balance: {solBalance} SOL
                         </p>
                       </div>
