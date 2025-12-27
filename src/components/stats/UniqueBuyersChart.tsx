@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  BarChart,
-  Bar,
+  Area,
+  AreaChart,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -9,29 +9,25 @@ import {
   Tooltip,
 } from "recharts"
 
-interface AverageTicketsDataItem {
+interface UniqueBuyersDataItem {
   date: string
-  averageTicketsSold: number
-  percentageSold: number
+  value: number
 }
 
-interface AverageTicketsChartProps {
-  data: AverageTicketsDataItem[]
+interface UniqueBuyersChartProps {
+  data: UniqueBuyersDataItem[]
+  totalUniqueBuyers: number
   timeframe: string
   isLoading?: boolean
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const item = payload[0].payload
     return (
       <div className="bg-white shadow-lg rounded-md p-2">
         <p className="text-sm font-inter font-semibold">{label}</p>
         <p className="text-black-1000 text-sm font-inter font-semibold">
-          Avg Tickets Sold: {item.averageTicketsSold}
-        </p>
-        <p className="text-gray-600 text-sm font-inter">
-          Fill Rate: {item.percentageSold}%
+          Unique Buyers: {payload[0].value}
         </p>
       </div>
     )
@@ -46,40 +42,32 @@ const formatYAxis = (value: number) => {
   return `${value}`
 }
 
-export default function AverageTicketsChart({ data, timeframe, isLoading }: AverageTicketsChartProps) {
+export default function UniqueBuyersChart({ data, totalUniqueBuyers, timeframe, isLoading }: UniqueBuyersChartProps) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
     if (timeframe === "day") {
-      return date.toLocaleDateString([], { month: "short", day: "numeric" })
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     }
     return date.toLocaleDateString([], { month: "short", day: "numeric" })
   }
 
   const chartData = data.map((item) => ({
-    date: formatDate(item.date),
-    averageTicketsSold: item.averageTicketsSold,
-    percentageSold: item.percentageSold,
+    time: formatDate(item.date),
+    value: item.value,
   }))
-
-  const avgTickets = data.length > 0
-    ? (data.reduce((sum, item) => sum + item.averageTicketsSold, 0) / data.length).toFixed(1)
-    : 0
-  const avgPercentage = data.length > 0
-    ? (data.reduce((sum, item) => sum + item.percentageSold, 0) / data.length).toFixed(1)
-    : 0
 
   return (
     <div className="bg-white border border-gray-1100 font-inter font-medium text-black-1000 overflow-hidden rounded-[20px] w-full">
-      <div className="flex bg-gray-1300 border-b border-gray-1100 py-6 px-5 items-center justify-between">
+      <div className="flex lg:flex-nowrap flex-wrap lg:gap-0 gap-5 bg-gray-1300 border-b border-gray-1100 py-6 px-5 items-center justify-between">
         <div>
-          <h2 className="text-xl font-inter text-black-1000 font-semibold">Average Tickets Sold</h2>
-          <p className="text-sm text-gray-500">
-            Avg: {avgTickets} tickets • {avgPercentage}% fill rate
+          <h2 className="text-xl font-inter text-black-1000 font-semibold">Unique Buyers</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Total: {totalUniqueBuyers} unique buyers ({timeframe})
           </p>
         </div>
       </div>
 
-      <div className="w-full h-[340px] pt-6">
+      <div className="w-full h-[340px] pt-10 pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-color"></div>
@@ -90,20 +78,26 @@ export default function AverageTicketsChart({ data, timeframe, isLoading }: Aver
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <AreaChart
               data={chartData}
-              margin={{ left: 8, right: 14, top: 20, bottom: 20 }}
+              margin={{ left: 8, right: 14, top: 20, bottom: 0 }}
             >
-              <CartesianGrid stroke="#E9E9E9" vertical={false} strokeDasharray="10 10" />
+              <defs>
+                <linearGradient id="uniqueBuyersGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.6} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
 
+              <CartesianGrid stroke="#E9E9E9" vertical={false} strokeDasharray="10 10" />
               <XAxis
-                dataKey="date"
+                dataKey="time"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#000", fontSize: 14, fontWeight: 500 }}
                 tickMargin={12}
+                interval={0}
+                tick={{ fill: "#000", fontSize: 14, fontWeight: 500, dx: -10 }}
               />
-
               <YAxis
                 axisLine={false}
                 tickLine={false}
@@ -112,13 +106,29 @@ export default function AverageTicketsChart({ data, timeframe, isLoading }: Aver
                 tick={{ fill: "#000", fontSize: 14, fontWeight: 500 }}
               />
 
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(240, 132, 9, 0.1)" }} />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ stroke: "#10b981", strokeWidth: 1, strokeDasharray: "5 5" }}
+              />
 
-              <Bar dataKey="averageTicketsSold" fill="#f08409" radius={[0, 0, 0, 0]} barSize={24} />
-            </BarChart>
+              <Area
+                type="linear"
+                dataKey="value"
+                stroke="#10b981"
+                fill="url(#uniqueBuyersGradient)"
+                strokeWidth={2}
+                dot={{
+                  r: 2,
+                  fill: "#10b981",
+                  stroke: "#10b981",
+                  strokeWidth: 4,
+                }}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
     </div>
   )
 }
+

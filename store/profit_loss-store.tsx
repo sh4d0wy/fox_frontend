@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type TimeframeFilter = "Daily" | "Monthly" | "Yearly";
+export type TimeframeFilter = "daily" | "monthly" | "yearly";
 export type ServiceFilter = "Raffle" | "Gumball";
 export type CurrencyFilter = "Raffle" | "Gumball";
 
@@ -16,7 +16,7 @@ interface FiltersState {
 }
 
 export const useFiltersStore = create<FiltersState>((set) => ({
-  timeframe: "Daily",
+  timeframe: "daily",
   setTimeframe: (value) => set({ timeframe: value }),
 
   services: [

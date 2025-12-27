@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -10,6 +10,7 @@ import NotificationsModel from "./NotificationsModel";
 import DynamicNewLink from "./DynamicNewLink";
 import StatsDropdown from "./StatsDropdown";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { isTokenExpired, setToken, removeToken } from "../../utils/auth";
 
 export const Navbar = () => {
   const {
@@ -26,43 +27,138 @@ export const Navbar = () => {
     setAuth,
   } = useNavbarStore();
 
-  const { publicKey, connected ,signMessage} = useWallet();
+  const { publicKey, connected, signMessage } = useWallet();
   const location = useLocation();
+  const tokenCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isAuthenticatingRef = useRef(false);
+  const hasInitializedRef = useRef(false);
   
   const signAndVerifyMessage = async (message: string) => {
     if (!publicKey || !signMessage) {
         throw new Error("Wallet not connected");
     }
-    const encodedMessage = new TextEncoder().encode(message);
-    const signature = await signMessage(encodedMessage);
-    const data = await verifyMessage(publicKey.toBase58(), message, bs58.encode(signature));
-    if(!data.error){
-      localStorage.setItem("authToken", data.token.toString());
+    try {
+      const encodedMessage = new TextEncoder().encode(message);
+      const signature = await signMessage(encodedMessage);
+      const data = await verifyMessage(publicKey.toBase58(), message, bs58.encode(signature));
+      
+      if(!data.error && data.token){
+        setToken(data.token.toString());
+        return { data, success: true };
+      }
+      return { data, success: false };
+    } catch (error) {
+      console.error("Error signing and verifying message:", error);
+      return { data: null, success: false };
     }
-    return {
-        data
+  };
+
+  const authenticateWallet = async (currentWalletKey: string, reason: string) => {
+    if (isAuthenticatingRef.current) {
+      console.log(`Authentication already in progress, skipping ${reason}`);
+      return;
     }
-}
-  /* ----------------------- Sync wallet → Zustand ----------------------- */
+
+    try {
+      isAuthenticatingRef.current = true;
+      console.log(`Starting authentication: ${reason}`);
+      
+      const message = await requestMessage(currentWalletKey);
+      const result = await signAndVerifyMessage(message.message);
+      
+      if (result.success && result.data?.token) {
+        console.log("Authentication successful");
+        setToken(result.data.token.toString());
+        setAuth(true, currentWalletKey);
+        hasInitializedRef.current = true;
+      } else {
+        console.error("Authentication failed");
+        removeToken();
+        setAuth(false, null);
+        hasInitializedRef.current = false;
+      }
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      removeToken();
+      setAuth(false, null);
+      hasInitializedRef.current = false;
+    } finally {
+      isAuthenticatingRef.current = false;
+    }
+  };
+
   useEffect(() => {
     const fetchMessage = async () => {
       if (connected && publicKey) {
-        const authToken = localStorage.getItem("authToken");
-        if(authToken){
-          setAuth(true, publicKey.toBase58());
-        }else {
-        const message = await requestMessage(publicKey.toBase58());
-        const signData = await signAndVerifyMessage(message.message);
-        setAuth(true, publicKey.toBase58());
+        const currentWalletKey = publicKey.toBase58();
+        
+        // Skip if already authenticated with this wallet
+        if (hasInitializedRef.current && isAuth && walletAddress === currentWalletKey) {
+          console.log("Already authenticated with this wallet, skipping");
+          return;
         }
-      }else {
-        setAuth(false, null);
-      }
-    }
-    fetchMessage();
-  }, [connected, publicKey, setAuth]);
 
-  /* ----------------------------- Navigation ----------------------------- */
+        // Skip if authentication is in progress
+        if (isAuthenticatingRef.current) {
+          console.log("Authentication in progress, skipping");
+          return;
+        }
+
+        console.log("Checking authentication status for:", currentWalletKey);
+        const authToken = localStorage.getItem('authToken');
+        
+        if (authToken && !isTokenExpired(authToken)) {
+          console.log("Using existing valid token");
+          setAuth(true, currentWalletKey);
+          hasInitializedRef.current = true;
+        } else {
+          console.log("Token missing or expired, requesting signature");
+          await authenticateWallet(currentWalletKey, "initial connection");
+        }
+      } else if (!connected) {
+        if (hasInitializedRef.current) {
+          console.log("Wallet disconnected, clearing auth");
+          hasInitializedRef.current = false;
+          isAuthenticatingRef.current = false;
+          removeToken();
+          setAuth(false, null);
+        }
+      }
+    };
+    fetchMessage();
+  }, [connected, publicKey]);
+
+  useEffect(() => {
+    if (!connected || !publicKey || !hasInitializedRef.current) {
+      if (tokenCheckIntervalRef.current) {
+        clearInterval(tokenCheckIntervalRef.current);
+        tokenCheckIntervalRef.current = null;
+      }
+      return;
+    }
+
+    if (tokenCheckIntervalRef.current) {
+      clearInterval(tokenCheckIntervalRef.current);
+      tokenCheckIntervalRef.current = null;
+    }
+
+    tokenCheckIntervalRef.current = setInterval(() => {
+      const authToken = localStorage.getItem('authToken');
+      
+      if (isTokenExpired(authToken) && publicKey) {
+        console.log("Token check: Token expired, renewing...");
+        authenticateWallet(publicKey.toBase58(), "token renewal");
+      }
+    }, 60 * 1000);
+
+    return () => {
+      if (tokenCheckIntervalRef.current) {
+        clearInterval(tokenCheckIntervalRef.current);
+        tokenCheckIntervalRef.current = null;
+      }
+    };
+  }, [connected, publicKey, isAuth]);
+
 
   const navLinks = [
     { label: "Fox9", path: "/" },
@@ -82,7 +178,6 @@ export const Navbar = () => {
   const shortAddress =
     walletAddress && `${walletAddress.slice(0, 4)}..${walletAddress.slice(-4)}`;
 
-  /* ----------------------------- JSX ----------------------------- */
 
   return (
     <header className="w-full flex h-20 md:h-[90px] lg:h-[100px] bg-white border-b border-gray-1100 z-10 relative">
