@@ -35,12 +35,18 @@ export const useAddPrizes = () => {
             prizes: AddPrizeInputData[];
         }) => {
             console.log("gumballId", args.gumballId);
-            const onChainPrizes: OnChainPrizeInput[] = args.prizes.map((prize) => ({
-                prizeIndex: prize.prizeIndex,
-                prizeAmount: prize.prizeAmount,
-                quantity: prize.quantity,
-                prizeMint: new PublicKey("VoteCahXMnr5FXRCvQRr7kDtYTDpo348yWmVgcrZpkn"),
-            }));
+            console.log("Input prizes:", args.prizes);
+            const onChainPrizes: OnChainPrizeInput[] = args.prizes.map((prize) => {
+                console.log("Processing prize with mint:", prize.mint);
+                const mintPubkey = new PublicKey(prize.mint);
+                console.log("Converted to PublicKey:", mintPubkey.toString());
+                return {
+                    prizeIndex: prize.prizeIndex,
+                    prizeAmount: prize.prizeAmount,
+                    quantity: prize.quantity,
+                    prizeMint: mintPubkey,
+                };
+            });
             console.log("onChainPrizes", onChainPrizes);
 
             const txSignature = await addMultiplePrizesMutation.mutateAsync({

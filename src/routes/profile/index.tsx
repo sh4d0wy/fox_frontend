@@ -401,7 +401,8 @@ function CreateProfile() {
                       <div className="w-full grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 lg:gap-y-10 lg:gap-x-[26px] gap-4">
                         {auctionCreatedCards.map(card => (
                           <div key={card.auctionPda} className="flex items-center justify-center">
-                            <AucationsCard key={card.auctionPda} {...card} />
+                            {/* <AucationsCard key={card.auctionPda} {...card} /> */}
+                            <></>
                           </div>
                         ))}
                       </div>

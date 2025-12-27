@@ -1,6 +1,6 @@
-import { Link } from '@tanstack/react-router'
 import { useMemo, useState } from 'react';
 import AddTokenModal from './AddTokenModal';
+import AddNftModal from './AddNftModal';
 import { useGumballById } from '../../../hooks/useGumballsQuery';
 import type { GumballBackendDataType } from 'types/backend/gumballTypes';
 import { VerifiedTokens } from '@/utils/verifiedTokens';
@@ -8,6 +8,7 @@ import { useGetTotalPrizeValueInSol } from '../../../hooks/useGetTotalPrizeValue
 
 export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   const [isAddTokenModalOpen, setIsAddTokenModalOpen] = useState(false);
+  const [isAddNftModalOpen, setIsAddNftModalOpen] = useState(false);
   const { data: gumball  } = useGumballById(gumballId) as { data: GumballBackendDataType };
   console.log("gumball",gumball);
   const totalPrizesAdded = gumball?.prizes.reduce((acc, prize) => acc + prize.quantity, 0) || 0;
@@ -72,9 +73,9 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
                     <h4 className="font-inter mb-5 lg:mb-6 font-bold lg:text-xl text-lg text-black-1000/30">
                     Add NFT prize
                     </h4>
-                    <Link
-                    to={"."}
-                    className="text-white font-semibold hover:from-primary-color hover:via-primary-color hover:to-primary-color text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2"
+                    <button
+                    onClick={() => setIsAddNftModalOpen(true)}
+                    className="text-white font-semibold hover:from-primary-color hover:via-primary-color hover:to-primary-color text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2 cursor-pointer"
                     >
                     <span className="w-6 h-6 flex items-center justify-center">
                         <svg
@@ -94,7 +95,7 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
                         </svg>
                     </span>
                     Add
-                    </Link>
+                    </button>
                     </div>
                    </div>
 
@@ -150,6 +151,12 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
                   onClose={() => setIsAddTokenModalOpen(false)}
                   gumballId={gumballId}
                   remainingPrizes={gumball?.totalTickets - (gumball?.prizesAdded || 0)}
+                />
+
+                <AddNftModal 
+                  isOpen={isAddNftModalOpen} 
+                  onClose={() => setIsAddNftModalOpen(false)}
+                  gumballId={gumballId}
                 />
 
             

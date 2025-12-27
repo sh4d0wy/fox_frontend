@@ -47,6 +47,7 @@ const PrizeModal = ({ isOpen, onClose, prize, onClaimPrize, isClaimPending }: Pr
             className="relative z-10 w-full max-w-md duration-300 ease-out data-closed:transform-[scale(95%)] data-closed:opacity-0"
           >
             <div className="bg-white rounded-[24px] p-6 shadow-2xl">
+              <p className='text-primary-color text-center mb-4 font-bold text-2xl font-inter'>You won!</p>
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-300 cursor-pointer"
@@ -135,7 +136,7 @@ function GumballsDetails() {
     if (!price) return "0";
     if (isTicketSol) {
         const priceNum = parseFloat(price)/10**9;
-      return `${priceNum} SOL`;
+      return `${priceNum.toFixed(2)} SOL`;
     }
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);
     return `${numPrice} ${isTicketSol ? "SOL" : ""}`;

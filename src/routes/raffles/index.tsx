@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGumballsQuery } from "../../../hooks/useGumballsQuery";
 import { useFiltersStore } from "../../../store/filters-store";
 import { sortRaffles, filterRaffles, getActiveFiltersList, hasActiveFilters, type PageType } from "../../utils/sortAndFilter";
+import { useFetchUserNfts } from "hooks/useFetchUserNfts";
 
 const sortingOptions = [
   { label: "Recently Added", value: "Recently Added" },
@@ -47,7 +48,7 @@ function RafflesPage() {
     const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
     const {data: gumballs} = useGumballsQuery("All Gumballs");
     const testRaffleById = useQuery(getRaffleById(39));
-    
+    const { userNfts, isLoading: isLoadingNfts, error: errorNfts } = useFetchUserNfts();
     const {
       raffleType,
       selectedToken,
@@ -120,6 +121,7 @@ function RafflesPage() {
         });
       }
     }, [raffles]);
+    console.log("userNFTS",userNfts);
   return (
     <main className="flex-1 font-inter">
       <section className="w-full md:pt-0 pt-5">
