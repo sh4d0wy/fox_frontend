@@ -477,7 +477,7 @@ function RouteComponent() {
                     </h3>
                     
                   </div> : <></>}
-                    {publicKey ? 
+                    {publicKey && publicKey.toBase58() !== raffle?.createdBy ? 
                   <div className="w-full mt-6">
                     <div className="w-full items-center grid lg:grid-cols-2 sm:grid-cols-2 grid-cols-1 gap-5">
                       <QuantityBox max={raffle?.maxEntries || 1}/>
@@ -540,7 +540,7 @@ function RouteComponent() {
                     </div>
                     {tabs[0].active && <ParticipantsTable participants={raffle?.raffleEntries} ticketSupply={raffle?.ticketSupply || 0} />}
 
-                    {tabs[1].active && <TransactionsTable transactions={raffle?.raffleEntries?.flatMap((entry) => entry.transactions)} />}
+                    {tabs[1].active && <TransactionsTable transactions={raffle?.raffleEntries?.flatMap((entry) => entry.transactions) ?? []} />}
 
                     {tabs[2].active && <TermsConditions />}
                   </div>

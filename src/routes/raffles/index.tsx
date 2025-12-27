@@ -20,6 +20,8 @@ import { NoRaffles } from "@/components/home/NoRaffles";
 import { BN } from "@coral-xyz/anchor";
 import { useQuery } from "@tanstack/react-query";
 import { useGumballsQuery } from "../../../hooks/useGumballsQuery";
+import { useFiltersStore } from "../../../store/filters-store";
+import { sortRaffles, filterRaffles, getActiveFiltersList, hasActiveFilters, type PageType } from "../../utils/sortAndFilter";
 
 const sortingOptions = [
   { label: "Recently Added", value: "Recently Added" },
@@ -43,29 +45,68 @@ function RafflesPage() {
     const { sort, setSort, searchQuery, setSearchQuery } = useGlobalStore();
     const { getAllRaffles, getRaffleConfig, getRaffleById } = useRaffleAnchorProgram();
     const { ticketQuantityById, setTicketQuantityById, getTicketQuantityById } = useBuyRaffleTicketStore();
-    const [filters, setFilters] = useState<string[]>([]);
     const {data: gumballs} = useGumballsQuery("All Gumballs");
     const testRaffleById = useQuery(getRaffleById(39));
+    
+    const {
+      raffleType,
+      selectedToken,
+      selectedCollection,
+      floorMin,
+      floorMax,
+      endTimeAfter,
+      endTimeBefore,
+      filtersApplied,
+      clearFilter,
+      resetFilters,
+      setPageType,
+    } = useFiltersStore();
+
+    useEffect(() => {
+      setPageType("raffles");
+    }, [setPageType]);
+
+    const filterOptions = {
+      raffleType,
+      selectedToken,
+      selectedCollection,
+      floorMin,
+      floorMax,
+      endTimeAfter,
+      endTimeBefore,
+    };
+
+    const activeFilters = useMemo(() => {
+      return getActiveFiltersList(filterOptions, "raffles");
+    }, [raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+
+    const showActiveFilters = hasActiveFilters(filterOptions, "raffles");
+
     console.log(gumballs);
     const raffles = useMemo(() => {
-      const allRaffles = data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[];
+      let allRaffles = data?.pages.map((p) => p.items).flat() as unknown as RaffleTypeBackend[];
       if (!allRaffles) return [];
       
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
-        return allRaffles.filter((raffle) => 
+        allRaffles = allRaffles.filter((raffle) => 
           raffle.prizeData?.name?.toLowerCase().includes(query) ||
           raffle.prizeData?.symbol?.toLowerCase().includes(query) ||
           raffle.prizeData?.description?.toLowerCase().includes(query)
         );
       }
       
+      if (filtersApplied && showActiveFilters) {
+        allRaffles = filterRaffles(allRaffles, filterOptions);
+      }
+
+      if (sort && sort !== "Sort") {
+        allRaffles = sortRaffles(allRaffles, sort);
+      }
+      
       return allRaffles;
-    }, [data, searchQuery]);
-    const activeFilters = [
-      { id: "all", label: "All Raffles" },
-      { id: "past", label: "Past Raffles" },
-    ];
+    }, [data, searchQuery, sort, filtersApplied, raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+
     useEffect(() => {
       setSearchQuery("");
     }, []);
@@ -153,8 +194,8 @@ function RafflesPage() {
           </div>
 
           <div className="md:py-10 pt-10 overflow-x-auto pb-0 flex items-center gap-4">
-            <div className="hidden items-center gap-4">
-              {activeFilters.length > 0 && (
+            <div className={`${showActiveFilters ? 'flex' : 'hidden'} items-center gap-4`}>
+              {showActiveFilters && (
                 <>
                   <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
                     Filters :
@@ -167,7 +208,7 @@ function RafflesPage() {
                           Clear All
                         </p>
                         <button
-                          onClick={() => setFilter("")}
+                          onClick={() => resetFilters()}
                           className="cursor-pointer"
                         >
                           <img
@@ -186,11 +227,7 @@ function RafflesPage() {
                             {filterItem.label}
                           </p>
                           <button
-                            onClick={() =>
-                              setFilters(
-                                filters.filter((f) => f !== filterItem.id)
-                              )
-                            }
+                            onClick={() => clearFilter(filterItem.id)}
                             className="cursor-pointer"
                           >
                             <img

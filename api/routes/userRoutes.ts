@@ -1,5 +1,7 @@
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
 import { api } from "..";
+import type { GumballBackendDataType } from "types/backend/gumballTypes";
+import type { AuctionTypeBackend } from "types/backend/auctionTypes";
 
 export const requestMessage = async(publicKey:string)=>{
     try {
@@ -104,6 +106,71 @@ export const getRafflePurchased = async (publicKey:string) => {
 export const getRaffleFavourite = async (publicKey:string): Promise<{message:string, raffles:RaffleTypeBackend[]}> => {
     try {
         const response = await api.get(`/user/profile/${publicKey}/raffles/favourite`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+
+//gumball profile routes
+
+export const getGumballCreated = async (publicKey:string): Promise<{message:string, gumballs:GumballBackendDataType[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/gumballs/created`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getGumballPurchased = async (publicKey:string): Promise<{message:string, gumballs:GumballBackendDataType[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/gumballs/purchased`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getGumballFavourite = async (publicKey:string): Promise<{message:string, gumballs:GumballBackendDataType[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/gumballs/favourite`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+//auction profile routes
+
+export const getAuctionCreated = async (publicKey:string): Promise<{message:string, auctions:AuctionTypeBackend[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/auctions/created`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getAuctionPurchased = async (publicKey:string): Promise<{message:string, auctions:AuctionTypeBackend[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/auctions/purchased`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getAuctionFavourite = async (publicKey:string): Promise<{message:string, auctions:AuctionTypeBackend[]}> => {
+    try {
+        const response = await api.get(`/user/profile/${publicKey}/auctions/favourite`);
         return response.data;
     } catch (error) {
         console.error(error);

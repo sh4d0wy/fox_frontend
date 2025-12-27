@@ -15,6 +15,9 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useGumballAnchorProgram } from "../../../hooks/useGumballAnchorProgram";
 import { BN } from "@coral-xyz/anchor";
 import { NoGumballs } from "../../components/home/NoGumballs";
+import { useFiltersStore } from "../../../store/filters-store";
+import { sortGumballs, filterGumballs, getActiveFiltersList, hasActiveFilters, type PageType } from "../../utils/sortAndFilter";
+import type { GumballBackendDataType } from "../../../types/backend/gumballTypes";
 
 export const Route = createFileRoute("/gumballs/")({
   component: Gumballs,
@@ -37,29 +40,66 @@ function Gumballs() {
   const { data, fetchNextPage, hasNextPage, isLoading } =
     useGumballsQuery(filter);
   const { sort, setSort, searchQuery, setSearchQuery } = useGlobalStore();
+  const { getGumballConfig, getAllGumballs } = useGumballAnchorProgram();
+
+  const {
+    raffleType,
+    selectedToken,
+    selectedCollection,
+    floorMin,
+    floorMax,
+    endTimeAfter,
+    endTimeBefore,
+    filtersApplied,
+    clearFilter,
+    resetFilters,
+    setPageType,
+  } = useFiltersStore();
+
+  useEffect(() => {
+    setPageType("gumballs");
+  }, [setPageType]);
+
+  const filterOptions = {
+    raffleType,
+    selectedToken,
+    selectedCollection,
+    floorMin,
+    floorMax,
+    endTimeAfter,
+    endTimeBefore,
+  };
+
+  const activeFilters = useMemo(() => {
+    return getActiveFiltersList(filterOptions, "gumballs");
+  }, [raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+
+  const showActiveFilters = hasActiveFilters(filterOptions, "gumballs");
 
   const gumballs = useMemo(() => {
-    const allGumballs = data?.pages.flatMap((p) => p.items) || [];
+    let allGumballs = (data?.pages.flatMap((p) => p.items) || []) as GumballBackendDataType[];
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      return allGumballs.filter((gumball) =>
+      allGumballs = allGumballs.filter((gumball) =>
         gumball.name?.toLowerCase().includes(query)
       );
     }
 
+    if (filtersApplied && showActiveFilters) {
+      allGumballs = filterGumballs(allGumballs, filterOptions);
+    }
+
+    if (sort && sort !== "Sort") {
+      allGumballs = sortGumballs(allGumballs, sort);
+    }
+
     return allGumballs;
-  }, [data, searchQuery]);
-  const { getGumballConfig, getAllGumballs } = useGumballAnchorProgram();
+  }, [data, searchQuery, sort, filtersApplied, raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
 
   useEffect(() => {
     setSearchQuery("");
   }, []);
-
-  // const activeFilters = [
-  //   { id: "all", label: "All Gumballs" },
-  //   { id: "past", label: "Past Gumballs" },
-  // ];
 
   return (
     <main className="main font-inter">
@@ -139,8 +179,8 @@ function Gumballs() {
 
           {/* Filters List */}
           <div className="lg:py-10 py-5 flex items-center gap-4">
-            <div className="w-full overflow-x-auto items-center gap-4 hidden">
-              {filter && (
+            <div className={`w-full overflow-x-auto items-center gap-4 ${showActiveFilters ? 'flex' : 'hidden'}`}>
+              {showActiveFilters && (
                 <>
                   <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
                     Filters :
@@ -152,7 +192,7 @@ function Gumballs() {
                           Clear All
                         </p>
                         <button
-                          onClick={() => setFilter("")}
+                          onClick={() => resetFilters()}
                           className="cursor-pointer"
                         >
                           <img
@@ -164,35 +204,25 @@ function Gumballs() {
                       </div>
                     </li>
 
-                    <li>
-                      <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
-                        <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
-                          nft Raffles
-                        </p>
-                        <button className="cursor-pointer">
-                          <img
-                            src="/icons/cross-icon.svg"
-                            className="min-w-4"
-                            alt="cross icon"
-                          />
-                        </button>
-                      </div>
-                    </li>
-
-                    <li>
-                      <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
-                        <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
-                          Past Raffles
-                        </p>
-                        <button className="cursor-pointer">
-                          <img
-                            src="/icons/cross-icon.svg"
-                            className="min-w-4"
-                            alt="cross icon"
-                          />
-                        </button>
-                      </div>
-                    </li>
+                    {activeFilters.map((filterItem) => (
+                      <li key={filterItem.id}>
+                        <div className="border group hover:border-black-1000 transition duration-200 h-12 inline-flex items-center justify-center rounded-full border-gray-1100 px-5 py-3 gap-2">
+                          <p className="md:text-base whitespace-nowrap text-sm font-inter font-medium text-black-1000">
+                            {filterItem.label}
+                          </p>
+                          <button
+                            onClick={() => clearFilter(filterItem.id)}
+                            className="cursor-pointer"
+                          >
+                            <img
+                              src="/icons/cross-icon.svg"
+                              className="min-w-4"
+                              alt="cross icon"
+                            />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </>
               )}

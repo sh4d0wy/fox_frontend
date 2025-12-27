@@ -10,15 +10,14 @@ import { useAucationsQuery } from "hooks/useAucationsQuery";
 import { useGlobalStore } from "store/globalStore";
 import CryptoCardSkeleton from "@/components/skeleton/RafflesCardSkeleton";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useFiltersStore } from "../../../store/filters-store";
+import { sortAuctions, filterAuctions, getActiveFiltersList, hasActiveFilters, type AuctionItem, type PageType } from "../../utils/sortAndFilter";
 
 const options = [
   { label: "Recently Added", value: "Recently Added" },
   { label: "Expiring Soon", value: "Expiring Soon" },
-  { label: "Selling out soon", value: "Selling out soon" },
   { label: "Price: Low to High", value: "Price: Low to High" },
   { label: "Price: High to Low", value: "Price: High to Low" },
-  { label: "TTV/Floor: Low to High", value: "TTV/Floor: Low to High" },
-  { label: "TTV/Floor: High to Low", value: "TTV/Floor: High to Low" },
   { label: "Floor: Low to High", value: "Floor: Low to High" },
   { label: "Floor: High to Low", value: "Floor: High to Low" },
 ];
@@ -33,27 +32,62 @@ function Auctions() {
     useAucationsQuery(filter);
   const { sort, setSort, searchQuery, setSearchQuery } = useGlobalStore();
 
+  const {
+    raffleType,
+    selectedToken,
+    selectedCollection,
+    floorMin,
+    floorMax,
+    endTimeAfter,
+    endTimeBefore,
+    filtersApplied,
+    clearFilter,
+    resetFilters,
+    setPageType,
+  } = useFiltersStore();
+
+  useEffect(() => {
+    setPageType("auctions");
+  }, [setPageType]);
+
+  const filterOptions = {
+    raffleType,
+    selectedToken,
+    selectedCollection,
+    floorMin,
+    floorMax,
+    endTimeAfter,
+    endTimeBefore,
+  };
+
+  const activeFilters = useMemo(() => {
+    return getActiveFiltersList(filterOptions, "auctions");
+  }, [raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+
+  const showActiveFilters = hasActiveFilters(filterOptions, "auctions");
+
   const aucations = useMemo(() => {
-    const allAuctions = data?.pages.flatMap((p) => p.items) || [];
+    let allAuctions = data?.pages.flatMap((p) => p.items) || [];
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      return allAuctions.filter(
+      allAuctions = allAuctions.filter(
         (auction) =>
           auction.heading?.toLowerCase().includes(query) ||
           auction.userName?.toLowerCase().includes(query)
       );
     }
 
+    if (filtersApplied && showActiveFilters) {
+      allAuctions = filterAuctions(allAuctions as AuctionItem[], filterOptions) as typeof allAuctions;
+    }
+
+    if (sort && sort !== "Sort") {
+      allAuctions = sortAuctions(allAuctions as AuctionItem[], sort) as typeof allAuctions;
+    }
+
     return allAuctions;
-  }, [data, searchQuery]);
-
-  const [filters, setFilters] = useState<string[]>([]);
-
-  const activeFilters = [
-    { id: "all", label: "All Auctions" },
-    { id: "past", label: "Past Auctions" },
-  ];
+  }, [data, searchQuery, sort, filtersApplied, raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
 
   useEffect(() => {
     setSearchQuery("");
@@ -100,8 +134,8 @@ function Auctions() {
 
           {/* Filters List */}
           <div className="lg:py-10 py-5 overflow-x-auto flex gap-4">
-            <div className="hidden items-center gap-4">
-              {activeFilters.length > 0 && (
+            <div className={`${showActiveFilters ? 'flex' : 'hidden'} items-center gap-4`}>
+              {showActiveFilters && (
                 <>
                   <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
                     Filters :
@@ -114,7 +148,7 @@ function Auctions() {
                           Clear All
                         </p>
                         <button
-                          onClick={() => setFilter("")}
+                          onClick={() => resetFilters()}
                           className="cursor-pointer"
                         >
                           <img
@@ -133,11 +167,7 @@ function Auctions() {
                             {filterItem.label}
                           </p>
                           <button
-                            onClick={() =>
-                              setFilters(
-                                filters.filter((f) => f !== filterItem.id)
-                              )
-                            }
+                            onClick={() => clearFilter(filterItem.id)}
                             className="cursor-pointer"
                           >
                             <img
