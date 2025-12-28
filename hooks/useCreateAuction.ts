@@ -23,6 +23,9 @@ export type AuctionOnChainArgs = {
     timeExtension: number;
     prizeMint: string;
     bidMint?: string;
+    prizeName: string;
+    prizeImage: string;
+    collectionName: string;
 };
 
 const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
@@ -117,6 +120,9 @@ export const useCreateAuction = () => {
                 payRoyalties: false,
                 royaltyPercentage: 0,
                 bidEscrow: args.bidMint,
+                prizeName: args.prizeName,
+                prizeImage: args.prizeImage,
+                collectionName: args.collectionName,
             });
             const tx = await createAuctionMutation.mutateAsync({
                 startTime: args.startTime,

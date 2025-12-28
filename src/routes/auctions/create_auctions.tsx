@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useRef, useEffect, Fragment, useMemo } from "react";
+import { useState, useRef, useEffect, Fragment, useMemo, use } from "react";
 import { ticketTokens } from "@/utils/ticketTokens";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, DialogPanel, Transition } from "@headlessui/react";
 import { AgreeCheckbox } from "@/components/common/AgreeCheckbox";
 import TimeSelector from "@/components/ui/TimeSelector";
 import FormInput from "@/components/ui/FormInput";
@@ -14,6 +14,9 @@ export const Route = createFileRoute("/auctions/create_auctions")({
 import { useCreateAuction } from "../../../hooks/useCreateAuction";
 import { Loader } from "lucide-react";
 import { useGumballStore } from "store/useGumballStore";
+import clsx from "clsx";
+import { useFetchUserNfts } from "hooks/useFetchUserNfts";
+import { useGetCollectionFP } from "hooks/useGetCollectionFP";
 
 function CreateAuctions() {
   const { createAuction } = useCreateAuction();
@@ -50,6 +53,8 @@ function CreateAuctions() {
     getStartTimestamp,
   } = useGumballStore();
 
+  const { collectionFPs, collectionFPMap } = useGetCollectionFP();
+
   const [isCreatingAuction, setIsCreatingAuction] = useState(false);
   const [startType, setStartType] = useState<"manual" | "schedule">("manual");
   const [solBalance, setSolBalance] = useState(0);
@@ -61,6 +66,8 @@ function CreateAuctions() {
   const [baseMint, setBaseMint] = useState("");
   const [bidIncrement, setBidIncrement] = useState("");
   const [timeExtension, setTimeExtension] = useState("");
+  const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
+  const [nftData, setNftData] = useState<{ mint: string, name:string, image:string, collectionName: string } | null>(null);
 
   const handleSelect = (address: string, symbol: string) => {
     setSymbol(symbol);
@@ -110,14 +117,73 @@ function CreateAuctions() {
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,
         minIncrement: parseInt(bidIncrement),
-        prizeMint: "2KXGzavYa41bXGUdnMRRvmDpeZixu9MRQj7PMbjadkoX",
+        prizeMint: nftData?.mint || "",
         timeExtension: parseInt(timeExtension),
+        prizeName: nftData?.name || "",
+        prizeImage: nftData?.image || "",
+        collectionName: nftData?.collectionName || "",
       });
     } catch (error) {
       console.error(error);
     } finally {
       setIsCreatingAuction(false);
     }
+  };
+
+  const [selectedNftId, setSelectedNftId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { userNfts, isLoading: isLoadingNfts } = useFetchUserNfts();
+
+  // Mapping raw NFT data to a clean format
+  const nfts = useMemo(() => {
+     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    return (userNfts || []).map((nft: any) => ({
+      id: nft.id,
+      name: nft.content.metadata.name,
+      image: nft.content.links.image,
+      floorPrice: collectionFPMap[nft.grouping[0].group_value],
+      mint: nft.id,
+    }));
+  }, [userNfts]);
+
+  // Filtered list based on search input
+  const filteredNfts = useMemo(() => {
+    if (!searchQuery.trim()) return nfts;
+    const query = searchQuery.toLowerCase();
+     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    return nfts.filter((nft: any) => nft.name.toLowerCase().includes(query));
+  }, [searchQuery, nfts]);
+
+  // Toggle selection: if clicking the same one, deselect it
+  const handleSelectNft = (id: string) => {
+    setSelectedNftId((prevId) => (prevId === id ? null : id));
+  };
+
+  const handleAddPrizes = async () => {
+     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    const selectedNftData = nfts.find((nft: any) => nft.id === selectedNftId);
+
+    if (!selectedNftData) return;
+
+    // Constructed as a single object (or wrap in array if your API requires it)
+    const prizeData = {
+      mint: selectedNftData.mint,
+      name: selectedNftData.name,
+      image: selectedNftData.image,
+      collectionName: collectionFPs[0]?.name || ""
+    };
+
+    console.log("prizeData", prizeData);
+
+    setNftData(prizeData);
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setSelectedNftId(null);
+    setSearchQuery("");
+    setIsPrizeModalOpen(false);
   };
 
   return (
@@ -142,9 +208,9 @@ function CreateAuctions() {
                       <h4 className="font-inter mb-5 lg:mb-6 font-bold lg:text-2xl text-lg text-black-1000/30">
                         Add an NFT prize
                       </h4>
-                      <Link
-                        to={"."}
-                        className="text-white hover:from-primary-color hover:via-primary-color hover:to-primary-color font-semibold text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2"
+                      <button
+                        onClick={() => setIsPrizeModalOpen(true)}
+                        className="text-white cursor-pointer hover:from-primary-color hover:via-primary-color hover:to-primary-color font-semibold text-sm lg:text-base leading-normal font-inter h-10 lg:h-11 rounded-full inline-flex items-center justify-center px-5 lg:px-[26px] transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 gap-2"
                       >
                         <span className="w-6 h-6 flex items-center justify-center">
                           <svg
@@ -164,7 +230,7 @@ function CreateAuctions() {
                           </svg>
                         </span>
                         Add
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -787,6 +853,172 @@ function CreateAuctions() {
           </div>
         </Dialog>
       </Transition>
+
+      <Dialog
+      open={isPrizeModalOpen}
+      as="div"
+      className="relative z-50 focus:outline-none"
+      onClose={handleClose}
+    >
+      <div className="fixed inset-0 z-10 w-screen overflow-y-auto bg-black/70">
+        <div className="flex min-h-full items-center justify-center p-4">
+          <DialogPanel
+            transition
+            className="w-full max-w-[800px] rounded-2xl bg-white border-2 border-primary-color/40 shadow-2xl duration-300 ease-out data-closed:transform-[scale(95%)] data-closed:opacity-0"
+          >
+            {/* Header Close Button */}
+            <div className="flex items-center justify-end px-6 pt-6 pb-2">
+              <button
+                onClick={handleClose}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-100 cursor-pointer hover:bg-gray-100 transition duration-300"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M2 2L14 14M2 14L14 2"
+                    stroke="#000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="px-6 pb-4">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-1 relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path
+                        d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search NFT name"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border-2 border-primary-color/50 bg-transparent text-black-1000 placeholder:text-black-1000/50 font-medium focus:outline-none focus:border-primary-color transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Table Header */}
+            <div className="px-11 pb-3">
+              <div className="grid grid-cols-[50px_1fr_150px] gap-4 text-left">
+                <span className="text-sm font-semibold text-gray-400">NFT</span>
+                <span className="text-sm font-semibold text-gray-400">
+                  Title
+                </span>
+                <span className="text-sm font-semibold text-gray-400">
+                  Floor Price
+                </span>
+              </div>
+            </div>
+
+            {/* List Body */}
+            <div className="px-6 pb-6 min-h-[40vh] max-h-[50vh] overflow-y-auto">
+              {isLoadingNfts ? (
+                <div className="flex items-center justify-center h-40">
+                  <p className="text-gray-400 animate-pulse">
+                    Loading items...
+                  </p>
+                </div>
+              ) : filteredNfts.length === 0 ? (
+                <div className="flex items-center justify-center h-40">
+                  <p className="text-xl font-semibold text-gray-400">
+                    No NFTs found
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {filteredNfts.map((nft: any) => {
+                    const isSelected = selectedNftId === nft.id;
+                    return (
+                      <div
+                        key={nft.id}
+                        onClick={() => handleSelectNft(nft.id)}
+                        className={clsx(
+                          "relative grid grid-cols-[50px_1fr_150px] gap-4 items-center p-4 rounded-xl cursor-pointer transition duration-200",
+                          isSelected
+                            ? "bg-primary-color/10 border-2 border-primary-color"
+                            : "bg-white border-2 border-gray-50 hover:bg-gray-50"
+                        )}
+                      >
+                        <div className="relative w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                          <img
+                            src={nft.image}
+                            alt={nft.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "/images/placeholder-nft.png";
+                            }}
+                          />
+                        </div>
+
+                        <div className="font-medium text-black truncate">
+                          {nft.name}
+                        </div>
+
+                        <div className="font-semibold text-black">
+                          {nft.floorPrice.toFixed(2)} SOL
+                        </div>
+
+                        {isSelected && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                              <svg
+                                width="14"
+                                height="10"
+                                viewBox="0 0 14 10"
+                                fill="none"
+                              >
+                                <path
+                                  d="M1 5L5 9L13 1"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Action */}
+            <div className="px-6 py-5 border-t flex items-center justify-between flex-col border-gray-100">
+              <button
+                onClick={handleAddPrizes}
+                disabled={!selectedNftId}
+                className={clsx(
+                  "w-[50%] h-14 rounded-full font-semibold text-lg transition duration-300",
+                  selectedNftId
+                    ? "bg-primary-color text-white hover:shadow-lg cursor-pointer"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                )}
+              >
+                Confirm NFT
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </div>
+    </Dialog>
     </div>
   );
 }
