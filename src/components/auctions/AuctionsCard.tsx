@@ -1,201 +1,193 @@
 import { Link } from "@tanstack/react-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 
+// Strictly matching the provided API object structure
 export interface AuctionsCardProps {
   id: number;
-  userName: string;
-  userAvatar: string;
-  heading: string;
-  ProfileLink?: string;
-  isFavorite?: boolean;
-  MainImage: string;
-  AuctionTime: string;
-  val: number;
-  val2: string;
-  Winner: string;
-  WinnerBid: string;
-  isWinner: boolean;
-  verified?: boolean;
-  totalTickets: number;
+  prizeName: string;
+  prizeImage: string;
+  collectionName: string;
+  collectionVerified: boolean;
+  createdBy: string;
+  startsAt: Date;
+  endsAt: Date;
+  reservePrice: string;
+  currency: string;
   className?: string;
+  highestBidAmount: number;
+  highestBidderWallet: string;
 }
 
-export const AuctionsCard: React.FC<AuctionsCardProps> = ({
-  id,
-  userName,
-  userAvatar,
-  isFavorite = false,
-  heading,
-  MainImage,
-  AuctionTime,
-  val,
-  val2,
-  Winner,
-  WinnerBid,
-  isWinner,
-  verified = false,
-  className,
-}) => {
+export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
+  const {
+    id,
+    prizeName,
+    prizeImage,
+    collectionName,
+    collectionVerified,
+    createdBy,
+    startsAt,
+    endsAt,
+    reservePrice,
+    currency,
+    className,
+    highestBidAmount,
+    highestBidderWallet,
+  } = props;
+
   const { publicKey } = useWallet();
   const { favouriteAuction } = useToggleFavourite(publicKey?.toString() || "");
   const { getFavouriteAuction } = useQueryFavourites(publicKey?.toString() || "");
 
+  // Calculate status based on system time
+  const [computedStatus, setComputedStatus] = useState<"UPCOMING" | "LIVE" | "COMPLETED">("UPCOMING");
+
+  useEffect(() => {
+    const calculateStatus = () => {
+      const now = new Date().getTime();
+      const start = new Date(startsAt).getTime();
+      const end = new Date(endsAt).getTime();
+
+      if (now < start) setComputedStatus("UPCOMING");
+      else if (now > end) setComputedStatus("COMPLETED");
+      else setComputedStatus("LIVE");
+    };
+
+    calculateStatus();
+    const interval = setInterval(calculateStatus, 1000); // Update every second for accuracy
+    return () => clearInterval(interval);
+  }, [startsAt, endsAt]);
+
   const favorite = useMemo(() => {
-    if (!getFavouriteAuction.data || getFavouriteAuction.data.length === 0) return false;
-    return getFavouriteAuction.data?.some((favourite) => favourite.id === id);
+    if (!getFavouriteAuction.data) return false;
+    return getFavouriteAuction.data.some((f) => f.id === id);
   }, [getFavouriteAuction.data, id]);
 
-  const toggleFavorite = async () => {
-    favouriteAuction.mutate({
-      auctionId: id || 0,
-    });
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    favouriteAuction.mutate({ auctionId: id });
   };
 
+  const shorten = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+
   return (
-      <div className={`bg-white-1000 border border-gray-1100 rounded-2xl ${className}`}>
-          {/* Head */}
-        <div className="w-full flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
+    <div className={`bg-white-1000 border border-gray-1100 rounded-2xl overflow-hidden ${className}`}>
+      {/* Header */}
+      <div className="w-full flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
             <img
-              src={userAvatar}
-              alt={userName}
-              className="w-10 h-10 rounded-full object-cover"
+              src={`https://api.dicebear.com/7.x/identicon/svg?seed=${createdBy}`}
+              alt="creator"
+              className="w-full h-full"
             />
-            <h4 className="text-base font-semibold font-inter text-black-1000">
-              {userName}
-            </h4>
           </div>
-          <div className="relative inline-flex items-center justify-center">
-            <img src="/images/home/polygon-shape.svg" alt={'shape'} />
-            <p className="text-xs font-semibold font-inter text-white-1000 absolute z-10">
-              T5
+          <div>
+            <h4 className="text-sm font-bold text-black-1000 truncate max-w-[120px]">
+              {collectionName}
+            </h4>
+            <p className="text-[10px] text-gray-500 font-medium">
+              By {shorten(createdBy)}
             </p>
           </div>
         </div>
         
-        <div className="w-full relative group">
-          <img
-            src={MainImage}
-            alt="featured-card"
-            className="w-full border-y border-gray-1100 object-cover h-[339px]"
-          />
-
-          <div className="w-full h-full flex flex-col items-start justify-between p-4 absolute top-0 left-0">
-            <div className="w-full h-full transition duration-300 group-hover:visible group-hover:opacity-100 invisible opacity-0 absolute left-0 p-4 top-0 flex flex-col items-start justify-between">
-              <button onClick={toggleFavorite} className="bg-black/60 ml-auto cursor-pointer rounded-lg inline-flex items-center justify-center p-2.5">
-              {!favorite ? 
-             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={24}
-              height={24}
-              fill="#F08409"
-              viewBox="0 0 256 256"
-               >
-              <path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40ZM128,214.8C109.74,204.16,32,155.69,32,102A46.06,46.06,0,0,1,78,56c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,155.61,146.24,204.15,128,214.8Z" />
-            </svg>
-
-                 :
-                <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={24}
-              height={24}
-              fill="#F08409"
-              viewBox="0 0 256 256"
-            >
-              <path d="M240,102c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,228.66,16,172,16,102A62.07,62.07,0,0,1,78,40c20.65,0,38.73,8.88,50,23.89C139.27,48.88,157.35,40,178,40A62.07,62.07,0,0,1,240,102Z" />
-            </svg>
-              }
-
-              </button>
-
-          <Link 
-            to="/auctions/$id"
-             params={{ id: id.toString() }}
-            className="w-full transition duration-300 hover:opacity-90 flex items-center justify-center py-1.5 px-6 h-11 text-white font-semibold font-inter bg-primary-color rounded-full"
-          >
-            View Auction
-          </Link>
-
-            </div>
-
-           <div className="w-full  h-full flex transition duration-300 group-hover:invisible group-hover:opacity-0 visible opacity-100 flex-col items-start justify-between">
-            <div className="w-full flex items-center justify-end">
-              <div className="inline-flex items-center justify-center px-2.5 py-2 divide-x divide-white/30 rounded-lg bg-black/60 border border-white/30">
-                <p className="text-xs font-semibold font-inter text-white">
-                  {AuctionTime}
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full flex items-center gap-1.5">
-              <div className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-black/60">
-                <p className="text-xs font-semibold font-inter uppercase text-white">
-                  <span>{val}</span>
-                </p>
-              </div>
-
-              <div className="flex items-center gap-[5px]">
-                <div className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-black/60">
-                  <p className="text-xs font-semibold font-inter uppercase text-white">
-                    ⍜ <span>{val2}</span>
-                  </p>
-                </div>
-             
-              </div>
-            </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full flex flex-col px-4 py-4 gap-7">
-          <div className="w-full flex items-center gap-5 justify-between">
-            <h3 className="2xl:text-2xl text-lg lg:text-xl text-black-1000 font-bold font-inter">
-              {heading}
-            </h3>
-
-            {verified && (
-              <div className="inline-flex gap-2.5 items-center">
-                <img
-                  src="/icons/verified-icon.svg"
-                  alt="verified"
-                  className="w-5 h-5"
-                />
-                <p className="text-sm text-black-1000 font-semibold font-inter">
-                  Verified
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="w-full flex flex-col items-center justify-between gap-1.5">
-            <div className="w-full flex items-center justify-between gap-5">
-               {(isWinner) ?   
-              <h4 className="md:text-base text-sm text-green-1000 font-inter font-semibold">
-                {Winner}
-              </h4>
-              :
-              <h4 className="text-base text-red-1000 font-semibold font-inter">No Winner</h4>
-              }
-              <h4 className="md:text-base text-sm text-green-1000 text-right font-inter font-semibold">
-                {WinnerBid}
-              </h4>
-            </div>
-            <div className="w-full flex items-center justify-between gap-5">
-              <h4 className="md:text-sm text-xs text-gray-1200 font-inter">
-                Winner
-              </h4>
-              {WinnerBid &&
-              <h4 className="md:text-sm text-xs text-gray-1200 text-right font-inter">
-                Winning bid
-              </h4>}
-            </div>
-          </div>
-
-    
+        {/* Dynamic Status Badge */}
+        <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+           <span className={`w-2 h-2 rounded-full ${
+             computedStatus === 'LIVE' ? 'bg-green-500 animate-pulse' : 
+             computedStatus === 'UPCOMING' ? 'bg-blue-500' : 'bg-red-500'
+           }`} />
+           <p className="text-[10px] font-bold text-black-1000 uppercase">{computedStatus}</p>
         </div>
       </div>
+
+      {/* Image Section */}
+      <div className="w-full relative group">
+        <img
+          src={prizeImage}
+          alt={prizeName}
+          className="w-full border-y border-gray-1100 object-cover h-[339px]"
+        />
+
+        <div className="absolute inset-0 p-4 flex flex-col justify-between">
+          {/* Favorite Button (Visible on Hover) */}
+          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={toggleFavorite}
+              className="bg-black/60 cursor-pointer backdrop-blur-sm p-2.5 rounded-lg hover:scale-110 transition-transform"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 256 256"
+                fill={favorite ? "#F08409" : "none"}
+                stroke={favorite ? "#F08409" : "white"}
+                strokeWidth="20"
+              >
+                <path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40Z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* View Link (Visible on Hover) */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
+            <Link
+              to="/auctions/$id"
+              params={{ id: id.toString() }}
+              className="w-full flex items-center justify-center py-3 bg-primary-color text-white font-bold rounded-xl shadow-lg hover:brightness-110"
+            >
+              View Details
+            </Link>
+          </div>
+
+          {/* Overlay Info (Hidden on Hover) */}
+          <div className="group-hover:opacity-0 transition-opacity flex flex-col gap-2">
+            <div className="flex gap-2">
+               <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
+                  <p className="text-[10px] text-white/70 uppercase">Reserve</p>
+                  <p className="text-xs font-bold text-white">{reservePrice} {currency}</p>
+               </div>
+               {/* <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
+                  <p className="text-[10px] text-white/70 uppercase">Highest Bid</p>
+                  <p className="text-xs font-bold text-white">⍜ {highestBidAmount}</p>
+               </div> */}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 space-y-4">
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-bold text-black-1000 truncate leading-tight">
+            {prizeName}
+          </h3>
+          {collectionVerified && (
+            <img src="/icons/verified-icon.svg" alt="v" className="w-5 h-5 flex-shrink-0" />
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50">
+          <div>
+            <p className="text-[10px] text-gray-500 uppercase font-bold">
+              {computedStatus === "COMPLETED" ? "Winner" : "Leading Bidder"}
+            </p>
+            <p className={`text-sm font-semibold truncate ${computedStatus === "COMPLETED" ? "text-green-600" : "text-black-1000"}`}>
+              {highestBidderWallet ? shorten(highestBidderWallet) : "No Bids"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-gray-500 uppercase font-bold">Winning Bid</p>
+            <p className="text-sm font-bold text-green-600">
+              {highestBidAmount} {currency}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

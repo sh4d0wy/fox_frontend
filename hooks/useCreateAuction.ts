@@ -26,6 +26,7 @@ export type AuctionOnChainArgs = {
     prizeName: string;
     prizeImage: string;
     collectionName: string;
+    floorPrice: number;
 };
 
 const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
@@ -46,9 +47,6 @@ export const useCreateAuction = () => {
             }
             if (!args.endTime) {
                 throw new Error("End Time is required");
-            }
-            if (!args.startImmediately) {
-                throw new Error("Start Immedidately field is required");
             }
             if (!args.baseBid) {
                 throw new Error("Base bid is required");
@@ -110,11 +108,11 @@ export const useCreateAuction = () => {
                 createdBy: publicKey?.toString() || "",
                 prizeMint: args.prizeMint,
                 collectionVerified: true,
-                floorPrice: args.baseBid,
+                floorPrice: args.floorPrice,
                 startsAt: args.startImmediately ? new Date() : new Date(args.startTime * 1000),
                 endsAt: new Date((args.endTime + 100) * 1000),
                 timeExtension: args.timeExtension,
-                reservePrice: undefined,
+                reservePrice: args.baseBid.toString(),
                 currency: args.isBidMintSol ? "SOL" : "SPL",
                 bidIncrementPercent: args.minIncrement,
                 payRoyalties: false,
@@ -123,6 +121,9 @@ export const useCreateAuction = () => {
                 prizeName: args.prizeName,
                 prizeImage: args.prizeImage,
                 collectionName: args.collectionName,
+                hasAnyBid: false,
+                highestBidAmount: 0,
+                highestBidderWallet: "",
             });
             const tx = await createAuctionMutation.mutateAsync({
                 startTime: args.startTime,

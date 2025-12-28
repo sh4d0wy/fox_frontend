@@ -46,7 +46,9 @@ function CreateAuctions() {
     startTimeHour,
     startTimeMinute,
     startTimePeriod,
+    startType,
     setStartDate,
+    setStartType,
     setStartTimeHour,
     setStartTimeMinute,
     setStartTimePeriod,
@@ -56,7 +58,6 @@ function CreateAuctions() {
   const { collectionFPs, collectionFPMap } = useGetCollectionFP();
 
   const [isCreatingAuction, setIsCreatingAuction] = useState(false);
-  const [startType, setStartType] = useState<"manual" | "schedule">("manual");
   const [solBalance, setSolBalance] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,6 +73,7 @@ function CreateAuctions() {
     name: string;
     image: string;
     collectionName: string;
+    floorPrice: number;
   } | null>(null);
 
   const handleSelect = (address: string, symbol: string) => {
@@ -118,7 +120,7 @@ function CreateAuctions() {
         startImmediately: startType === "manual" ? true : false,
         startTime: getStartTimestamp()!,
         endTime: getEndTimestamp()!,
-        baseBid: parseInt(basePrice),
+        baseBid: parseFloat(basePrice),
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,
         minIncrement: parseInt(bidIncrement),
@@ -127,6 +129,7 @@ function CreateAuctions() {
         prizeName: nftData?.name || "",
         prizeImage: nftData?.image || "",
         collectionName: nftData?.collectionName || "",
+        floorPrice: nftData?.floorPrice ?? 0,
       });
     } catch (error) {
       console.error(error);
@@ -177,6 +180,7 @@ function CreateAuctions() {
       name: selectedNftData.name,
       image: selectedNftData.image,
       collectionName: collectionFPs[0]?.name || "",
+      floorPrice: selectedNftData.floorPrice ?? 0,
     };
 
     console.log("prizeData", prizeData);

@@ -19,10 +19,16 @@ export const fetchAuctions = async ({
   let filteredData: AuctionTypeBackend[] = response.auctions || [];
 
   if (filter === "All Auctions") {
-    filteredData = filteredData.filter((r: AuctionTypeBackend) => r.startsAt < now && r.endsAt > now);
-  }
-  else if (filter === "Past Auctions") {
-    filteredData = filteredData.filter((r: AuctionTypeBackend) => r.endsAt < now);
+    filteredData = filteredData.filter((r) => {
+      const endsAt = new Date(r.endsAt);
+
+      return endsAt >= now;
+    });
+  } else if (filter === "Past Auctions") {
+    filteredData = filteredData.filter((r) => {
+      const endsAt = new Date(r.endsAt);
+      return endsAt < now;
+    });
   }
 
   const pageItems = filteredData.slice((pageParam - 1) * pageSize, pageParam * pageSize);
@@ -38,7 +44,7 @@ export const fetchAuctions = async ({
 };
 
 
-export const fetchAuctionById = async(id:string)=>{
+export const fetchAuctionById = async (id: string) => {
   const response = await getAuctionById(id);
   return new Promise((resolve) => {
     setTimeout(() => {

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import SearchBox from "../../components/home/SearchBox";
 import SortDropdown from "../../components/home/SortDropdown";
 import FilterModel from "../../components/home/FilterModel";
@@ -11,7 +11,13 @@ import { useGlobalStore } from "store/globalStore";
 import CryptoCardSkeleton from "@/components/skeleton/RafflesCardSkeleton";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useFiltersStore } from "../../../store/filters-store";
-import { sortAuctions, filterAuctions, getActiveFiltersList, hasActiveFilters, type AuctionItem, type PageType } from "../../utils/sortAndFilter";
+import {
+  sortAuctions,
+  filterAuctions,
+  getActiveFiltersList,
+  hasActiveFilters,
+  type AuctionItem,
+} from "../../utils/sortAndFilter";
 
 const options = [
   { label: "Recently Added", value: "Recently Added" },
@@ -50,19 +56,30 @@ function Auctions() {
     setPageType("auctions");
   }, [setPageType]);
 
-  const filterOptions = {
-    raffleType,
-    selectedToken,
-    selectedCollection,
-    floorMin,
-    floorMax,
-    endTimeAfter,
-    endTimeBefore,
-  };
+  const filterOptions = useMemo(
+    () => ({
+      raffleType,
+      selectedToken,
+      selectedCollection,
+      floorMin,
+      floorMax,
+      endTimeAfter,
+      endTimeBefore,
+    }),
+    [
+      raffleType,
+      selectedToken,
+      selectedCollection,
+      floorMin,
+      floorMax,
+      endTimeAfter,
+      endTimeBefore,
+    ]
+  );
 
   const activeFilters = useMemo(() => {
     return getActiveFiltersList(filterOptions, "auctions");
-  }, [raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+  }, [filterOptions]);
 
   const showActiveFilters = hasActiveFilters(filterOptions, "auctions");
 
@@ -71,24 +88,34 @@ function Auctions() {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      allAuctions = allAuctions.filter(
-        (auction) =>
-          // auction.heading?.toLowerCase().includes(query) ||
-          // auction.userName?.toLowerCase().includes(query)
-          <></>
+      allAuctions = allAuctions.filter((auction) =>
+        auction.prizeName?.toLowerCase().includes(query)
       );
     }
 
     if (filtersApplied && showActiveFilters) {
-      allAuctions = filterAuctions(allAuctions as AuctionItem[], filterOptions) as typeof allAuctions;
+      allAuctions = filterAuctions(
+        allAuctions as AuctionItem[],
+        filterOptions
+      ) as typeof allAuctions;
     }
 
     if (sort && sort !== "Sort") {
-      allAuctions = sortAuctions(allAuctions as AuctionItem[], sort) as typeof allAuctions;
+      allAuctions = sortAuctions(
+        allAuctions as AuctionItem[],
+        sort
+      ) as typeof allAuctions;
     }
 
     return allAuctions;
-  }, [data, searchQuery, sort, filtersApplied, raffleType, selectedToken, selectedCollection, floorMin, floorMax, endTimeAfter, endTimeBefore]);
+  }, [
+    data,
+    searchQuery,
+    sort,
+    filtersApplied,
+    showActiveFilters,
+    filterOptions,
+  ]);
 
   useEffect(() => {
     setSearchQuery("");
@@ -135,7 +162,9 @@ function Auctions() {
 
           {/* Filters List */}
           <div className="lg:py-10 py-5 overflow-x-auto flex gap-4">
-            <div className={`${showActiveFilters ? 'flex' : 'hidden'} items-center gap-4`}>
+            <div
+              className={`${showActiveFilters ? "flex" : "hidden"} items-center gap-4`}
+            >
               {showActiveFilters && (
                 <>
                   <p className="md:text-base text-sm whitespace-nowrap font-black-1000 font-semibold font-inter">
@@ -206,9 +235,9 @@ function Auctions() {
               }
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {/* {aucations.map((r) => (
-                  <AucationsCard key={r.id} {...r} />
-                ))} */}
+                {aucations.map((r) => (
+                  <AuctionsCard key={r.id} {...r} id={r.id ?? 0} prizeName={r.prizeName ?? ""} prizeImage={r.prizeImage ?? ""} collectionName={r.collectionName ?? ""} reservePrice={r.reservePrice ?? ""} />
+                ))}
               </div>
             </InfiniteScroll>
           ) : (

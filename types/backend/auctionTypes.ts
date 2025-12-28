@@ -30,6 +30,11 @@ export const auctionSchema = z.object({
   auctionPda: z.string().optional(),
   auctionBump: z.number().int().optional(),
   bidEscrow: z.string().optional(),
+
+  highestBidAmount: z.number().optional().default(0),
+  highestBidderWallet: z.string().optional().default(""),
+  hasAnyBid: z.boolean().optional().default(false),
+
 });
 
 export const confirmAuctionCreationSchema = z.object({
