@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 
-export interface AucationsCardProps {
+export interface AuctionsCardProps {
   id: number;
   userName: string;
   userAvatar: string;
@@ -23,7 +23,7 @@ export interface AucationsCardProps {
   className?: string;
 }
 
-export const AucationsCard: React.FC<AucationsCardProps> = ({
+export const AuctionsCard: React.FC<AuctionsCardProps> = ({
   id,
   userName,
   userAvatar,

@@ -36,3 +36,4 @@ export const confirmAuctionCreationSchema = z.object({
   txSignature: z.string().min(1),
 });
 
+export type AuctionTypeBackend = z.infer<typeof auctionSchema>;

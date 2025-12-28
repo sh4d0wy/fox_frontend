@@ -4,7 +4,7 @@ import SearchBox from "../../components/home/SearchBox";
 import SortDropdown from "../../components/home/SortDropdown";
 import FilterModel from "../../components/home/FilterModel";
 import { NoAuctions } from "../../components/auctions/NoAuctions";
-import { AucationsCard } from "../../components/auctions/AucationsCard";
+import { AuctionsCard } from "../../components/auctions/AuctionsCard";
 import { useAuctionsStore } from "store/auctions-store";
 import { useAuctionsQuery } from "hooks/useAuctionsQuery";
 import { useGlobalStore } from "store/globalStore";
@@ -73,8 +73,9 @@ function Auctions() {
       const query = searchQuery.toLowerCase().trim();
       allAuctions = allAuctions.filter(
         (auction) =>
-          auction.heading?.toLowerCase().includes(query) ||
-          auction.userName?.toLowerCase().includes(query)
+          // auction.heading?.toLowerCase().includes(query) ||
+          // auction.userName?.toLowerCase().includes(query)
+          <></>
       );
     }
 
@@ -205,9 +206,9 @@ function Auctions() {
               }
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {aucations.map((r) => (
+                {/* {aucations.map((r) => (
                   <AucationsCard key={r.id} {...r} />
-                ))}
+                ))} */}
               </div>
             </InfiniteScroll>
           ) : (
