@@ -3,7 +3,6 @@ import { Disclosure } from "@headlessui/react";
 import { PrimaryLink } from "../../components/ui/PrimaryLink";
 import { useState, useEffect, useMemo } from "react";
 import { ParticipantsTable } from "../../components/auctions/ParticipantsTable";
-import { TransactionsTable } from "../../components/auctions/TransactionsTable";
 import { TermsConditions } from "../../components/auctions/TermsConditions";
 import { useAuctionById } from "hooks/useAuctionsQuery";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -38,7 +37,6 @@ function AuctionDetails() {
 
   const [tabs, setTabs] = useState([
     { name: "Participants", active: true },
-    { name: "Transactions", active: false },
     { name: "Terms & Conditions", active: false },
   ]);
 
@@ -337,7 +335,7 @@ function AuctionDetails() {
                           Highest Bid
                         </p>
                         <h3 className="text-2xl font-bold text-primary-color">
-                          {auction.highestBidAmount} {auction.currency}
+                          {auction.highestBidAmount / LAMPORTS_PER_SOL} {auction.currency}
                         </h3>
                         <p className="text-[10px] text-gray-400 truncate max-w-[120px]">
                           {auction.highestBidderWallet
@@ -413,7 +411,7 @@ function AuctionDetails() {
                                   ? parseInt(auction.reservePrice) / 10 ** 9
                                   : "N/A"
                                 : (
-                                    Number(auction.highestBidAmount) *
+                                    Number(auction.highestBidAmount / LAMPORTS_PER_SOL) *
                                     (1 +
                                       (auction.bidIncrementPercent ?? 0) / 100)
                                   ).toFixed(3)}{" "}
@@ -509,13 +507,11 @@ function AuctionDetails() {
                     <div className="mt-4">
                       {tabs[0].active && (
                         <ParticipantsTable
-                          ticketSupply={auction.bids?.length || 0}
+                          bids={auction.bids || []}
+                          currency={auction.currency}
                         />
                       )}
-                      {tabs[1].active && (
-                        <TransactionsTable transactions={auction.bids || []} />
-                      )}
-                      {tabs[2].active && <TermsConditions />}
+                      {tabs[1].active && <TermsConditions />}
                     </div>
                   </div>
                 </div>
