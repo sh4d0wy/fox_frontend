@@ -9,6 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { useBidAuction } from "hooks/useBidAuction";
+import { useCancelAuction } from "hooks/useCancelAuction";
 
 export const Route = createFileRoute("/auctions/$id")({
   component: AuctionDetails,
@@ -28,6 +29,7 @@ function AuctionDetails() {
     publicKey?.toString() || ""
   );
   const { bidAuction } = useBidAuction();
+  const { cancelAuction } = useCancelAuction();
   const [isBiddingAuction, setIsBiddingAuction] = useState(false);
   const [bidAmountInput, setBidAmountInput] = useState<string>("");
 
@@ -42,7 +44,7 @@ function AuctionDetails() {
 
   // Status Calculation
   const [computedStatus, setComputedStatus] = useState<
-    "UPCOMING" | "LIVE" | "COMPLETED"
+    "UPCOMING" | "LIVE" | "COMPLETED" | "CANCELLED"
   >("UPCOMING");
   const [timeLeft, setTimeLeft] = useState({ h: "00", m: "00", s: "00" });
 
@@ -60,13 +62,14 @@ function AuctionDetails() {
       const start = new Date(auction.startsAt).getTime();
       const end = new Date(auction.endsAt).getTime();
 
-      if (now < start) {
-        setComputedStatus("UPCOMING");
-      } else if (now > end) {
+      if (auction.status === "CANCELLED") setComputedStatus("CANCELLED");
+      else if (auction.status === "INITIALIZED") setComputedStatus("UPCOMING");
+      else if (
+        auction.status === "COMPLETED_SUCCESSFULLY" ||
+        auction.status === "COMPLETED_FAILED"
+      )
         setComputedStatus("COMPLETED");
-      } else {
-        setComputedStatus("LIVE");
-      }
+      else setComputedStatus("LIVE");
 
       // Calculate countdown for Live/Upcoming
       const target = now < start ? start : end;
@@ -131,6 +134,19 @@ function AuctionDetails() {
       setBidAmountInput(""); // Clear input on success
     } catch (error) {
       console.error("Bid failed:", error);
+    } finally {
+      setIsBiddingAuction(false);
+    }
+  };
+
+  const handleCancelAuction = async () => {
+    try {
+      setIsBiddingAuction(true);
+      await cancelAuction.mutateAsync({
+        auctionId: Number(id),
+      });
+    } catch (error) {
+      console.error("Cancel failed:", error);
     } finally {
       setIsBiddingAuction(false);
     }
@@ -313,20 +329,32 @@ function AuctionDetails() {
                             ? "Ending In"
                             : "Auction Ended"}
                       </p>
-                      <div className="flex gap-2">
-                        <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
-                          {timeLeft.h}
-                          <span className="text-xs ml-1 text-gray-400">H</span>
+                      {computedStatus !== "CANCELLED" ? (
+                        <div className="flex gap-2">
+                          <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
+                            {timeLeft.h}
+                            <span className="text-xs ml-1 text-gray-400">
+                              H
+                            </span>
+                          </div>
+                          <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
+                            {timeLeft.m}
+                            <span className="text-xs ml-1 text-gray-400">
+                              M
+                            </span>
+                          </div>
+                          <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
+                            {timeLeft.s}
+                            <span className="text-xs ml-1 text-gray-400">
+                              S
+                            </span>
+                          </div>
                         </div>
-                        <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
-                          {timeLeft.m}
-                          <span className="text-xs ml-1 text-gray-400">M</span>
+                      ) : (
+                        <div className="flex items-center gap-2 text-red-500 font-semibold px-2">
+                          Auction Cancelled
                         </div>
-                        <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm font-bold text-2xl">
-                          {timeLeft.s}
-                          <span className="text-xs ml-1 text-gray-400">S</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="flex-1 flex justify-between md:border-l md:pl-8 border-gray-200">
@@ -335,7 +363,8 @@ function AuctionDetails() {
                           Highest Bid
                         </p>
                         <h3 className="text-2xl font-bold text-primary-color">
-                          {auction.highestBidAmount / LAMPORTS_PER_SOL} {auction.currency}
+                          {auction.highestBidAmount / LAMPORTS_PER_SOL}{" "}
+                          {auction.currency}
                         </h3>
                         <p className="text-[10px] text-gray-400 truncate max-w-[120px]">
                           {auction.highestBidderWallet
@@ -411,7 +440,10 @@ function AuctionDetails() {
                                   ? parseInt(auction.reservePrice) / 10 ** 9
                                   : "N/A"
                                 : (
-                                    Number(auction.highestBidAmount / LAMPORTS_PER_SOL) *
+                                    Number(
+                                      auction.highestBidAmount /
+                                        LAMPORTS_PER_SOL
+                                    ) *
                                     (1 +
                                       (auction.bidIncrementPercent ?? 0) / 100)
                                   ).toFixed(3)}{" "}
@@ -425,6 +457,7 @@ function AuctionDetails() {
                     {/* 2. Show Cancel Button ONLY if Creator */}
                     {showCancelButton && (
                       <button
+                        disabled={isBiddingAuction}
                         className="w-full py-4 cursor-pointer bg-red-50 text-red-600 border border-red-200 font-bold rounded-2xl hover:bg-red-100 transition"
                         onClick={() => {
                           if (
@@ -432,11 +465,18 @@ function AuctionDetails() {
                               "Are you sure you want to cancel this auction?"
                             )
                           ) {
-                            // Trigger Cancel Mutation
+                            handleCancelAuction();
                           }
                         }}
                       >
-                        Cancel Auction (Admin Only)
+                        {isBiddingAuction ? (
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Cancelling Auction...
+                          </div>
+                        ) : (
+                          "Cancel Auction"
+                        )}
                       </button>
                     )}
 

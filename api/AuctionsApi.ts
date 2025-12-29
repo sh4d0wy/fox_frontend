@@ -15,20 +15,12 @@ export const fetchAuctions = async ({
 }): Promise<AuctionsPage> => {
   const pageSize = 8;
   const response = await getAuctions(pageParam, pageSize);
-  const now = new Date();
   let filteredData: AuctionTypeBackend[] = response.auctions || [];
 
   if (filter === "All Auctions") {
-    filteredData = filteredData.filter((r) => {
-      const endsAt = new Date(r.endsAt);
-
-      return endsAt >= now;
-    });
+    filteredData = filteredData.filter((r) => r.status === "ACTIVE" || r.status === "INITIALIZED");
   } else if (filter === "Past Auctions") {
-    filteredData = filteredData.filter((r) => {
-      const endsAt = new Date(r.endsAt);
-      return endsAt < now;
-    });
+    filteredData = filteredData.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED" || r.status === "CANCELLED");
   }
 
   const pageItems = filteredData.slice((pageParam - 1) * pageSize, pageParam * pageSize);

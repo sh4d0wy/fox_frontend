@@ -19,6 +19,7 @@ export interface AuctionsCardProps {
   className?: string;
   highestBidAmount: number;
   highestBidderWallet: string;
+  status: string;
 }
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
@@ -31,13 +32,14 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
     collectionName,
     collectionVerified,
     createdBy,
-    startsAt,
-    endsAt,
+    // startsAt,
+    // endsAt,
     reservePrice,
     currency,
     className,
     highestBidAmount,
     highestBidderWallet,
+    status,
   } = props;
 
   const { publicKey } = useWallet();
@@ -48,24 +50,25 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
 
   // Calculate status based on system time
   const [computedStatus, setComputedStatus] = useState<
-    "UPCOMING" | "LIVE" | "COMPLETED"
+    "UPCOMING" | "LIVE" | "COMPLETED" | "CANCELLED"
   >("UPCOMING");
 
   useEffect(() => {
     const calculateStatus = () => {
-      const now = new Date().getTime();
-      const start = new Date(startsAt).getTime();
-      const end = new Date(endsAt).getTime();
-
-      if (now < start) setComputedStatus("UPCOMING");
-      else if (now > end) setComputedStatus("COMPLETED");
+      if (status === "CANCELLED") setComputedStatus("CANCELLED");
+      else if (status === "INITIALIZED") setComputedStatus("UPCOMING");
+      else if (
+        status === "COMPLETED_SUCCESSFULLY" ||
+        status === "COMPLETED_FAILED"
+      )
+        setComputedStatus("COMPLETED");
       else setComputedStatus("LIVE");
     };
 
     calculateStatus();
     const interval = setInterval(calculateStatus, 1000); // Update every second for accuracy
     return () => clearInterval(interval);
-  }, [startsAt, endsAt]);
+  }, [status]);
 
   const favorite = useMemo(() => {
     if (!getFavouriteAuction.data) return false;

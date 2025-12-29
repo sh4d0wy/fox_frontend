@@ -5,29 +5,25 @@ import { useAuctionAnchorProgram } from "./useAuctionAnchorProgram";
 import { useWallet } from "@solana/wallet-adapter-react";
 // import { VerifiedTokens } from "../src/utils/verifiedTokens";
 import {
-    bidInAuction
+    cancelAuctionOverBackend
 } from "../api/routes/auctionRoutes";
 
-interface BidAuctionArgs {
+interface CancelAuctionArgs {
     auctionId: number;
-    bidAmount: number;
 }
 
-export const useBidAuction = () => {
-    const { placeBidMutation } = useAuctionAnchorProgram();
+export const useCancelAuction = () => {
+    const { cancelAuctionMutation } = useAuctionAnchorProgram();
     const { publicKey } = useWallet();
     const queryClient = useQueryClient();
 
-    const validateForm = (args: BidAuctionArgs) => {
+    const validateForm = (args: CancelAuctionArgs) => {
         try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
             }
             if (!args.auctionId) {
                 throw new Error("Auction ID is required");
-            }
-            if (args.bidAmount <= 0) {
-                throw new Error("Bid amount must be greater than zero");
             }
 
             return true;
@@ -42,36 +38,21 @@ export const useBidAuction = () => {
 
     };
 
-    const bidAuctionOverBackend = async (auctionId: number, txSignature: string, bidAmount: string) => {
-        try {
-            const response = await bidInAuction(auctionId.toString(), txSignature, bidAmount);
-            if (response.error) {
-                throw new Error("Failed to delete auction");
-            }
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
-    }
-
-    const bidAuction = useMutation({
-        mutationKey: ["bidAuction", publicKey?.toBase58()],
-        mutationFn: async (args: BidAuctionArgs) => {
+    const cancelAuction = useMutation({
+        mutationKey: ["cancelAuction", publicKey?.toBase58()],
+        mutationFn: async (args: CancelAuctionArgs) => {
             if (!validateForm(args)) {
                 throw new Error("Validation failed");
             }
-            const tx = await placeBidMutation.mutateAsync({
-                auctionId: args.auctionId,
-                bidAmount: args.bidAmount,
-            });
+            const tx = await cancelAuctionMutation.mutateAsync(args.auctionId);
             if (!tx) {
-                throw new Error("Failed to bid in auction");
+                throw new Error("Failed to cancel auction");
             }
-            await bidAuctionOverBackend(args.auctionId, tx, args.bidAmount.toString());
+            await cancelAuctionOverBackend(args.auctionId.toString(), tx);
             return args.auctionId;
         },
         onSuccess: (auctionId: number) => {
-            toast.success("Bid placed successfully");
+            toast.success("Auction cancelled successfully");
             queryClient.invalidateQueries({
                 queryKey: ["auction", auctionId],
             });
@@ -80,9 +61,9 @@ export const useBidAuction = () => {
             });
         },
         onError: () => {
-            toast.error("Failed to bid auction");
+            toast.error("Failed to cancel auction");
         },
     });
 
-    return { bidAuction };
+    return { cancelAuction };
 }

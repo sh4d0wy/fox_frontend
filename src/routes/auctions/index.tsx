@@ -236,7 +236,7 @@ function Auctions() {
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {aucations.map((r) => (
-                  <AuctionsCard key={r.id} {...r} id={r.id ?? 0} prizeName={r.prizeName ?? ""} prizeImage={r.prizeImage ?? ""} collectionName={r.collectionName ?? ""} reservePrice={r.reservePrice ?? ""} />
+                  <AuctionsCard key={r.id} {...r} id={r.id ?? 0} prizeName={r.prizeName ?? ""} prizeImage={r.prizeImage ?? ""} collectionName={r.collectionName ?? ""} reservePrice={r.reservePrice ?? ""} status={r.status ?? ""} />
                 ))}
               </div>
             </InfiniteScroll>

@@ -124,6 +124,7 @@ export const useCreateAuction = () => {
                 hasAnyBid: false,
                 highestBidAmount: 0,
                 highestBidderWallet: "",
+                status: "INITIALIZED",
             });
             const tx = await createAuctionMutation.mutateAsync({
                 startTime: args.startTime,
