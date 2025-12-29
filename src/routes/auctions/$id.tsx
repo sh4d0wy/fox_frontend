@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auctions/$id")({
   component: AuctionDetails,
 });
 
+const LAMPORTS_PER_SOL = 1_000_000_000;
+
 const shortenAddress = (addr: string) =>
   addr ? `${addr.slice(0, 4)}...${addr.slice(-4)}` : "N/A";
 
@@ -97,21 +99,28 @@ function AuctionDetails() {
   );
 
   // Calculate the minimum allowed bid
-  const minBid = useMemo(() => {
+  const minBidInSol = useMemo(() => {
     if (!auction) return 0;
+
+    // Convert base values from lamports to SOL
+    const reserveInSol = Number(auction.reservePrice ?? 0) / LAMPORTS_PER_SOL;
+    const highestBidInSol =
+      Number(auction.highestBidAmount ?? 0) / LAMPORTS_PER_SOL;
+
     if (!auction.hasAnyBid) {
-      return Number(auction.reservePrice || 0);
+      return reserveInSol;
     }
-    const increment = (auction.bidIncrementPercent ?? 0) / 100;
-    return Number(auction.highestBidAmount) * (1 + increment);
+
+    const incrementFactor = 1 + (auction.bidIncrementPercent ?? 0) / 100;
+    return highestBidInSol * incrementFactor;
   }, [auction]);
 
   // Handle Bid Submission
   const handlePlaceBid = async () => {
     const amount = Number(bidAmountInput);
 
-    if (isNaN(amount) || amount < minBid) {
-      alert(`Minimum bid is ${minBid.toFixed(4)} ${auction?.currency}`);
+    if (isNaN(amount) || amount < minBidInSol) {
+      alert(`Minimum bid is ${minBidInSol.toFixed(4)} ${auction?.currency}`);
       return;
     }
 
@@ -119,7 +128,7 @@ function AuctionDetails() {
       setIsBiddingAuction(true);
       await bidAuction.mutateAsync({
         auctionId: Number(id),
-        bidAmount: amount,
+        bidAmount: Math.round(amount * LAMPORTS_PER_SOL), // Convert SOL to lamports
       });
       setBidAmountInput(""); // Clear input on success
     } catch (error) {
@@ -235,7 +244,11 @@ function AuctionDetails() {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">Reserve Price</span>
                           <span>
-                            {auction.reservePrice} {auction.currency}
+                            {typeof auction.reservePrice === "string" &&
+                            auction.reservePrice
+                              ? parseInt(auction.reservePrice) / 10 ** 9
+                              : "N/A"}{" "}
+                            {auction.currency}
                           </span>
                         </div>
                       </Disclosure.Panel>
@@ -258,7 +271,12 @@ function AuctionDetails() {
                 <div className="flex items-center justify-between pb-6 border-b border-gray-1100">
                   <ul className="flex items-center gap-3">
                     <li className="px-3 py-1.5 bg-primary-color text-white rounded-lg text-xs font-bold">
-                      RESERVE: {auction.reservePrice} {auction.currency}
+                      RESERVE:{" "}
+                      {typeof auction.reservePrice === "string" &&
+                      auction.reservePrice
+                        ? parseInt(auction.reservePrice) / 10 ** 9
+                        : "N/A"}{" "}
+                      {auction.currency}
                     </li>
                     <li className="px-3 py-1.5 bg-black/80 text-white rounded-lg text-xs font-bold">
                       MIN INCREMENT: {auction.bidIncrementPercent}%
@@ -362,7 +380,7 @@ function AuctionDetails() {
                                 onChange={(e) =>
                                   setBidAmountInput(e.target.value)
                                 }
-                                placeholder={`Min. ${minBid.toFixed(3)}`}
+                                placeholder={`Min. ${minBidInSol.toFixed(3)}`}
                                 disabled={isBiddingAuction}
                                 className="w-full px-5 py-4 bg-gray-1300 border border-gray-1100 rounded-xl outline-none focus:border-primary-color transition font-inter font-semibold"
                               />
@@ -371,7 +389,7 @@ function AuctionDetails() {
                               </div>
                             </div>
                             <p className="text-[10px] text-gray-500">
-                              Your bid must be at least {minBid.toFixed(4)}{" "}
+                              Your bid must be at least {minBidInSol.toFixed(4)}{" "}
                               {auction.currency}
                             </p>
                           </div>
@@ -390,7 +408,10 @@ function AuctionDetails() {
                             <>
                               Place a Bid (Min.{" "}
                               {!auction.hasAnyBid
-                                ? auction.reservePrice
+                                ? typeof auction.reservePrice === "string" &&
+                                  auction.reservePrice
+                                  ? parseInt(auction.reservePrice) / 10 ** 9
+                                  : "N/A"
                                 : (
                                     Number(auction.highestBidAmount) *
                                     (1 +

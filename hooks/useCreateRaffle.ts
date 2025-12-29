@@ -184,7 +184,7 @@ export const useCreateRaffle = () => {
     mutationFn: async () => {
       if (!validateForm()) {
         setIsCreatingRaffle(false);
-        throw Error;
+        throw new Error("Validation failed");
       }
       const data = await createRaffleOverBackend(raffleBackendPayload);
       const tx = await createRaffleMutation.mutateAsync({

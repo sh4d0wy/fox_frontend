@@ -120,7 +120,7 @@ function CreateAuctions() {
         startImmediately: startType === "manual" ? true : false,
         startTime: getStartTimestamp()!,
         endTime: getEndTimestamp()!,
-        baseBid: parseFloat(basePrice),
+        baseBid: parseFloat(basePrice) * 10 ** 9, // Convert SOL to lamports
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,
         minIncrement: parseInt(bidIncrement),

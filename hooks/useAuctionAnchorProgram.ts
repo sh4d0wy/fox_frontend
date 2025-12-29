@@ -679,6 +679,7 @@ export function useAuctionAnchorProgram() {
             let currentBidderAta: PublicKey = FAKE_ATA;
             let prevBidderAta: PublicKey = FAKE_ATA;
             let bidEscrow: PublicKey = FAKE_ATA;
+            let highestBidder: PublicKey = wallet.publicKey;
 
             /* ---------------- Token program ---------------- */
             const bidTokenProgram = await getTokenProgramFromMint(
@@ -725,6 +726,10 @@ export function useAuctionAnchorProgram() {
                     prevBidderAta = prevRes.ata;
                     if (prevRes.ix) tx.add(prevRes.ix);
                 }
+            } else {
+                if (!auctionData.highestBidder.equals(PublicKey.default)) {
+                    highestBidder = auctionData.highestBidder;
+                }
             }
 
             /* ---------------- Anchor instruction ---------------- */
@@ -737,7 +742,7 @@ export function useAuctionAnchorProgram() {
                     bidder: wallet.publicKey,
                     auctionAdmin: AUCTION_ADMIN_KEYPAIR.publicKey,
 
-                    prevBidderAccount: auctionData.highestBidder,
+                    prevBidderAccount: highestBidder,
 
                     bidMint,
                     currentBidderAta,

@@ -21,6 +21,8 @@ export interface AuctionsCardProps {
   highestBidderWallet: string;
 }
 
+const LAMPORTS_PER_SOL = 1_000_000_000;
+
 export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
   const {
     id,
@@ -40,10 +42,14 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
 
   const { publicKey } = useWallet();
   const { favouriteAuction } = useToggleFavourite(publicKey?.toString() || "");
-  const { getFavouriteAuction } = useQueryFavourites(publicKey?.toString() || "");
+  const { getFavouriteAuction } = useQueryFavourites(
+    publicKey?.toString() || ""
+  );
 
   // Calculate status based on system time
-  const [computedStatus, setComputedStatus] = useState<"UPCOMING" | "LIVE" | "COMPLETED">("UPCOMING");
+  const [computedStatus, setComputedStatus] = useState<
+    "UPCOMING" | "LIVE" | "COMPLETED"
+  >("UPCOMING");
 
   useEffect(() => {
     const calculateStatus = () => {
@@ -74,7 +80,9 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
   const shorten = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 
   return (
-    <div className={`bg-white-1000 border border-gray-1100 rounded-2xl overflow-hidden ${className}`}>
+    <div
+      className={`bg-white-1000 border border-gray-1100 rounded-2xl overflow-hidden ${className}`}
+    >
       {/* Header */}
       <div className="w-full flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
@@ -94,14 +102,21 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
             </p>
           </div>
         </div>
-        
+
         {/* Dynamic Status Badge */}
         <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-           <span className={`w-2 h-2 rounded-full ${
-             computedStatus === 'LIVE' ? 'bg-green-500 animate-pulse' : 
-             computedStatus === 'UPCOMING' ? 'bg-blue-500' : 'bg-red-500'
-           }`} />
-           <p className="text-[10px] font-bold text-black-1000 uppercase">{computedStatus}</p>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              computedStatus === "LIVE"
+                ? "bg-green-500 animate-pulse"
+                : computedStatus === "UPCOMING"
+                  ? "bg-blue-500"
+                  : "bg-red-500"
+            }`}
+          />
+          <p className="text-[10px] font-bold text-black-1000 uppercase">
+            {computedStatus}
+          </p>
         </div>
       </div>
 
@@ -147,13 +162,15 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
           {/* Overlay Info (Hidden on Hover) */}
           <div className="group-hover:opacity-0 transition-opacity flex flex-col gap-2">
             <div className="flex gap-2">
-               <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
-                  <p className="text-[10px] text-white/70 uppercase">Reserve</p>
-                  <p className="text-xs font-bold text-white">{reservePrice} {currency}</p>
-               </div>
-               {/* <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
+              <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
+                <p className="text-[10px] text-white/70 uppercase">Reserve</p>
+                <p className="text-xs font-bold text-white">
+                  {parseInt(reservePrice) / LAMPORTS_PER_SOL} {currency}
+                </p>
+              </div>
+              {/* <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
                   <p className="text-[10px] text-white/70 uppercase">Highest Bid</p>
-                  <p className="text-xs font-bold text-white">⍜ {highestBidAmount}</p>
+                  <p className="text-xs font-bold text-white">⍜ {highestBidAmount / LAMPORTS_PER_SOL}</p>
                </div> */}
             </div>
           </div>
@@ -167,7 +184,11 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
             {prizeName}
           </h3>
           {collectionVerified && (
-            <img src="/icons/verified-icon.svg" alt="v" className="w-5 h-5 flex-shrink-0" />
+            <img
+              src="/icons/verified-icon.svg"
+              alt="v"
+              className="w-5 h-5 flex-shrink-0"
+            />
           )}
         </div>
 
@@ -176,14 +197,18 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
             <p className="text-[10px] text-gray-500 uppercase font-bold">
               {computedStatus === "COMPLETED" ? "Winner" : "Leading Bidder"}
             </p>
-            <p className={`text-sm font-semibold truncate ${computedStatus === "COMPLETED" ? "text-green-600" : "text-black-1000"}`}>
+            <p
+              className={`text-sm font-semibold truncate ${computedStatus === "COMPLETED" ? "text-green-600" : "text-black-1000"}`}
+            >
               {highestBidderWallet ? shorten(highestBidderWallet) : "No Bids"}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-gray-500 uppercase font-bold">Winning Bid</p>
+            <p className="text-[10px] text-gray-500 uppercase font-bold">
+              Winning Bid
+            </p>
             <p className="text-sm font-bold text-green-600">
-              {highestBidAmount} {currency}
+              {highestBidAmount / LAMPORTS_PER_SOL} {currency}
             </p>
           </div>
         </div>

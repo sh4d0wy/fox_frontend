@@ -42,7 +42,7 @@ export const useBidAuction = () => {
 
     };
 
-    const bidAuctionOverBackend = async (auctionId: number, txSignature: string, bidAmount: number) => {
+    const bidAuctionOverBackend = async (auctionId: number, txSignature: string, bidAmount: string) => {
         try {
             const response = await bidInAuction(auctionId.toString(), txSignature, bidAmount);
             if (response.error) {
@@ -58,13 +58,13 @@ export const useBidAuction = () => {
         mutationKey: ["bidAuction"],
         mutationFn: async (args: BidAuctionArgs) => {
             if (!validateForm(args)) {
-                throw Error;
+                throw new Error("Validation failed");
             }
             const tx = await placeBidMutation.mutateAsync({
                 auctionId: args.auctionId,
                 bidAmount: args.bidAmount,
             });
-            await bidAuctionOverBackend(args.auctionId, tx, args.bidAmount);
+            await bidAuctionOverBackend(args.auctionId, tx, args.bidAmount.toString());
             if (!tx) {
                 throw new Error("Failed to create auction");
             } else {

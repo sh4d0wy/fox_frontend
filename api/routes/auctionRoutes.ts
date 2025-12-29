@@ -54,7 +54,7 @@ export const getAuctionById = async (auctionId: string) => {
     }
 }
 
-export const bidInAuction = async (auctionId: string, txSignature: string, bidAmount: number) => {
+export const bidInAuction = async (auctionId: string, txSignature: string, bidAmount: string) => {
     try {
         const response = await api.post(`/auction/bid/${auctionId}`, {
             bidAmount,
