@@ -260,7 +260,7 @@ function AuctionDetails() {
                           <span>
                             {typeof auction.reservePrice === "string" &&
                             auction.reservePrice
-                              ? parseInt(auction.reservePrice) / 10 ** 9
+                              ? parseInt(auction.reservePrice) / LAMPORTS_PER_SOL
                               : "N/A"}{" "}
                             {auction.currency}
                           </span>
@@ -288,7 +288,7 @@ function AuctionDetails() {
                       RESERVE:{" "}
                       {typeof auction.reservePrice === "string" &&
                       auction.reservePrice
-                        ? parseInt(auction.reservePrice) / 10 ** 9
+                        ? parseInt(auction.reservePrice) / LAMPORTS_PER_SOL
                         : "N/A"}{" "}
                       {auction.currency}
                     </li>
@@ -437,7 +437,7 @@ function AuctionDetails() {
                               {!auction.hasAnyBid
                                 ? typeof auction.reservePrice === "string" &&
                                   auction.reservePrice
-                                  ? parseInt(auction.reservePrice) / 10 ** 9
+                                  ? parseInt(auction.reservePrice) / LAMPORTS_PER_SOL
                                   : "N/A"
                                 : (
                                     Number(
@@ -517,7 +517,7 @@ function AuctionDetails() {
                             Sold For
                           </p>
                           <p className="text-xl font-black">
-                            {auction.highestBidAmount} {auction.currency}
+                            {auction.highestBidAmount / LAMPORTS_PER_SOL} {auction.currency}
                           </p>
                         </div>
                       </div>
