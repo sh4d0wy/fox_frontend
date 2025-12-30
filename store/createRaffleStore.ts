@@ -31,12 +31,16 @@ interface CreateRaffleState {
   // Prize Configuration
   prizeType: PrizeType;
   nftPrizeMint: string;
+  nftPrizeName: string;
   tokenPrizeAmount: string;
   tokenPrizeMint: string;
+  prizeImage: string;
+  floor:number;
   val:string;
   ttv:number;
   percentage:string;
   rent:number;
+  nftCollection:string | null;
 
   // Advanced Settings
   holderOnlyCollection: string;
@@ -79,9 +83,13 @@ interface CreateRaffleState {
   // Actions - Prize Configuration
   setPrizeType: (type: PrizeType) => void;
   setNftPrizeMint: (mint: string) => void;
+  setNftPrizeName: (name: string) => void;
   setTokenPrizeAmount: (amount: string) => void;
   setTokenPrizeMint: (mint: string) => void;
   setTicketPricePerSol: (price: string) => void;
+  setPrizeImage: (image: string) => void;
+  setFloor: (floor:number) => void;
+  setNftCollection: (collection: string | null) => void;
   // Actions - Advanced Settings
   setHolderOnlyCollection: (collection: string) => void;
   addCollection: (collection: string) => void;
@@ -135,11 +143,15 @@ const initialState = {
   // Prize Configuration
   prizeType: "nft" as PrizeType,
   nftPrizeMint: "",
+  nftPrizeName: "",
   tokenPrizeAmount: "",
   tokenPrizeMint: "So11111111111111111111111111111111111111112",
+  prizeImage:"",
+  floor:0,
   val:"0",
   ttv:0,
   percentage:"0",
+  nftCollection:null as string | null,
   rent:0,
   // Advanced Settings
   holderOnlyCollection: "",
@@ -209,8 +221,11 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   // Actions - Prize Configuration
   setPrizeType: (type) => set({ prizeType: type }),
   setNftPrizeMint: (mint) => set({ nftPrizeMint: mint }),
+  setNftPrizeName: (name) => set({ nftPrizeName: name }),
   setTokenPrizeAmount: (amount) => set({ tokenPrizeAmount: amount }),
   setTokenPrizeMint: (mint) => set({ tokenPrizeMint: mint }),
+  setPrizeImage: (image:string) => set({ prizeImage: image }),
+  setFloor: (floor:number) => set({ floor: floor }),
   setVal: (val:string) => {
     set({ val: val });
     if(parseFloat(val)>0 && get().ttv>0){
@@ -226,6 +241,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   setPercentage: (percentage:string) => {
     set({ percentage: percentage });
   },
+  setNftCollection: (collection: string | null) => set({ nftCollection: collection }),
   // Actions - Advanced Settings
   setHolderOnlyCollection: (collection) =>
     set({ holderOnlyCollection: collection }),

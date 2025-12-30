@@ -12,6 +12,7 @@ import {
   verifyRaffleCreation,
 } from "../api/routes/raffleRoutes";
 import { useRouter } from "@tanstack/react-router";
+import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 
 export const useCreateRaffle = () => {
   // const { getAllRaffles } = useRaffleAnchorProgram();
@@ -28,14 +29,18 @@ export const useCreateRaffle = () => {
     percentage,
     prizeType,
     nftPrizeMint,
+    prizeImage,
     tokenPrizeAmount,
     tokenPrizeMint,
     val,
+    floor,
     ttv,
+    nftCollection,
     ticketLimitPerWallet,
     numberOfWinners,
     winShares,
     isUniqueWinners,
+    nftPrizeName,
     agreedToTerms,
     getEndTimestamp,
     setIsCreatingRaffle,
@@ -75,8 +80,8 @@ export const useCreateRaffle = () => {
       if (!nftPrizeMint && !tokenPrizeMint) {
         throw new Error("NFT Prize or Token Prize is required");
       }
-      if (!tokenPrizeAmount) {
-        throw new Error("Token Prize Amount is required");
+      if (!nftPrizeMint && !tokenPrizeAmount) {
+        throw new Error("NFT Prize or Token Prize Amount is required");
       }
       if (!val) {
         throw new Error("Val is required");
@@ -158,27 +163,32 @@ export const useCreateRaffle = () => {
     numberOfWinners: parseInt(numberOfWinners),
     prizeData: {
       type: prizeType === "nft" ? "NFT" : "TOKEN",
-      address: tokenPrizeMint,
-      mintAddress: tokenPrizeMint,
-      mint: tokenPrizeMint,
-      name:
-        VerifiedTokens.find((token) => token.address === tokenPrizeMint)
-          ?.name || "",
+      address: prizeType === "nft" ? nftPrizeMint : tokenPrizeMint,
+      mintAddress: prizeType === "nft" ? nftPrizeMint : tokenPrizeMint,
+      mint: prizeType === "nft" ? nftPrizeMint : tokenPrizeMint,
+      name: prizeType === "nft" ? nftPrizeName : VerifiedTokens.find((token) => token.address === tokenPrizeMint)?.name || "",
+      collection: prizeType === "nft" ? (nftCollection?nftCollection:"") : undefined,
       symbol:
+        prizeType === "nft" ?
+        "":
         VerifiedTokens.find((token) => token.address === tokenPrizeMint)
           ?.symbol || "",
       decimals:
+        prizeType === "nft" ?
+        0 :
         VerifiedTokens.find((token) => token.address === tokenPrizeMint)
           ?.decimals || 0,
       verified: true,
-      image: VerifiedTokens.find((token) => token.address === tokenPrizeMint)?.image || "",
-      amount:
+      image: prizeType === "nft" ? prizeImage : VerifiedTokens.find((token) => token.address === tokenPrizeMint)?.image || "",
+      floor: prizeType === "nft" ? floor : undefined,
+      amount: prizeType === "nft" ? floor :
         parseFloat(tokenPrizeAmount) *
         10 **
         (VerifiedTokens.find((token) => token.address === tokenPrizeMint)
           ?.decimals || 0),
     },
   };
+  console.log("raffleBackendPayload", raffleBackendPayload);
   const createRaffle = useMutation({
     mutationKey: ["createRaffle"],
     mutationFn: async () => {
@@ -187,6 +197,7 @@ export const useCreateRaffle = () => {
         throw new Error("Validation failed");
       }
       const data = await createRaffleOverBackend(raffleBackendPayload);
+      
       const tx = await createRaffleMutation.mutateAsync({
         startTime: now + 60,
         endTime: getEndTimestamp()!,
@@ -202,7 +213,7 @@ export const useCreateRaffle = () => {
 
         maxPerWalletPct: parseInt(ticketLimitPerWallet),
         prizeType: prizeType === "sol" ? 2 : prizeType === "spl" ? 1 : 0,
-        prizeAmount:
+        prizeAmount: prizeType === "nft" ? 0 :
           parseFloat(tokenPrizeAmount) *
           10 **
           (VerifiedTokens.find((token) => token.address === tokenPrizeMint)
@@ -213,7 +224,7 @@ export const useCreateRaffle = () => {
         startRaffle: true,
 
         ticketMint: new PublicKey(ticketCurrency.address),
-        prizeMint: new PublicKey(tokenPrizeMint),
+        prizeMint: new PublicKey(prizeType === "nft" ? nftPrizeMint : tokenPrizeMint),
       });
       if (!tx || data.error) {
         throw new Error("Failed to create raffle");

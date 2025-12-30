@@ -308,11 +308,19 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
       </div>
 
       <div className="w-full relative group flex items-center justify-center">
-        <img
-          src={raffle.prizeData.image}
-          alt={raffle.prizeData.name}
-          className="w-50 object-contain h-50 rounded-full"
-        />
+        {raffle.prizeData.type==="NFT" ? (
+          <img
+            src={raffle.prizeData.image}
+            alt={raffle.prizeData.name}
+            className="w-full object-cover h-50"
+          />
+        ) : (
+          <img
+            src={raffle.prizeData.image}
+            alt={raffle.prizeData.name}
+            className="w-50 object-contain h-50 rounded-full"
+          />
+        )}
 
         <div className="w-full h-full flex flex-col items-start justify-between p-4 absolute top-0 left-0">
           <div className="w-full h-full transition duration-300 group-hover:visible group-hover:opacity-100 invisible opacity-0 absolute left-0 p-4 top-0 flex flex-col items-start justify-between">

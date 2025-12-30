@@ -24,6 +24,7 @@ import { Loader } from "lucide-react";
 import { useFetchUserNfts } from "hooks/useFetchUserNfts";
 import { useGetCollectionFP } from "hooks/useGetCollectionFP";
 import clsx from "clsx";
+import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 
 function CreateRaffles() {
   const {
@@ -32,6 +33,12 @@ function CreateRaffles() {
     userVerifiedTokens,
     tokenPrizeMint,
     setTokenPrizeMint,
+    nftPrizeMint,
+    setNftPrizeMint,
+    floor,
+    setFloor,
+    nftPrizeName,
+    setNftPrizeName,
     openVerifiedCollectionsModal,
     closeVerifiedCollectionsModal,
     openCreateTokenModal,
@@ -56,13 +63,19 @@ function CreateRaffles() {
     val,
     percentage,
     rent,
-
+    nftCollection,
+    setNftCollection,
     agreedToTerms,
     isCreatingRaffle,
     setAgreedToTerms,
 
     collectionSearchQuery,
     setCollectionSearchQuery,
+
+    prizeImage,
+    setPrizeImage,
+    prizeType,
+    setPrizeType,
 
     getComputedTTV,
     getComputedRent,
@@ -78,6 +91,7 @@ function CreateRaffles() {
       image: string;
       collectionName: string;
       floorPrice: number;
+      collectionAddress: string;
     } | null>(null);
 
 
@@ -103,7 +117,9 @@ function CreateRaffles() {
         name: nft.content.metadata.name,
         image: nft.content.links.image,
         floorPrice: collectionFPMap[nft.grouping[0].group_value],
+        collectionName: VerifiedNftCollections.find((collection) => collection.address === nft.grouping[0].group_value)?.name || "",
         mint: nft.id,
+        collectionAddress: nft.grouping[0].group_value,
       }));
     }, [userNfts, collectionFPMap]);
   
@@ -125,20 +141,25 @@ function CreateRaffles() {
       const selectedNftData = nfts.find((nft: any) => nft.id === selectedNftId);
   
       if (!selectedNftData) return;
-  
+      console.log("selectedNftData", selectedNftData);
       // Constructed as a single object (or wrap in array if your API requires it)
       const prizeData = {
         mint: selectedNftData.mint,
         name: selectedNftData.name,
         image: selectedNftData.image,
-        collectionName: collectionFPs[0]?.name || "",
+        collectionName: selectedNftData.collectionName,
         floorPrice: selectedNftData.floorPrice ?? 0,
+        collectionAddress: selectedNftData.collectionAddress,
       };
   
       console.log("prizeData", prizeData);
-  
+      setPrizeType("nft");
       setNftData(prizeData);
-      setTokenPrizeMint(selectedNftData.mint);
+      setNftPrizeMint(selectedNftData.mint);
+      setNftPrizeName(selectedNftData.name);
+      setPrizeImage(selectedNftData.image);
+      setNftCollection(selectedNftData.collectionAddress);
+      setFloor(selectedNftData.floorPrice ?? 0);
       handleClose();
     };
   

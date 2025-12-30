@@ -17,6 +17,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { CryptoCard } from "@/components/common/CryptoCard";
 import { useQueryFavourites } from "hooks/useQueryFavourites";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { NoGumballs } from "@/components/home/NoGumballs";
+import { NoRaffles } from "@/components/home/NoRaffles";
 
 export const Route = createFileRoute("/profile/")({
   component: CreateProfile,
@@ -215,7 +217,7 @@ function CreateProfile() {
                           Raffles Bought
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {raffleStats?.rafflesBought}
+                          {raffleStats?.rafflesBought ?? 0}
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
@@ -223,7 +225,7 @@ function CreateProfile() {
                           Tickets Bought
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {raffleStats?.ticketsBought}
+                          {raffleStats?.ticketsBought ?? 0}
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
@@ -231,7 +233,7 @@ function CreateProfile() {
                           Raffles Won
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {raffleStats?.rafflesWon}
+                          {raffleStats?.rafflesWon ?? 0}
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
@@ -239,7 +241,7 @@ function CreateProfile() {
                           Purchase Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {raffleStats?.purchaseVolume / 10 ** 9 || ""}
+                          {raffleStats?.purchaseVolume ? (raffleStats?.purchaseVolume / 10 ** 9).toFixed(2) : 0}
                         </p>
                       </li>
                     </>
@@ -259,7 +261,7 @@ function CreateProfile() {
                           Total Spins
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {gumballStats?.totalSpins}
+                          {gumballStats?.totalSpins ?? 0}
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
@@ -267,7 +269,7 @@ function CreateProfile() {
                           Gumball Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {gumballStats?.totalVolumeSpent / 10 ** 9}
+                          {gumballStats?.totalVolumeSpent ? (gumballStats?.totalVolumeSpent / 10 ** 9).toFixed(2) : 0}
                         </p>
                       </li>
                     </>
@@ -303,7 +305,7 @@ function CreateProfile() {
                           Total Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
-                          {((auctionStats?.totalVolumeBid)/10**9).toFixed(2) ?? 0}
+                          {(auctionStats?.totalVolumeBid)?((auctionStats?.totalVolumeBid)/10**9).toFixed(2) : 0}
                         </p>
                       </li>
                     </>
@@ -364,7 +366,7 @@ function CreateProfile() {
                         ? rafflePurchasedCards
                         : raffleCreatedCards
                       ).length < 1 ? (
-                      <NoAuctions />
+                      <NoRaffles />
                     ) : (
                       <div
                         className={`grid ${
@@ -466,7 +468,7 @@ function CreateProfile() {
                         ? gumballPurchasedCards
                         : gumballCreatedCards
                       ).length < 1 ? (
-                      <NoAuctions />
+                      <NoGumballs/>
                     ) : (
                       <div
                         className={`grid ${

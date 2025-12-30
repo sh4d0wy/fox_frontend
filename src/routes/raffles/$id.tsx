@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Disclosure } from "@headlessui/react";
 import { PrimaryLink } from "@/components/ui/PrimaryLink";
 import { ParticipantsTable } from "@/components/home/ParticipantsTable";
@@ -19,6 +19,7 @@ import { useClaimRafflePrize } from "../../../hooks/useClaimRafflePrize";
 import { getRaffleWinnersWhoClaimedPrize } from "../../../api/routes/raffleRoutes";
 import { useQueryFavourites } from "hooks/useQueryFavourites";
 import { useToggleFavourite } from "hooks/useToggleFavourite";
+import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 
 export const Route = createFileRoute("/raffles/$id")({
   component: RouteComponent,
@@ -116,7 +117,7 @@ function RouteComponent() {
       </main>
     );
   }
-
+ 
   return (
     <main>
       <div className="w-full py-5 md:py-10 max-w-[1440px] px-5 mx-auto">
@@ -141,18 +142,18 @@ function RouteComponent() {
                 <div className="w-full pb-7 pt-6 md:py-10 hidden md:flex items-center justify-between">
                   <div className="flex items-center gap-3 2xl:gap-5">
                     <img
-                      src={userAvatar}
+                      src={VerifiedNftCollections.find((collection) => collection.address === raffle?.prizeData.collection)?.image}
                       className="w-12 h-12 rounded-full object-cover"
                       alt=""
                     />
                     <h3 className="md:text-[28px] text-lg font-bold text-black-1000 font-inter">
-                      {"Anonymous"}
+                      {VerifiedNftCollections.find((collection) => collection.address === raffle?.prizeData.collection)?.name}
                     </h3>
                   </div>
 
                   <ul className="flex items-center gap-6">
                     <li>
-                      <a href="#">
+                      <a href={VerifiedNftCollections.find((collection) => collection.address === raffle?.prizeData.collection)?.twitter}>
                         <img
                           src="/icons/twitter-icon.svg"
                           className="w-7 h-7 object-contain"
@@ -162,7 +163,7 @@ function RouteComponent() {
                     </li>
 
                     <li>
-                      <a href="#">
+                      <a href={VerifiedNftCollections.find((collection) => collection.address === raffle?.prizeData.collection)?.website}>
                         {" "}
                         <img
                           src="/icons/mcp-server-icon.svg"
@@ -641,7 +642,7 @@ function RouteComponent() {
                       alt=""
                     />
                     <h3 className="md:text-[28px] text-lg font-bold text-black-1000 font-inter">
-                      {"Anonymous"}
+                    {raffle.prizeData.name}
                     </h3>
                   </div>
 
