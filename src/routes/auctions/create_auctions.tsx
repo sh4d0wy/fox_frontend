@@ -145,7 +145,9 @@ function CreateAuctions() {
 
   // Mapping raw NFT data to a clean format
   const nfts = useMemo(() => {
-    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    {
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    }
     return (userNfts || []).map((nft: any) => ({
       id: nft.id,
       name: nft.content.metadata.name,
@@ -159,7 +161,9 @@ function CreateAuctions() {
   const filteredNfts = useMemo(() => {
     if (!searchQuery.trim()) return nfts;
     const query = searchQuery.toLowerCase();
-    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    {
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    }
     return nfts.filter((nft: any) => nft.name.toLowerCase().includes(query));
   }, [searchQuery, nfts]);
 
@@ -169,7 +173,9 @@ function CreateAuctions() {
   };
 
   const handleAddPrizes = async () => {
-    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+    {
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    }
     const selectedNftData = nfts.find((nft: any) => nft.id === selectedNftId);
 
     if (!selectedNftData) return;
@@ -340,27 +346,29 @@ function CreateAuctions() {
                             onChange={setEndDate}
                             minDate={today}
                           />
-                          <ol className="flex items-center gap-4 pt-2.5">
-                            {(["24hr", "36hr", "48hr"] as const).map(
-                              (duration) => (
-                                <li key={duration} className="w-full">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      applyDurationPreset(duration)
-                                    }
-                                    className={`rounded-[7px] cursor-pointer px-2.5 h-10 flex items-center justify-center text-sm font-semibold font-inter text-black-1000 w-full transition-colors ${
-                                      selectedDuration === duration
-                                        ? "bg-primary-color text-white"
-                                        : "bg-gray-1300 hover:bg-gray-1100"
-                                    }`}
-                                  >
-                                    {duration}
-                                  </button>
-                                </li>
-                              )
-                            )}
-                          </ol>
+                          {startType === "manual" && (
+                            <ol className="flex items-center gap-4 pt-2.5">
+                              {(["24hr", "36hr", "48hr"] as const).map(
+                                (duration) => (
+                                  <li key={duration} className="w-full">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        applyDurationPreset(duration)
+                                      }
+                                      className={`rounded-[7px] cursor-pointer px-2.5 h-10 flex items-center justify-center text-sm font-semibold font-inter text-black-1000 w-full transition-colors ${
+                                        selectedDuration === duration
+                                          ? "bg-primary-color text-white"
+                                          : "bg-gray-1300 hover:bg-gray-1100"
+                                      }`}
+                                    >
+                                      {duration}
+                                    </button>
+                                  </li>
+                                )
+                              )}
+                            </ol>
+                          )}
                         </div>
                         <div className="">
                           <TimeSelector
