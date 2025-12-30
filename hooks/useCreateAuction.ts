@@ -70,7 +70,7 @@ export const useCreateAuction = () => {
             if (args.endTime - args.startTime < MIN_TIME) {
                 throw new Error("End time must be at least 24 hours after start time");
             }
-            if (args.startImmediately === false && args.startTime * 1000 < Date.now() + 100) {
+            if (args.startImmediately === false && (args.startTime - 100) * 1000 < Date.now()) {
                 throw new Error("Start time must be in the future");
             }
 
