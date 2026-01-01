@@ -5,14 +5,17 @@ import { Link } from "@tanstack/react-router";
 import { useCancelGumball } from "../../../hooks/useCancelGumball";
 import { useGumballStore } from "../../../store/useGumballStore";
 import { useGumballById } from "../../../hooks/useGumballsQuery";
-import type { GumballBackendDataType } from "../../../types/backend/gumballTypes";
+import type { GumballBackendDataType, PrizeDataBackend } from "../../../types/backend/gumballTypes";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { Loader2 } from "lucide-react";
+import { useCreatorClaimPrizeBack } from "../../../hooks/useCreatorClaimPrizeBack";
 interface GumballStudioProps {
   gumballId: string;
 }
-
+interface AvailablePrize extends PrizeDataBackend {
+  remainingQuantity: number;
+}
 export const GumballStudio = ({ gumballId }: GumballStudioProps) => {
   const { cancelGumball } = useCancelGumball();
    const [tabNames, setTabNames] = useState([
@@ -50,10 +53,15 @@ const availablePrizeIndexes = useMemo(() => {
   });
   
   return gumball.prizes
-    .filter((prize) => prize.quantity - (spinCountByPrizeIndex[prize.prizeIndex] || 0) > 0)
+    .filter((prize) => {
+      const remaining = prize.quantity - (spinCountByPrizeIndex[prize.prizeIndex] || 0) > 0
+      const isClaimedBack = prize.creatorClaimed;
+      return remaining && !isClaimedBack;
+    })
     .map((prize) => prize.prizeIndex);
 }, [gumball?.prizes, gumball?.spins]);
- console.log(totalProceedsInSol);
+
+const { creatorClaimPrizeBackMutation } = useCreatorClaimPrizeBack();
   
  return (
     <div className="w-full md:pt-[48px]">
@@ -62,7 +70,7 @@ const availablePrizeIndexes = useMemo(() => {
               gumballId: parseInt(gumballId),
               prizeIndexes: availablePrizeIndexes,
             })} className="inline-flex cursor-pointer items-center gap-2.5 md:text-base text-sm font-medium text-red-1000 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cancelGumball.isPending || availablePrizeIndexes.length === 0 || gumball?.status === "CANCELLED"}
+            disabled={cancelGumball.isPending || availablePrizeIndexes.length === 0 || gumball?.status === "CANCELLED" || gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED"}
             
             >
               {cancelGumball.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <img src="/icons/delete-icon-1.svg" className="w-6 h-6" alt="no-img" />}
@@ -91,13 +99,19 @@ const availablePrizeIndexes = useMemo(() => {
                 <h4 className="text-base font-medium font-inter text-primary-color">{gumball?.uniqueBuyers} Unique Buyers</h4>
                 </div>
             </div>
-            {/* {gumball?.status === "INITIALIZED" &&  
+            {((gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED") && availablePrizeIndexes.length > 0) &&  
             <div className="py-3">
-                <button className="h-12 cursor-pointer hover:opacity-90 max-w-[260px] flex-1 w-full rounded-full font-medium text-black-1000 text-center bg-primary-color">
-                      Launch Gumball Now
+                <button 
+                onClick={() => creatorClaimPrizeBackMutation.mutate({
+                    gumballId: parseInt(gumballId),
+                    prizeIndexes: availablePrizeIndexes,
+                })}
+                disabled={creatorClaimPrizeBackMutation.isPending}
+                className="h-12 cursor-pointer hover:opacity-90 max-w-[260px] flex-1 w-full rounded-full flex items-center justify-center gap-2 font-medium text-black-1000 hover:text-white hover:bg-primary-color hover:transition-all duration-300 text-center bg-primary-color">
+                      {creatorClaimPrizeBackMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Claim Prize Back"}
                   </button>
               </div>
-            } */}
+            }
           </div>
 
         <ul className="flex items-center gap-3 md:gap-5 md:w-auto w-full pt-16">

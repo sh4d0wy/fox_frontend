@@ -1,11 +1,11 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TransactionsTable } from '../../components/auctions/TransactionsTable';
 import { GumballPrizesTable } from '../../components/gumballs/GumballPrizesTable';
 import { MoneybackTable } from '../../components/gumballs/MoneybackTable';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { useGumballById } from 'hooks/useGumballsQuery';
-import type { GumballBackendDataType } from '../../../types/backend/gumballTypes';
+import type { GumballBackendDataType, PrizeDataBackend } from '../../../types/backend/gumballTypes';
 import { VerifiedTokens } from '../../utils/verifiedTokens';
 import { useSpinGumball } from 'hooks/useSpinGumball';
 import { Dialog, DialogPanel } from '@headlessui/react';
@@ -96,6 +96,9 @@ export const Route = createFileRoute('/gumballs/$id')({
   component: GumballsDetails,
 })
 //TODO: handle total tickets vs prize quantity
+interface AvailablePrize extends PrizeDataBackend {
+  remainingQuantity: number;
+}
 function GumballsDetails() {
   const { id } = Route.useParams();
   const { data, isLoading, isError } = useGumballById(id || "");
@@ -124,7 +127,22 @@ function GumballsDetails() {
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
   const [isClaimPending, setIsClaimPending] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
-
+  const availableGumballs = useMemo(() => {
+    if (!gumball?.prizes) return [];
+    
+    const spinCountByPrizeIndex: Record<number, number> = {};
+    gumball.spins?.forEach((spin) => {
+      const prizeIndex = spin.transaction.metadata.prizeIndex;
+      spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
+    });
+      
+    return gumball.prizes
+      .map((prize): AvailablePrize => ({
+        ...prize,
+        remainingQuantity: prize.quantity - (spinCountByPrizeIndex[prize.prizeIndex] || 0),
+      }))
+      .filter((prize) => prize.remainingQuantity > 0);
+  }, [gumball?.prizes, gumball?.spins]);
   const handleSpinClick = () => {
     setIsSpinning(true);
     new Promise((resolve) => setTimeout(resolve, 3000));
@@ -224,7 +242,7 @@ function GumballsDetails() {
                 <div className="flex-1">
                     <div className="md:p-[18px] p-2 rounded-[20px] border border-gray-1100">
                         <GumballBouncingBalls 
-                          prizes={gumball.prizes || []} 
+                          prizes={availableGumballs} 
                           isActive={isActive} 
                           status={gumball.status} 
                         />
@@ -442,7 +460,7 @@ function GumballsDetails() {
 
                             {tabs[0].active &&
                             <div className="md:grid md:grid-cols-2 items-start gap-5">
-                             <GumballPrizesTable prizes={gumball.prizes} />
+                             <GumballPrizesTable prizes={availableGumballs} />
                              <div className="flex-1 md:-mt-px mt-10">
                              <MoneybackTable spins={gumball.spins} />
                              </div>

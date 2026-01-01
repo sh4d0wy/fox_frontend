@@ -162,3 +162,20 @@ export const claimPrize = async(gumballId:string, txSignature:string, prizeIndex
         throw error;
     }
 }
+
+export const creatorClaimPrizeBack = async(gumballId:string, txSignature:string)=>{
+    try {
+        const response = await api.post(`/gumball/creator-claim/${gumballId}`,{
+            txSignature,
+        },{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

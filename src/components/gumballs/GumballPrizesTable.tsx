@@ -1,8 +1,12 @@
 import { VerifiedTokens } from '@/utils/verifiedTokens';
 import type { PrizeDataBackend } from '../../../types/backend/gumballTypes';
 
+interface AvailablePrize extends PrizeDataBackend {
+  remainingQuantity: number;
+}
+
 interface GumballPrizesTableProps {
-  prizes: PrizeDataBackend[];
+    prizes: AvailablePrize[];
 }
 
 export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
@@ -15,7 +19,7 @@ export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
       {prizes.length === 0 && (
         <div className="absolute w-full h-full flex items-center justify-center py-10">
           <p className="md:text-base text-sm font-medium text-center font-inter text-black-1000">
-            No Prizes Yet
+            No Prizes Available
           </p>
         </div>
       )}
@@ -59,7 +63,7 @@ export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{prize.quantity}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{prize.remainingQuantity}</p>
                   </div>
                 </td>
                 <td>

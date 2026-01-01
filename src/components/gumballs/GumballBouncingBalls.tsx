@@ -13,8 +13,12 @@ interface Ball {
   prizeIndex: number;
 }
 
+interface AvailablePrize extends PrizeDataBackend {
+  remainingQuantity: number;
+}
+
 interface GumballBouncingBallsProps {
-  prizes: PrizeDataBackend[];
+  prizes: AvailablePrize[];
   isActive: boolean;
   status: string;
 }
@@ -44,13 +48,13 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
   const initializeBalls = useCallback(() => {
     if (!dimensions.width || !dimensions.height) return;
 
-    const maxQuantity = Math.max(...prizes.map(p => p.quantity), 1);
+    const maxQuantity = Math.max(...prizes.map(p => p.remainingQuantity), 1);
     const newBalls: Ball[] = [];
     
     prizes.forEach((prize, prizeIndex) => {
       // Create balls based on quantity (but cap at reasonable number for performance)
-      const ballCount = Math.min(prize.quantity, 15);
-      const radius = calculateBallSize(prize.quantity, prize.isNft, maxQuantity);
+      const ballCount = Math.min(prize.remainingQuantity, 15);
+      const radius = calculateBallSize(prize.remainingQuantity, prize.isNft, maxQuantity);
       
       for (let i = 0; i < ballCount; i++) {
         const padding = radius + 10;
@@ -256,7 +260,11 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
   if (!prizes || prizes.length === 0) {
     return (
       <div className="w-full h-[506px] rounded-[20px] bg-white flex items-center justify-center">
-        <p className="text-gray-400 font-inter">No prizes available</p>
+        <div className="relative  w-full h-full bg-black/50 flex items-center justify-center z-10 rounded-[20px]">
+          <img src="/images/ended-img-1.png" alt="no-prizes" className="w-full h-full object-cover absolute -z-10 rounded-[20px]" />
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10 rounded-[20px]"></div>
+          <p className="md:text-[28px] text-lg text-white font-bold font-inter absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">No Prizes Available</p>
+        </div>
       </div>
     );
   }

@@ -46,6 +46,7 @@ const prizeDataSchema = z.object({
   prizeAmount: z.string().min(1),
   quantity: z.number().int().gt(0),
   floorPrice: z.string().optional(),
+  creatorClaimed:z.boolean().default(false).optional(),
 });
 
 export type PrizeDataBackend = z.infer<typeof prizeDataSchema>;
