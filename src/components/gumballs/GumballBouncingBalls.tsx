@@ -24,7 +24,7 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ballsRef = useRef<Ball[]>([]);
   const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Calculate ball sizes based on quantity and isNft

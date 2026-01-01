@@ -56,7 +56,6 @@ export const DynamicCounter = ({ endsAt ,status,className}: { endsAt: Date ,stat
     parts.push(`${elapsedTime.minutes}m`);
     return parts.join(" ");
   };
-  console.log("status",status);
   const isActive = (status === "ACTIVE" && new Date(endsAt).getTime() > Date.now());
   
   return (

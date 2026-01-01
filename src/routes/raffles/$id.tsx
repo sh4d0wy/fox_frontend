@@ -79,7 +79,11 @@ function RouteComponent() {
     publicKey?.toString() || ""
   );
   const [TimeExtension, setTimeExtension] = useState(true);
-
+  const shouldBeDisabled = useMemo(() => {
+    return cancelRaffle.isPending || 
+      (raffle?.ticketSold && raffle?.ticketSold > 0) || 
+      (raffle?.state?.toLowerCase() !== "active" && raffle?.state?.toLowerCase()!=="failedended")
+  }, [raffle?.ticketSold, raffle?.state, cancelRaffle.isPending, raffle]);
   useEffect(() => {
     if (
       raffle?.endsAt &&
@@ -577,10 +581,11 @@ function RouteComponent() {
                           Raffle Administrator
                         </h3>
                         <div className="w-full md:mb-5">
+
                           <PrimaryButton
-                            className={`w-full h-[54px] ${cancelRaffle.isPending|| (raffle.ticketSold && raffle.ticketSold > 0) ? true : false || raffle.state !== "active" ? "opacity-50 cursor-not-allowed" : ""} `}
+                            className={`w-full h-[54px] ${shouldBeDisabled ? "opacity-50 cursor-not-allowed" : ""} `}
                             text={`Cancel Raffle`}
-                            disabled={false}
+                            disabled={shouldBeDisabled}
                             onclick={() => {
                               cancelRaffle.mutate(raffle?.id || 0);
                             }}
