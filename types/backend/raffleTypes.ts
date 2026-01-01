@@ -57,6 +57,7 @@ const raffleSchema = z.object({
     ticketPrice: z.number().gt(0),
     ticketSupply: z.number().gt(0),
     ticketTokenAddress: z.string().min(1).optional(),
+    ticketTokenSymbol: z.string().min(1).optional(),
     floor: z.number().gt(0).optional(),
     val: z.number().gt(0).optional(),
     ttv: z.number().gt(0),

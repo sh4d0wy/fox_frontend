@@ -412,7 +412,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               </>
             ) : (
               <>
-                <span>{raffle.val || 1}</span> {raffle.prizeData.symbol}
+                <span>{(raffle.prizeData.amount??0) / (10**(raffle.prizeData.decimals||0)) || 0}</span> {raffle.prizeData.symbol}
               </>
             )}
           </h3>
@@ -531,7 +531,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
                   ticketsToBuy: getTicketQuantityById(raffle.id || 0),
                 });
               }}
-              className="inline-flex px-2 py-3 sm:w-fit w-full flex-1 text-sm transition gap-1 duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 rounded-full h-11 items-center justify-center text-white font-semibold font-inter text-center"
+              className="inline-flex px-2 py-3 cursor-pointer sm:w-fit w-full flex-1 text-sm transition gap-1 duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 rounded-full h-11 items-center justify-center text-white font-semibold font-inter text-center"
             >
               Buy •{" "}
               <span>

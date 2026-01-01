@@ -154,6 +154,7 @@ export const useCreateRaffle = () => {
       )?.decimals || 0),
     ticketSupply: parseInt(supply),
     ticketTokenAddress: ticketCurrency.address,
+    ticketTokenSymbol: VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.symbol || "",
     val: parseFloat(val),
     ttv: ttv,
     roi: parseFloat(percentage),
