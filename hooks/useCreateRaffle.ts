@@ -188,6 +188,7 @@ export const useCreateRaffle = () => {
           ?.decimals || 0),
     },
   };
+  console.log("raffleBackendPayload",raffleBackendPayload);
   const createRaffle = useMutation({
     mutationKey: ["createRaffle"],
     mutationFn: async () => {

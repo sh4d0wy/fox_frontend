@@ -21,10 +21,6 @@ function DynamicNewLink({ isAuth }: { isAuth: boolean }) {
   }
 
   const isClickable = isAuth && enabled;
-  console.log("isClickable",isClickable);
-  console.log("linkTo",linkTo);
-  console.log("enabled",enabled);
-  console.log("isAuth",isAuth);
 
   return (
     <Link

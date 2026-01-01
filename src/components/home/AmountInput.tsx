@@ -4,14 +4,17 @@ import { ticketTokens } from "@/utils/ticketTokens";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 
 export default function AmountInput() {
-  const { ticketPrice, ticketCurrency, getComputedTTV,setTicketPrice, setTicketCurrency, setTicketPricePerSol } = useCreateRaffleStore();
+  const { ticketPrice, ticketCurrency,ticketPricePerSol, getComputedTTV,setTicketPrice, setTicketCurrency, setTicketPricePerSol } = useCreateRaffleStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: ticketTokenPrice } = useGetTokenPrice(ticketCurrency.address);
   const { data: solPrice } = useGetTokenPrice("So11111111111111111111111111111111111111112");
-
   const toggleDropdown = () => setIsOpen((prev) => !prev);
-
+  console.log("ticketPrice",ticketPrice)
+  console.log("ticketCurrency",ticketCurrency)
+  console.log("ticketTokenPrice",ticketTokenPrice)
+  console.log("solPrice",solPrice)
+  console.log("ticketPricePerSol",(parseFloat(ticketPrice) * (ticketTokenPrice?.price/solPrice?.price)).toFixed(2))
   const handleSelect = (value: string) => {
     setTicketCurrency(ticketTokens.find((token) => token.symbol === value) || { symbol: "", address: "" });
     setTicketPricePerSol((parseFloat(ticketPrice) * (ticketTokenPrice?.price/solPrice?.price)).toFixed(2));

@@ -450,7 +450,9 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
                       (token) => token.address === raffle.ticketTokenAddress
                     )?.decimals || 0)}
               </span>{" "}
-              SOL
+              {VerifiedTokens.find(
+                (token) => token.address === raffle.ticketTokenAddress
+              )?.symbol || "SOL"}
             </h4>
           </div>
           <div className="w-full flex items-center justify-between gap-5">

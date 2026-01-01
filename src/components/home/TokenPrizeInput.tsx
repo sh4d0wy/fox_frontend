@@ -34,7 +34,8 @@ export default function TokenPrizeInput() {
       setUserVerifiedTokens(userVerifiedTokens.map((token) => token.address));
     }
   }, [userVerifiedTokens]);
-
+  console.log("tokenPrizeMint",tokenPrizeMint);
+  console.log("tokenPrice",tokenPrice);
   return (
     <div className="relative">
       <input
@@ -82,6 +83,7 @@ export default function TokenPrizeInput() {
                   onClick={() => {
                     setTokenPrizeMint(coin.address);
                     setIsOpen(false);
+                    setPrizeType(coin.symbol === "SOL" ? "sol" : "spl");
                   }}
                 >
                   <img src={coin.image} alt={coin.name} className="w-4 h-4" />

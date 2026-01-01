@@ -246,13 +246,14 @@ function CreateRaffles() {
                     </span>
                     
                   </button>
+                  {nftPrizeMint && (
                   <div className="flex items-center justify-end gap-3">
                   {nftPrizeMint && (
                       <p className="text-xs  text-white bg-primary-color text-center font-inter border rounded-md px-2 py-1 my-3">
                         FP: {parseFloat(floor)/10**9}
                       </p>
                     )}
-                    {(ttv>0) && (
+                    {(nftPrizeMint && ttv>0) && (
                       <p className="text-xs  text-black-1000 text-center font-inter border rounded-md px-2 py-1 my-3">
                         TTV: {ttv}
                       </p>
@@ -264,7 +265,7 @@ function CreateRaffles() {
                       </p>
                     )}
                     
-                    </div>
+                    </div>)}
                   <p className="md:text-2xl text-xl font-bold font-inter text-black-1000/30 pt-[22px] pb-[31px] md:pt-10 md:pb-7 text-center">
                     or
                   </p>

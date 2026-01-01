@@ -4,6 +4,10 @@ export const ticketTokens = [
         address: "So11111111111111111111111111111111111111112"
     },
     {
+        symbol: "VOTE",
+        address: "VoteCahXMnr5FXRCvQRr7kDtYTDpo348yWmVgcrZpkn"
+    },
+    {
         symbol: "JUP",
         address: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
     },

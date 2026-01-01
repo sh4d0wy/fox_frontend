@@ -55,30 +55,25 @@ export const Navbar = () => {
 
   const authenticateWallet = async (currentWalletKey: string, reason: string) => {
     if (isAuthenticatingRef.current) {
-      console.log(`Authentication already in progress, skipping ${reason}`);
       return;
     }
 
     try {
       isAuthenticatingRef.current = true;
-      console.log(`Starting authentication: ${reason}`);
       
       const message = await requestMessage(currentWalletKey);
       const result = await signAndVerifyMessage(message.message);
       
       if (result.success && result.data?.token) {
-        console.log("Authentication successful");
         setToken(result.data.token.toString());
         setAuth(true, currentWalletKey);
         hasInitializedRef.current = true;
       } else {
-        console.error("Authentication failed");
         removeToken();
         setAuth(false, null);
         hasInitializedRef.current = false;
       }
     } catch (error) {
-      console.error("Error during authentication:", error);
       removeToken();
       setAuth(false, null);
       hasInitializedRef.current = false;
@@ -92,32 +87,25 @@ export const Navbar = () => {
       if (connected && publicKey) {
         const currentWalletKey = publicKey.toBase58();
         
-        // Skip if already authenticated with this wallet
         if (hasInitializedRef.current && isAuth && walletAddress === currentWalletKey) {
-          console.log("Already authenticated with this wallet, skipping");
           return;
         }
 
         // Skip if authentication is in progress
         if (isAuthenticatingRef.current) {
-          console.log("Authentication in progress, skipping");
           return;
         }
 
-        console.log("Checking authentication status for:", currentWalletKey);
         const authToken = localStorage.getItem('authToken');
         
         if (authToken && !isTokenExpired(authToken)) {
-          console.log("Using existing valid token");
           setAuth(true, currentWalletKey);
           hasInitializedRef.current = true;
         } else {
-          console.log("Token missing or expired, requesting signature");
           await authenticateWallet(currentWalletKey, "initial connection");
         }
       } else if (!connected) {
         if (hasInitializedRef.current) {
-          console.log("Wallet disconnected, clearing auth");
           hasInitializedRef.current = false;
           isAuthenticatingRef.current = false;
           removeToken();
