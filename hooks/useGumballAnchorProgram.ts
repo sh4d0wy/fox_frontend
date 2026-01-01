@@ -970,9 +970,10 @@ export function useGumballAnchorProgram() {
 
             tx.add(...claimIxs);
 
-            const signature = await provider.sendAndConfirm(tx, [GUMBALL_ADMIN_KEYPAIR]);
+            return await provider.sendAndConfirm(tx, [
+                GUMBALL_ADMIN_KEYPAIR,
+            ]);
 
-            return { signature, claimedCount: claimIxs.length };
         },
 
         onSuccess: (tx) => {
