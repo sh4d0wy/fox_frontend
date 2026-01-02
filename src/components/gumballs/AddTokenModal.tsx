@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useGumballById } from "hooks/useGumballsQuery";
 import type { GumballBackendDataType } from "types/backend/gumballTypes";
+import { useFetchUserToken } from "hooks/useFetchUserToken";
 interface TokenPrize {
   id: string;
   token: typeof VerifiedTokens[0];
@@ -107,7 +108,7 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
   );
 }
 
-export default function AddTokenModal({ isOpen, onClose, gumballId,remainingPrizes }: AddTokenModalProps) {
+export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPrizes }: AddTokenModalProps) {
   const { prizeCount, addPrize, prizes: existingPrizes, updatePrizeStats } = useGumballStore();
   const { addPrizes } = useAddPrizes();
   const [tokenPrizes, setTokenPrizes] = useState<TokenPrize[]>([]);
@@ -115,6 +116,7 @@ export default function AddTokenModal({ isOpen, onClose, gumballId,remainingPriz
   const [prizeValues, setPrizeValues] = useState<Record<string, number>>({});
   const queryClient = useQueryClient();
   const { data: gumball } = useGumballById(gumballId) as { data: GumballBackendDataType };
+  const { userVerifiedTokens } = useFetchUserToken();
   // Handler for value changes from child components
   const handleValueChange = useCallback((id: string, solValue: number) => {
     setPrizeValues(prev => ({ ...prev, [id]: solValue }));
@@ -127,11 +129,12 @@ export default function AddTokenModal({ isOpen, onClose, gumballId,remainingPriz
   const maxPrizes = gumball?.maxPrizes || 0;
 
   const availableTokens = useMemo(() => {
-      return VerifiedTokens.filter(token => 
-        token.symbol === "VOTE" 
-      );
+      // return VerifiedTokens.filter(token => 
+      //   token.symbol === "VOTE" 
+      // );
     // return VerifiedTokens;
-  }, [tokenPrizes, existingPrizes]);
+    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => userToken.address === token.address))
+  }, [tokenPrizes, existingPrizes, userVerifiedTokens]);
 
   const handleAddToken = () => {
     if (!selectedToken) return;
