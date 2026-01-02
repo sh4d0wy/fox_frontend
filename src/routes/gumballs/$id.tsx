@@ -144,6 +144,7 @@ function GumballsDetails() {
       }))
       .filter((prize) => prize.remainingQuantity > 0);
   }, [gumball?.prizes, gumball?.spins]);
+
   const handleSpinClick = () => {
     setIsSpinning(true);
     new Promise((resolve) => setTimeout(resolve, 3000));
@@ -317,7 +318,7 @@ function GumballsDetails() {
                             </div>
 
                             <div className="w-full">
-                                {isActive && gumball?.prizesAdded > 0 && gumball.creatorAddress === publicKey?.toString() ? 
+                                {isActive && gumball?.prizesAdded > 0 && gumball.creatorAddress !== publicKey?.toString() ? 
                                 <div className="w-full">
                                 {/* <div className="w-full flex items-center justify-between pt-7 pb-5">
                                         <p className="text-sm font-medium font-inter text-gray-1200">
