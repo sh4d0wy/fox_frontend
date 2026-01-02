@@ -302,7 +302,9 @@ function GumballsDetails() {
                             </div>
                             <div className="w-full flex items-center justify-start">
                               <p className='text-lg font-semibold font-inter text-black-1000 w-full'>Ends in</p>
+                              {gumball.status!=="INITIALIZED" && 
                               <DynamicCounter  endsAt={new Date(gumball.endTime)} status={gumball.status === "ACTIVE" ? "ACTIVE" : "ENDED"} className="" />
+                              }
                             </div>
                             <div className="w-full flex items-center justify-between py-4 px-5 border border-gray-1100 rounded-[20px] bg-gray-1300">
                                 <div className="inline-flex flex-col gap-2.5">

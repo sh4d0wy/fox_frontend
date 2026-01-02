@@ -32,6 +32,10 @@ export default function GumballPriceInput() {
           value={amount}
           onChange={(e) => {
             setAmount(e.target.value);
+            console.log("e.target.value",e.target.value);
+            console.log("ticketCurrency.address",ticketCurrency.address);
+            console.log("VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals",VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals);
+            console.log("(parseFloat(e.target.value) * (10 ** (VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals || 0)))",(parseFloat(e.target.value) * (10 ** (VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals || 0))));
             setTicketPrice((parseFloat(e.target.value) * (10 ** (VerifiedTokens.find((token) => token.address === ticketCurrency.address)?.decimals || 0))).toString());
           }}
           className="text-black-1000 outline outline-gray-1100 rounded-lg focus:outline-primary-color placeholder:text-gray-1200 text-base w-full font-inter px-5 h-12 font-medium"
@@ -62,6 +66,8 @@ export default function GumballPriceInput() {
                         symbol: cur.symbol,
                         address: cur.address,
                       });
+                      setAmount("0");
+                      setTicketPrice("0");
                       setOpen(false);
                     }}
                   >

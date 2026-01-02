@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { useGetTotalPrizeValueInSol } from "../../../hooks/useGetTotalPrizeValueInSol";
+import { PrizeCollage } from "./PrizeCollage";
 
 export interface GumballsCardProps {
   gumball: GumballBackendDataType;
@@ -51,10 +52,16 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
   // Compute remaining tickets
   const remainingTickets = (totalTickets || 0) - (ticketsSold || 0);
 
-  // Get main image from first prize or use placeholder
+  // Check if we have multiple prizes for collage display
+  const hasMultiplePrizes = useMemo(() => {
+    const prizeImages = prizes?.filter((prize) => prize.image);
+    return prizeImages && prizeImages.length > 1;
+  }, [prizes]);
+
+  // Get main image from first prize (fallback for single prize)
   const mainImage = useMemo(() => {
     const prizeWithImage = prizes?.find((prize) => prize.isNft ? prize.image : null);
-    return prizeWithImage?.image || "/images/gumballs/sol-img-frame.png";
+    return prizeWithImage?.image || "/fox-logo.png";
   }, [prizes]);
 
   // Compute countdown from endTime
@@ -102,26 +109,29 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
             <img
               src="/icons/user-avatar.png"
               alt={displayAddress}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-6 h-6 rounded-full object-cover"
             />
-            <h4 className="text-base font-semibold font-inter text-black-1000">
+            <h4 className="text-sm font-semibold font-inter text-black-1000">
               {displayAddress}
             </h4>
           </div>
-          <div className="relative inline-flex items-center justify-center">
-            <img src="/images/home/polygon-shape.svg" alt={'shape'} />
-            <p className="text-xs font-semibold font-inter text-white-1000 absolute z-10">
-              T5
-            </p>
+          <div className="relative flex items-center justify-end">
+            {/* <img src="/images/home/polygon-shape.svg" alt={'shape'} /> */}
+            {gumball.status === "ACTIVE" && (
+              <p className="text-xs font-semibold font-inter text-green-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
+                Active
+              </p>
+            )}
           </div>
         </div>
         
         <div className="w-full relative group">
-          <img
-            src={mainImage}
-            alt="featured-card"
-            className="w-full border-y border-gray-1100 object-cover h-[300px]"
-          />
+            <PrizeCollage
+              prizes={prizes}
+              className="w-full border-y border-gray-1100 h-[300px]"
+              rotation={-25}
+              gridSize={3}
+            />
 
           <div className="w-full h-full flex flex-col items-start justify-between p-4 absolute top-0 left-0">
             <div className="w-full h-full transition duration-300 group-hover:visible group-hover:opacity-100 invisible opacity-0 absolute left-0 p-4 top-0 flex flex-col items-start justify-between">
@@ -196,7 +206,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
           </div>
         </div>
 
-        <div className="w-full flex flex-col px-4 py-4 gap-5">
+        <div className="w-full flex flex-col px-4 py-4 gap-1">
           <div className="w-full flex items-center gap-5 justify-between">
             <h3 className="md:text-2xl text-lg text-black-1000 font-bold font-inter">
               {name}
@@ -205,6 +215,15 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
           </div>
 
           <div className="w-full flex flex-col items-center justify-between gap-1.5">
+            
+            <div className="w-full flex items-center justify-between gap-5">
+              <h4 className="text-sm text-gray-1200 font-inter">
+                Gumball Prizes left
+              </h4>
+              <h4 className="text-sm text-gray-1200 text-right font-inter">
+                Price
+              </h4>
+            </div>
             <div className="w-full flex items-center justify-between gap-5">
                {(totalTickets !== ticketsSold) ?   
               <h4 className="md:text-base text-sm text-black-1000 font-inter font-semibold">
@@ -213,16 +232,8 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
               :
               <h4 className="text-base text-red-1000 font-semibold font-inter">SOLD OUT</h4>
               }
-              <h4 className="md:text-base text-sm text-black-1000 text-right font-inter font-semibold">
+              <h4 className="md:text-base text-sm text-primary-color text-right font-inter font-semibold">
                 <span>{pricePerTicket /10**(VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.decimals || 0)}</span> {VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.symbol || "SOL"}
-              </h4>
-            </div>
-            <div className="w-full flex items-center justify-between gap-5">
-              <h4 className="text-sm text-gray-1200 font-inter">
-                Gumball Prizes left
-              </h4>
-              <h4 className="text-sm text-gray-1200 text-right font-inter">
-                Price
               </h4>
             </div>
           </div>

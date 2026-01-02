@@ -5,6 +5,7 @@ import type { GumballBackendDataType } from "../../../types/backend/gumballTypes
 
 export interface GumballsCardPurchasedProps {
   gumball: GumballBackendDataType & {
+    userSpins?: number;
     spinsBought?: number;
     totalSpent?: number;
   };
@@ -25,6 +26,7 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
     totalPrizeValue = "0",
     prizes = [],
     ticketMint,
+    userSpins,
     spinsBought = 0,
     spins = [],
   } = gumball || {};
@@ -42,7 +44,7 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
   const pricePerTicketNum = parseFloat(ticketPrice) || 0;
   
   // Calculate total spent based on spins bought
-  const userSpinsCount = spinsBought || spins?.length || 0;
+  const userSpinsCount = userSpins || spins?.length || 0;
   const totalSpent = userSpinsCount * pricePerTicketNum;
 
   // Calculate win rate if user has spins
@@ -152,7 +154,7 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
         <div className="flex-1">
           <h4 className="text-sm mb-1.5 text-gray-1200 font-inter">Prizes Won</h4>
           <h4 className="md:text-base text-sm text-black-1000 font-inter font-medium">
-            <span>{prizesWon}</span> Prizes
+            <span>{userSpins}</span> Prizes
           </h4>
         </div>
 

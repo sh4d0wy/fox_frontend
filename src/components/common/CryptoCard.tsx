@@ -279,7 +279,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
 
   return (
     <div
-      className={`bg-white-1000 border border-gray-1100 rounded-2xl ${className}`}
+      className={`bg-white-1000 min-h-[500px] border border-gray-1100 rounded-2xl ${className}`}
     >
       {<p className="text-sm hidden text-black">{category}</p>}
       {rafflesType === "created" ? (
@@ -293,17 +293,19 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
           <img
             src={userAvatar}
             alt={raffle.createdBy}
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-6 h-6 rounded-full object-cover"
           />
           <h4 className="text-base font-semibold font-inter text-black-1000">
             {raffle.createdBy.slice(0, 6)}...{raffle.createdBy.slice(-4)}
           </h4>
         </div>
-        <div className="relative inline-flex items-center justify-center">
-          <img src="/images/home/polygon-shape.svg" alt={"shape"} />
-          <p className="text-xs font-semibold font-inter text-white-1000 absolute z-10">
-            T5
+        <div className="relative w-full flex items-center justify-end">
+          {/* <img src="/images/home/polygon-shape.svg" alt={"shape"} /> */}
+          {raffle.state?.toLowerCase() === "active" && (
+          <p className="text-xs font-semibold font-inter text-green-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
+            Active
           </p>
+        )}
         </div>
       </div>
 
@@ -312,13 +314,13 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
           <img
             src={raffle.prizeData.image}
             alt={raffle.prizeData.name}
-            className="w-full object-cover h-50"
+            className="w-full object-cover h-72"
           />
         ) : (
           <img
             src={raffle.prizeData.image}
             alt={raffle.prizeData.name}
-            className="w-50 object-contain h-50 rounded-full"
+            className="w-72 object-contain h-72 "
           />
         )}
 
@@ -422,7 +424,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               <img
                 src="/icons/verified-icon.svg"
                 alt="verified"
-                className="w-5 h-5"
+                className="w-6 h-6"
               />
               <p className="text-sm text-black-1000 font-semibold font-inter">
                 Verified
@@ -432,6 +434,15 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
         </div>
 
         <div className="w-full flex flex-col items-center justify-between gap-1.5">
+          
+          <div className="w-full flex items-center justify-between gap-5">
+            <h4 className="text-sm text-gray-1200 font-inter">
+              Tickets remaining
+            </h4>
+            <h4 className="text-sm text-gray-1200 text-right font-inter">
+              Price per ticket
+            </h4>
+          </div>
           <div className="w-full flex items-center justify-between gap-5">
             {raffle.ticketSupply !== soldTickets ? (
               <h4 className="text-base text-black-1000 font-inter font-semibold">
@@ -442,7 +453,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
                 SOLD OUT
               </h4>
             )}
-            <h4 className="text-base text-black-1000 text-right font-inter font-semibold">
+            <h4 className="text-base text-primary-color text-right font-inter font-semibold">
               <span>
                 {raffle.ticketPrice /
                   10 **
@@ -455,17 +466,9 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               )?.symbol || "SOL"}
             </h4>
           </div>
-          <div className="w-full flex items-center justify-between gap-5">
-            <h4 className="text-sm text-gray-1200 font-inter">
-              Tickets remaining
-            </h4>
-            <h4 className="text-sm text-gray-1200 text-right font-inter">
-              Price per ticket
-            </h4>
-          </div>
         </div>
 
-        {rafflesType === "All Raffles" && (
+        {/* {(rafflesType === "All Raffles" && raffle?.createdBy !== publicKey?.toString()) && (
           <div className="w-full flex items-center sm:flex-row flex-col justify-between gap-4">
             <div className="flex flex-1 items-center justify-between py-2 px-3 border border-gray-1100 rounded-full">
               <button
@@ -546,7 +549,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               )?.symbol || "SOL"}
             </button>
           </div>
-        )}
+        )} */}
         {rafflesType === "Past Raffles" && (
           <div className="w-full flex items-center justify-between">
             <h4 className="text-base text-primary-color font-inter text-center w-full font-semibold">

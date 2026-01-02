@@ -15,7 +15,7 @@ export const Route = createFileRoute('/gumballs/create_gumballs/$id')({
 function CreateGumballs() {
   const { id } = Route.useParams();
   const {data:gumball,isLoading} = useGumballById(id || "");
-  const isActive = gumball?.status === "ACTIVE";
+  const isActive = gumball?.status === "ACTIVE" || gumball?.status ==="INITIALIZED";
   const [activeTab, setActiveTab] = useState<GumballTab>("studio");
 
   useEffect(() => {

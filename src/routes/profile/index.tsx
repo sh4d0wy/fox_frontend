@@ -278,12 +278,12 @@ function CreateProfile() {
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
-                        <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
+                        {/* <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
                           Purchase Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
                           {raffleStats?.purchaseVolume ? (raffleStats?.purchaseVolume / 10 ** 9).toFixed(2) : 0}
-                        </p>
+                        </p> */}
                       </li>
                     </>
                   )}
@@ -306,12 +306,12 @@ function CreateProfile() {
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
-                        <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
+                        {/* <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
                           Gumball Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
                           {gumballStats?.totalVolumeSpent ? (gumballStats?.totalVolumeSpent / 10 ** 9).toFixed(2) : 0}
-                        </p>
+                        </p> */}
                       </li>
                     </>
                   )}
@@ -342,12 +342,12 @@ function CreateProfile() {
                         </p>
                       </li>
                       <li className="flex items-center justify-between">
-                        <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
+                        {/* <p className="md:text-base text-sm font-medium font-inter text-start text-gray-1200">
                           Total Volume
                         </p>
                         <p className="md:text-base text-sm font-medium font-inter text-black-1000 text-right">
                           {(auctionStats?.totalVolumeBid)?((auctionStats?.totalVolumeBid)/10**9).toFixed(2) : 0}
-                        </p>
+                        </p> */}
                       </li>
                     </>
                   )}
@@ -433,7 +433,11 @@ function CreateProfile() {
                                 />
                               ))
                             : sortedRaffleCreatedCards.map((card: any) => (
-                                <RafflersCard key={card.id} {...card} />
+                                <CryptoCard
+                                key={card.id}
+                                raffle={card}
+                                soldTickets={card.ticketSold}
+                              />
                               ))}
                       </div>
                     )}
@@ -539,6 +543,8 @@ function CreateProfile() {
                                 <GumballsCard key={card.id} gumball={card} />
                               ))
                             : sortedGumballCreatedCards.map((card: any) => (
+                              // <GumballsCard key={card.id} gumball={card} />
+                              
                                 <GumballsCardCreated
                                   key={card.id}
                                   gumball={card}

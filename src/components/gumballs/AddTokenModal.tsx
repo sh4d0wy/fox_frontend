@@ -133,7 +133,7 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
       //   token.symbol === "VOTE" 
       // );
     // return VerifiedTokens;
-    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => userToken.address === token.address))
+    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address!=="So11111111111111111111111111111111111111112")))
   }, [tokenPrizes, existingPrizes, userVerifiedTokens]);
 
   const handleAddToken = () => {

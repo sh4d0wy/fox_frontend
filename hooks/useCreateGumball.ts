@@ -72,7 +72,7 @@ export const useCreateGumball = () => {
                 creatorAddress: publicKey?.toBase58().toString() || "",
                 name: args.name,
                 manualStart: false,
-                startTime: new Date(args.startTime * 1000),
+                startTime: new Date((args.startTime * 1000)-2), //2 sec before start to avoid failure in contract because of time difference
                 endTime: new Date((args.endTime) * 1000),
                 totalTickets: 0,
                 ticketPrice: args.ticketPrice.toString(),

@@ -309,7 +309,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   },
   getComputedTTV: () => {
     const supply = parseInt(get().supply) || 0;
-    const ticketPrice = parseFloat(get().ticketPricePerSol) || 10;
+    const ticketPrice = parseFloat(get().ticketPricePerSol) || 0;
     set({ ttv: Math.round(supply * ticketPrice * 1000) / 1000 });
     if(parseFloat(get().val)>0 && get().ttv>0){
       set({ percentage: ((get().ttv-parseFloat(get().val) / get().ttv) * 100).toFixed(2)});

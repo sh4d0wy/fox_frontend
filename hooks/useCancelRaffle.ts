@@ -20,6 +20,7 @@ export const useCancelRaffle = () => {
         },
         onSuccess: (raffleId:number) => {
             queryClient.invalidateQueries({ queryKey: ["raffle",raffleId.toString()] });
+            queryClient.invalidateQueries({ queryKey: ["raffles", "All Raffles"] });
             toast.success("Raffle cancelled successfully");
             router.navigate({ to: "/raffles" });
         },
