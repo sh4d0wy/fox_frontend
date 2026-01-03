@@ -11,6 +11,7 @@ import {
     verifyAuctionCreation,
 } from "../api/routes/auctionRoutes";
 import { useRouter } from "@tanstack/react-router";
+import { useCheckAuth } from "./useCheckAuth";
 
 
 export type AuctionOnChainArgs = {
@@ -38,11 +39,16 @@ export const useCreateAuction = () => {
     const router = useRouter();
     const { publicKey } = useWallet();
     const queryClient = useQueryClient();
+    const { checkAndInvalidateToken } = useCheckAuth();
 
-    const validateForm = (args: AuctionOnChainArgs) => {
+    const validateForm = async (args: AuctionOnChainArgs) => {
         try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
+            }
+            const isValid = await checkAndInvalidateToken(publicKey.toBase58());
+            if (!isValid) {
+                throw new Error("Invalid token");
             }
             if (!args.startTime) {
                 throw new Error("Start Time is required");
@@ -106,7 +112,7 @@ export const useCreateAuction = () => {
     const createAuction = useMutation({
         mutationKey: ["createAuction"],
         mutationFn: async (args: AuctionOnChainArgs) => {
-            if (!validateForm(args)) {
+            if (!await validateForm(args)) {
                 throw new Error("Validation failed");
             }
 

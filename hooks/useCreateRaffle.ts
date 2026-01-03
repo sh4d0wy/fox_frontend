@@ -12,7 +12,7 @@ import {
   verifyRaffleCreation,
 } from "../api/routes/raffleRoutes";
 import { useRouter } from "@tanstack/react-router";
-import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
+// import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { useCheckAuth } from "./useCheckAuth";
 
 export const useCreateRaffle = () => {
@@ -52,11 +52,11 @@ export const useCreateRaffle = () => {
   const router = useRouter();
   const validateForm = async () => {
     try {
-      const isValid = await checkAndInvalidateToken(publicKey?.toBase58() || "");
       if (!publicKey) {
         throw new Error("Wallet not connected");
       }
-      if(!isValid){
+      const isValid = await checkAndInvalidateToken(publicKey.toBase58());
+      if (!isValid) {
         throw new Error("Invalid token");
       }
       if (!endDate) {

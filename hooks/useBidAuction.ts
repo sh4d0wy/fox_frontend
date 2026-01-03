@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import {
     bidInAuction
 } from "../api/routes/auctionRoutes";
+import { useCheckAuth } from "./useCheckAuth";
 
 interface BidAuctionArgs {
     auctionId: number;
@@ -17,11 +18,16 @@ export const useBidAuction = () => {
     const { placeBidMutation } = useAuctionAnchorProgram();
     const { publicKey } = useWallet();
     const queryClient = useQueryClient();
+    const { checkAndInvalidateToken } = useCheckAuth();
 
-    const validateForm = (args: BidAuctionArgs) => {
+    const validateForm = async (args: BidAuctionArgs) => {
         try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
+            }
+            const isValid = await checkAndInvalidateToken(publicKey.toBase58());
+            if (!isValid) {
+                throw new Error("Invalid token");
             }
             if (!args.auctionId) {
                 throw new Error("Auction ID is required");
@@ -57,7 +63,7 @@ export const useBidAuction = () => {
     const bidAuction = useMutation({
         mutationKey: ["bidAuction", publicKey?.toBase58()],
         mutationFn: async (args: BidAuctionArgs) => {
-            if (!validateForm(args)) {
+            if (!await validateForm(args)) {
                 throw new Error("Validation failed");
             }
             const tx = await placeBidMutation.mutateAsync({

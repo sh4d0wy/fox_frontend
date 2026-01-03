@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import {
     cancelAuctionOverBackend
 } from "../api/routes/auctionRoutes";
+import { useCheckAuth } from "./useCheckAuth";
 
 interface CancelAuctionArgs {
     auctionId: number;
@@ -16,11 +17,16 @@ export const useCancelAuction = () => {
     const { cancelAuctionMutation } = useAuctionAnchorProgram();
     const { publicKey } = useWallet();
     const queryClient = useQueryClient();
+    const { checkAndInvalidateToken } = useCheckAuth();
 
-    const validateForm = (args: CancelAuctionArgs) => {
+    const validateForm = async (args: CancelAuctionArgs) => {
         try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
+            }
+            const isValid = await checkAndInvalidateToken(publicKey.toBase58());
+            if (!isValid) {
+                throw new Error("Invalid token");
             }
             if (!args.auctionId) {
                 throw new Error("Auction ID is required");
@@ -41,7 +47,7 @@ export const useCancelAuction = () => {
     const cancelAuction = useMutation({
         mutationKey: ["cancelAuction", publicKey?.toBase58()],
         mutationFn: async (args: CancelAuctionArgs) => {
-            if (!validateForm(args)) {
+            if (!await validateForm(args)) {
                 throw new Error("Validation failed");
             }
             const tx = await cancelAuctionMutation.mutateAsync(args.auctionId);
