@@ -53,9 +53,6 @@ export const useCreateAuction = () => {
             if (!args.baseBid) {
                 throw new Error("Base bid is required");
             }
-            if (!args.isBidMintSol) {
-                throw new Error("Is Bid Mint SOL field is required");
-            }
             if (!args.minIncrement) {
                 throw new Error("Min increment is required");
             }
