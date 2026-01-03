@@ -17,6 +17,7 @@ interface CreateRaffleState {
   endDate: Date | null;
   endTimeHour: string;
   endTimeMinute: string;
+  endTimeSecond: string;
   endTimePeriod: "AM" | "PM";
   selectedDuration: DurationPreset;
 
@@ -72,6 +73,7 @@ interface CreateRaffleState {
   setEndDate: (date: Date | null) => void;
   setEndTimeHour: (hour: string) => void;
   setEndTimeMinute: (minute: string) => void;
+  setEndTimeSecond: (second: string) => void;
   setEndTimePeriod: (period: "AM" | "PM") => void;
   setSelectedDuration: (duration: DurationPreset) => void;
   applyDurationPreset: (preset: DurationPreset) => void;
@@ -129,6 +131,7 @@ const initialState = {
   endDate: null as Date | null,
   endTimeHour: "12",
   endTimeMinute: "00",
+  endTimeSecond: "00",
   endTimePeriod: "PM" as "AM" | "PM",
   selectedDuration: null as DurationPreset,
 
@@ -191,6 +194,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   setEndDate: (date) => set({ endDate: date, selectedDuration: null }),
   setEndTimeHour: (hour) => set({ endTimeHour: hour }),
   setEndTimeMinute: (minute) => set({ endTimeMinute: minute }),
+  setEndTimeSecond: (second) => set({ endTimeSecond: second }),
   setEndTimePeriod: (period) => set({ endTimePeriod: period }),
   setSelectedDuration: (duration) => set({ selectedDuration: duration }),
 
@@ -204,12 +208,14 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
     const endDate = new Date(now.getTime() + hoursToAdd * 60 * 60 * 1000);
     const hours = endDate.getHours();
     const minutes = endDate.getMinutes();
+    const seconds = endDate.getSeconds();
 
     set({
       selectedDuration: preset,
       endDate: endDate,
       endTimeHour: String(hours > 12 ? hours - 12 : hours || 12).padStart(2, "0"),
       endTimeMinute: String(minutes).padStart(2, "0"),
+      endTimeSecond: String(seconds).padStart(2, "0"),
       endTimePeriod: hours >= 12 ? "PM" : "AM",
     });
   },
@@ -325,7 +331,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   },
 
   getEndTimestamp: () => {
-    const { endDate, endTimeHour, endTimeMinute, endTimePeriod } = get();
+    const { endDate, endTimeHour, endTimeMinute, endTimeSecond, endTimePeriod } = get();
     if (!endDate) return null;
 
     const date = new Date(endDate);
@@ -338,7 +344,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
       hours = 0;
     }
 
-    date.setHours(hours, parseInt(endTimeMinute) || 0, 0, 0);
+    date.setHours(hours, parseInt(endTimeMinute) || 0, parseInt(endTimeSecond) || 0, 0);
     return Math.floor(date.getTime() / 1000);
   },
 }));

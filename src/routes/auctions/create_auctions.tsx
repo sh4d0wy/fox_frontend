@@ -119,7 +119,7 @@ function CreateAuctions() {
       await createAuction.mutateAsync({
         startImmediately: startType === "manual" ? true : false,
         startTime: getStartTimestamp()!,
-        endTime: getEndTimestamp()!,
+        endTime: getEndTimestamp()!+100,
         baseBid: parseFloat(basePrice),
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,
