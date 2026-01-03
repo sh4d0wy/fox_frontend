@@ -1,7 +1,5 @@
 import axios from "axios";
 import { API_URL } from "../src/constants";
-import { refreshToken } from "./routes/userRoutes";
-import { getToken, setToken, isTokenExpired, removeToken } from "../src/utils/auth";
 
 export const api = axios.create({
     baseURL: `/api`,

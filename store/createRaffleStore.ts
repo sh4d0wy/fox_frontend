@@ -1,3 +1,4 @@
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { calculateRent } from "hooks/helpers";
 import { create } from "zustand";
 
@@ -293,12 +294,16 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
 
   // Computed values
   getComputedRent: async () => {
-    const winner = parseInt(get().numberOfWinners) || 1;
-    console.log("winner",winner)
-    const rent = await calculateRent(winner);
-    console.log("rent",rent)
-    set({ rent: rent?.rentSol || 0 });
-    return Math.round(rent?.rentSol || 0 * 1000) / 1000;
+    const rent = await calculateRent(522); // 522 is the byte size of the raffle 
+    const rentForATA = await calculateRent(165); // 165 is the byte size of the ATA
+    const totalRent = (rent?.rentLamports || 0) + (rentForATA?.rentLamports || 0);
+    if(get().prizeType === "nft"){
+      set({ rent: ((totalRent / LAMPORTS_PER_SOL)* 1000) / 1000 });
+      return ((totalRent / LAMPORTS_PER_SOL)* 1000) / 1000;
+    }else{
+      set({ rent: (rent?.rentSol || 0)});
+      return (rent?.rentSol || 0);
+    }
   },
   getComputedVal:(tokenPrice:number, SolPrice:number)=>{
     set({ val: (Math.round((parseFloat(get().tokenPrizeAmount) * tokenPrice) / SolPrice * 1000) / 1000).toFixed(2) });

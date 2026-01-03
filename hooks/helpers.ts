@@ -101,12 +101,11 @@ export async function getAtaAddress(
   );
 }
 
-export const calculateRent = async (winners: number) => {
-  const totalSize = 524;
+
+export const calculateRent = async (byteSize:number) => {
   try {
-    // Get rent exemption from Solana
     const connection = new Connection(SOLANA_RPC, "confirmed");
-    const rentLamports = await connection.getMinimumBalanceForRentExemption(totalSize);
+    const rentLamports = await connection.getMinimumBalanceForRentExemption(byteSize);
     const rentSol = rentLamports / LAMPORTS_PER_SOL;
 
     return {

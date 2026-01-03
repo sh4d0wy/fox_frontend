@@ -1,4 +1,5 @@
 import { VerifiedTokens } from "@/utils/verifiedTokens";
+import { calculateRent } from "hooks/helpers";
 import { create } from "zustand";
 
 /* ----------------------------- Types ----------------------------- */
@@ -324,14 +325,10 @@ export const useGumballStore = create<GumballState>((set, get) => ({
   },
 
   // Ticket Configuration
-  setPrizeCount: (count) => {
+  setPrizeCount: async (count) => {
     set({ prizeCount: count });
-    // Calculate rent based on prize count
-    const prizeCountNum = parseInt(count) || 0;
-    // Rent calculation: approximately 0.00072 SOL per prize, max 0.72 SOL
-    const rentPerPrize = 0.00072;
-    const calculatedRent = Math.min(prizeCountNum * rentPerPrize, 0.72);
-    set({ rent: Math.round(calculatedRent * 1000) / 1000 });
+    const rentPerPrize = await calculateRent(109); //109 is the byte size of the gumball
+    set({ rent: (rentPerPrize?.rentSol || 0) });
   },
   setTicketPrice: (price) => set({ ticketPrice: price }),
   setTicketPricePerSol: (price) => set({ ticketPricePerSol: price }),

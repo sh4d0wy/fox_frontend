@@ -170,10 +170,10 @@ function GumballsDetails() {
     if (!price) return "0";
     if (isTicketSol) {
         const priceNum = parseFloat(price)/10**9;
-      return `${priceNum.toFixed(2)} SOL`;
+      return `${priceNum.toFixed(2)} `;
     }
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);
-    return `${numPrice} ${isTicketSol ? "SOL" : ""}`;
+    return `${numPrice}`;
   };
 
   const progressPercent = gumball ? (gumball.ticketsSold / gumball.totalTickets) * 100 : 0;
