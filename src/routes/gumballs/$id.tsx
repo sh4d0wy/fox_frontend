@@ -147,7 +147,9 @@ function GumballsDetails() {
 
   const handleSpinClick = () => {
     setIsSpinning(true);
-    new Promise((resolve) => setTimeout(resolve, 3000));
+  };
+
+  const handleSpinComplete = () => {
     setIsPrizeModalOpen(true);
   };
 
@@ -248,7 +250,9 @@ function GumballsDetails() {
                         <GumballBouncingBalls 
                           prizes={availableGumballs} 
                           isActive={isActive} 
-                          status={gumball.status} 
+                          status={gumball.status}
+                          isSpinning={isSpinning}
+                          onSpinComplete={handleSpinComplete}
                         />
                     </div>
                 </div>

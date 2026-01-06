@@ -10,6 +10,7 @@ import {
 import { useCheckAuth } from "./useCheckAuth";
 
 interface BidAuctionArgs {
+    highestBidder: string;
     auctionId: number;
     bidAmount: number;
 }
@@ -29,12 +30,16 @@ export const useBidAuction = () => {
             if (!isValid) {
                 throw new Error("Signature verification failed");
             }
+            if (args.highestBidder === publicKey.toBase58()) {
+                throw new Error("You are already the highest bidder");
+            }
             if (!args.auctionId) {
                 throw new Error("Auction ID is required");
             }
             if (args.bidAmount <= 0) {
                 throw new Error("Bid amount must be greater than zero");
             }
+            
 
             return true;
         } catch (error: unknown) {
@@ -79,7 +84,7 @@ export const useBidAuction = () => {
         onSuccess: (auctionId: number) => {
             toast.success("Bid placed successfully");
             queryClient.invalidateQueries({
-                queryKey: ["auction", auctionId],
+                queryKey: ["auction", auctionId.toString()],
             });
             queryClient.invalidateQueries({
                 queryKey: ["auctions"]

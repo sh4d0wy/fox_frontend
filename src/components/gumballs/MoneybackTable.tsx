@@ -4,12 +4,17 @@ import type { SpinDataBackend } from "types/backend/gumballTypes";
 export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
   const filterSpins = spins.filter((spin)=>{return {transaction:spin.transaction,spunAt:spin.spunAt}});
   console.log(filterSpins);
-  const formatPrice = (price: string) => {
-    const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === filterSpins[0].transaction.mintAddress)?.decimals || 0);
+  const formatPrice = (price: string, mint: string) => {
+    const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === mint)?.decimals || 0);
     return `${numPrice}`;
   }
   return (
+    <div className="relative">
+      <p className="text-base font-medium absolute z-10 -top-22 bg-primary-color w-fit px-4 py-3 rounded-full font-inter text-black-1000">
+        Recent Spins
+      </p>
     <div className="border border-gray-1100 rounded-[20px] w-full overflow-x-auto xl:overflow-hidden">
+      
       <table className="table xl:w-full w-[500px] md:w-[600px]">
         <thead className="bg-gray-1300">
           <tr className="flex-1">
@@ -43,9 +48,15 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
                   className="md:w-[60px] w-10 h-10 md:h-[60px] rounded-full object-cover"
                   alt="no img"
                 />
-                <p className="text-base text-black-1000 font-medium font-inter">
-                  {formatPrice(spin.transaction.metadata?.prizeAmount??0 )}
-                </p>
+                {spin.prize.isNft ? (
+                  <p className="text-base text-black-1000 font-medium font-inter">
+                    {spin.prize.name}
+                  </p>
+                ) : (
+                  <p className="text-base text-black-1000 font-medium font-inter">
+                    {formatPrice(spin.prize.prizeAmount, spin.prize.mint)}
+                  </p>
+                )}
               </div>
             </td>
             <td>
@@ -70,9 +81,6 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
                       day: "2-digit",
                       month: "short",
                       year: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
                     })
                     .replace(",", "")
                     .replace(/ (\d{2})$/, "'$1")}
@@ -83,6 +91,7 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 };

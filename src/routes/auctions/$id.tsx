@@ -135,6 +135,7 @@ function AuctionDetails() {
     try {
       setIsBiddingAuction(true);
       await bidAuction.mutateAsync({
+        highestBidder: auction?.highestBidderWallet ?? "",
         auctionId: Number(id),
         bidAmount: Math.round(amount * Math.pow(10, currencyDecimals)), // Convert SOL to lamports
       });

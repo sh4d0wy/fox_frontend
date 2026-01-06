@@ -62,6 +62,7 @@ const spinDataSchema = z.object({
   id: z.number().int(),
   gumballId: z.number().int(),
   prizeId: z.number().int(),
+  prize: prizeDataSchema,
   spinnerAddress: z.string().min(1),
   winnerAddress: z.string().min(1),
   prizeAmount: z.string().min(1),

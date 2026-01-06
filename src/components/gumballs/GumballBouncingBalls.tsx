@@ -21,9 +21,11 @@ interface GumballBouncingBallsProps {
   prizes: AvailablePrize[];
   isActive: boolean;
   status: string;
+  isSpinning?: boolean;
+  onSpinComplete?: () => void;
 }
 
-export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBouncingBallsProps) => {
+export const GumballBouncingBalls = ({ prizes, isActive, status, isSpinning = false, onSpinComplete }: GumballBouncingBallsProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ballsRef = useRef<Ball[]>([]);
@@ -31,30 +33,25 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
   const animationFrameRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  // Calculate ball sizes based on quantity and isNft
-  const calculateBallSize = useCallback((quantity: number, isNft: boolean, maxQuantity: number) => {
-    const baseSize = 20;
-    const maxSize = 55;
-    const nftBonus = isNft ? 12 : 0;
+  const calculateBallSize = useCallback((quantity: number, totalQuantity: number, isNft: boolean) => {
+    const minSize = 15;
+    const maxSize = 40;
+    const nftBonus = isNft ? 30 : 0;
+    const quantityRatio = quantity / Math.max(totalQuantity, 1);
+    const size = minSize + (quantityRatio * (maxSize - minSize - nftBonus)) + nftBonus;
     
-    // Normalize quantity to get size multiplier
-    const quantityRatio = Math.min(quantity / Math.max(maxQuantity, 1), 1);
-    const size = baseSize + (quantityRatio * (maxSize - baseSize - nftBonus)) + nftBonus;
-    
-    return Math.max(baseSize, Math.min(size, maxSize));
+    return Math.max(minSize, Math.min(size, maxSize));
   }, []);
 
-  // Initialize balls from prizes
   const initializeBalls = useCallback(() => {
     if (!dimensions.width || !dimensions.height) return;
 
-    const maxQuantity = Math.max(...prizes.map(p => p.remainingQuantity), 1);
+    const totalQuantity = prizes.reduce((sum, p) => sum + p.remainingQuantity, 0);
     const newBalls: Ball[] = [];
     
     prizes.forEach((prize, prizeIndex) => {
-      // Create balls based on quantity (but cap at reasonable number for performance)
       const ballCount = Math.min(prize.remainingQuantity, 15);
-      const radius = calculateBallSize(prize.remainingQuantity, prize.isNft, maxQuantity);
+      const radius = calculateBallSize(prize.remainingQuantity, totalQuantity, prize.isNft);
       
       for (let i = 0; i < ballCount; i++) {
         const padding = radius + 10;
@@ -75,7 +72,6 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
     ballsRef.current = newBalls;
   }, [prizes, dimensions, calculateBallSize]);
 
-  // Preload images
   useEffect(() => {
     const imageUrls = new Set(prizes.map(p => p.image || '/images/gumballs/sol-img-frame.png'));
     
@@ -89,7 +85,6 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
     });
   }, [prizes]);
 
-  // Handle resize
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -103,14 +98,24 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Initialize balls when dimensions change
   useEffect(() => {
     if (dimensions.width && dimensions.height) {
       initializeBalls();
     }
   }, [dimensions, initializeBalls]);
 
-  // Animation loop - floating movement
+  const spinStartTimeRef = useRef<number>(0);
+  const spinCompletedRef = useRef<boolean>(false);
+  const originalPositionsRef = useRef<{ x: number; y: number }[]>([]);
+
+  useEffect(() => {
+    if (isSpinning) {
+      spinStartTimeRef.current = Date.now();
+      spinCompletedRef.current = false;
+      originalPositionsRef.current = ballsRef.current.map(ball => ({ x: ball.x, y: ball.y }));
+    }
+  }, [isSpinning]);
+
   useEffect(() => {
     if (!canvasRef.current || !dimensions.width || !dimensions.height) return;
 
@@ -118,57 +123,82 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Store time offset for each ball for smooth sine wave movement
     const timeOffsets = ballsRef.current.map(() => Math.random() * Math.PI * 2);
+    const orbitRadius = Math.min(dimensions.width, dimensions.height) * 0.35;
+    const angleOffsets = ballsRef.current.map((_, index) => (index / ballsRef.current.length) * Math.PI * 2);
 
     let time = 0;
+    const SPIN_DURATION = 5000;
 
     const animate = () => {
       ctx.clearRect(0, 0, dimensions.width, dimensions.height);
       time += 0.015;
 
-      // Update and draw balls with floating motion
+      const centerX = dimensions.width / 2;
+      const centerY = dimensions.height / 2;
+
+      if (isSpinning && !spinCompletedRef.current) {
+        const elapsed = Date.now() - spinStartTimeRef.current;
+        
+        if (elapsed >= SPIN_DURATION) {
+          spinCompletedRef.current = true;
+          if (onSpinComplete) {
+            onSpinComplete();
+          }
+        }
+      }
+
       ballsRef.current.forEach((ball, index) => {
         const offset = timeOffsets[index];
         
-        // Gentle floating movement using sine waves
-        ball.vx = Math.sin(time + offset) * 0.5;
-        ball.vy = Math.cos(time * 0.7 + offset) * 0.4;
+        if (isSpinning && !spinCompletedRef.current) {
+          const elapsed = Date.now() - spinStartTimeRef.current;
+          const progress = Math.min(elapsed / SPIN_DURATION, 1);
+          
+          const easeProgress = progress < 0.5 
+            ? 4 * progress * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          
+          const rotationSpeed = (1 - easeProgress * 0.7) * 12;
+          const currentAngle = angleOffsets[index] + time * rotationSpeed;
+          
+          const currentOrbitRadius = orbitRadius * (0.8 + 0.2 * Math.sin(progress * Math.PI));
+          
+          ball.x = centerX + Math.cos(currentAngle) * currentOrbitRadius;
+          ball.y = centerY + Math.sin(currentAngle) * currentOrbitRadius;
+        } else {
+          ball.vx = Math.sin(time + offset) * 0.5;
+          ball.vy = Math.cos(time * 0.7 + offset) * 0.4;
 
-        // Update position
-        ball.x += ball.vx;
-        ball.y += ball.vy;
+          ball.x += ball.vx;
+          ball.y += ball.vy;
 
-        // Soft boundary wrapping - gently redirect when near edges
-        const padding = ball.radius + 5;
-        if (ball.x < padding) {
-          ball.x = padding;
-        } else if (ball.x > dimensions.width - padding) {
-          ball.x = dimensions.width - padding;
+          const padding = ball.radius + 5;
+          if (ball.x < padding) {
+            ball.x = padding;
+          } else if (ball.x > dimensions.width - padding) {
+            ball.x = dimensions.width - padding;
+          }
+
+          if (ball.y < padding) {
+            ball.y = padding;
+          } else if (ball.y > dimensions.height - padding) {
+            ball.y = dimensions.height - padding;
+          }
         }
 
-        if (ball.y < padding) {
-          ball.y = padding;
-        } else if (ball.y > dimensions.height - padding) {
-          ball.y = dimensions.height - padding;
-        }
-
-        // Draw soft shadow
         ctx.beginPath();
         ctx.arc(ball.x + 3, ball.y + 3, ball.radius, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
         ctx.fill();
 
-        // Draw ball
         ctx.save();
         
-        // Create circular clip for image
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
 
-        // Draw image or fallback
         const img = imagesRef.current.get(ball.image);
         if (img && img.complete && img.naturalWidth > 0) {
           ctx.drawImage(
@@ -179,7 +209,6 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
             ball.radius * 2
           );
         } else {
-          // Fallback gradient
           const gradient = ctx.createRadialGradient(
             ball.x - ball.radius * 0.3,
             ball.y - ball.radius * 0.3,
@@ -196,48 +225,53 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
 
         ctx.restore();
 
-        // Draw border ring
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = ball.isNft 
-          ? 'rgba(255, 20, 147, 0.6)' 
-          : 'rgba(200, 200, 200, 0.8)';
-        ctx.lineWidth = ball.isNft ? 3 : 2;
+        if (isSpinning && !spinCompletedRef.current) {
+          ctx.strokeStyle = 'rgba(255, 20, 147, 0.8)';
+          ctx.lineWidth = 3;
+        } else {
+          ctx.strokeStyle = ball.isNft 
+            ? 'rgba(255, 20, 147, 0.6)' 
+            : 'rgba(200, 200, 200, 0.8)';
+          ctx.lineWidth = ball.isNft ? 3 : 2;
+        }
         ctx.stroke();
 
-        // Add glow effect for NFTs
-        if (ball.isNft) {
+        if (ball.isNft || (isSpinning && !spinCompletedRef.current)) {
           ctx.beginPath();
           ctx.arc(ball.x, ball.y, ball.radius + 4, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(255, 20, 147, 0.2)';
+          ctx.strokeStyle = isSpinning && !spinCompletedRef.current 
+            ? 'rgba(255, 20, 147, 0.4)' 
+            : 'rgba(255, 20, 147, 0.2)';
           ctx.lineWidth = 4;
           ctx.stroke();
         }
       });
 
-      // Soft collision - balls gently push each other
-      for (let i = 0; i < ballsRef.current.length; i++) {
-        for (let j = i + 1; j < ballsRef.current.length; j++) {
-          const ball1 = ballsRef.current[i];
-          const ball2 = ballsRef.current[j];
-          
-          const dx = ball2.x - ball1.x;
-          const dy = ball2.y - ball1.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const minDist = ball1.radius + ball2.radius + 5;
+      if (!isSpinning || spinCompletedRef.current) {
+        for (let i = 0; i < ballsRef.current.length; i++) {
+          for (let j = i + 1; j < ballsRef.current.length; j++) {
+            const ball1 = ballsRef.current[i];
+            const ball2 = ballsRef.current[j];
+            
+            const dx = ball2.x - ball1.x;
+            const dy = ball2.y - ball1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDist = ball1.radius + ball2.radius + 5;
 
-          if (distance < minDist) {
-            const angle = Math.atan2(dy, dx);
-            const overlap = minDist - distance;
-            
-            // Gently separate balls
-            const separationX = (overlap / 2) * Math.cos(angle) * 0.3;
-            const separationY = (overlap / 2) * Math.sin(angle) * 0.3;
-            
-            ball1.x -= separationX;
-            ball1.y -= separationY;
-            ball2.x += separationX;
-            ball2.y += separationY;
+            if (distance < minDist) {
+              const angle = Math.atan2(dy, dx);
+              const overlap = minDist - distance;
+              
+              const separationX = (overlap / 2) * Math.cos(angle) * 0.3;
+              const separationY = (overlap / 2) * Math.sin(angle) * 0.3;
+              
+              ball1.x -= separationX;
+              ball1.y -= separationY;
+              ball2.x += separationX;
+              ball2.y += separationY;
+            }
           }
         }
       }
@@ -252,9 +286,8 @@ export const GumballBouncingBalls = ({ prizes, isActive, status }: GumballBounci
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [dimensions]);
+  }, [dimensions, isSpinning, onSpinComplete]);
 
-  // Calculate total balls count
   const totalBalls = prizes.reduce((sum, prize) => sum + Math.min(prize.quantity, 15), 0);
 
   if (!prizes || prizes.length === 0) {
