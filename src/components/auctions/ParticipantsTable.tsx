@@ -77,8 +77,7 @@ export const ParticipantsTable = ({
 
   const currencyDecimals = useMemo(() => {
     return (
-      VerifiedTokens.find((token) => token.symbol === currency)
-        ?.decimals ?? 0
+      VerifiedTokens.find((token) => token.symbol === currency)?.decimals ?? 0
     );
   }, [currency]);
 
@@ -95,11 +94,9 @@ export const ParticipantsTable = ({
                 Bid Amount
               </div>
             </th>
-            {/* <th className="text-base md:w-1/5 text-start font-inter text-gray-1600 font-medium">
-              <div className="px-5 h-6 border-l border-gray-1600">
-                Juice earned
-              </div>
-            </th> */}
+            <th className="text-base md:w-1/5 text-start font-inter text-gray-1600 font-medium">
+              <div className="px-5 h-6 border-l border-gray-1600">TX</div>
+            </th>
             <th className="text-base md:w-1/5 text-start font-inter text-gray-1600 font-medium">
               <div className="px-5 h-6 border-l border-gray-1600">Bid Time</div>
             </th>
@@ -154,18 +151,31 @@ export const ParticipantsTable = ({
                   <td>
                     <div className="px-5 py-6 border-b border-gray-1100">
                       <p className="text-base text-black-1000 font-medium font-inter">
-                        {p.bidAmount / Math.pow(10, currencyDecimals)} {currency}
+                        {p.bidAmount / Math.pow(10, currencyDecimals)}{" "}
+                        {currency}
                       </p>
                     </div>
                   </td>
 
-                  {/* <td>
-                  <div className="px-5 py-6 border-b border-gray-1100">
-                    <p className="text-base text-black-1000 font-medium font-inter">
-                      {p.quantity}
-                    </p>
-                  </div>
-                </td> */}
+                  <td>
+                    <div className="px-5 py-6 border-b border-gray-1100 flex items-center gap-2.5">
+                      <p className="text-base text-black-1000 font-medium font-inter">
+                        {p.transactionId.slice(0, 6)}...
+                        {p.transactionId.slice(-4)}
+                      </p>
+                      <img
+                        src="/icons/external-link-icon.svg"
+                        onClick={() =>
+                          window.open(
+                            `https://solscan.io/tx/${p.transactionId}`,
+                            "_blank"
+                          )
+                        }
+                        className="w-5 h-5 cursor-pointer"
+                        alt="link"
+                      />
+                    </div>
+                  </td>
 
                   <td>
                     <div className="px-5 py-6 border-b border-gray-1100">
