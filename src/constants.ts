@@ -1,5 +1,5 @@
-export const HELIUS_KEY = import.meta.env.VITE_HELIUS_KEY as string;
-export const NETWORK = import.meta.env.VITE_ENVIRONMENT as string === "development" ? "devnet" : "mainnet";
-export const SOLANA_RPC = NETWORK === "devnet" ? import.meta.env.VITE_SOLANA_DEVNET_RPC as string : import.meta.env.VITE_SOLANA_MAINNET_RPC as string;
-// export const SOLANA_RPC = "https://api.devnet.solana.com";
-export const API_URL = import.meta.env.VITE_API_URL as string;
+export const HELIUS_KEY = "0fcc653b-d9ed-4c30-8ad8-6bda0b48da85";
+// change to "mainnet" when deploying to mainnet
+export const NETWORK : "devnet" | "mainnet" = "devnet";
+export const SOLANA_RPC = NETWORK === "devnet" ? "https://api.devnet.solana.com" : "https://solana-mainnet.g.alchemy.com/v2/<Alchemy-key>";
+export const API_URL = "http://3.39.230.132";
