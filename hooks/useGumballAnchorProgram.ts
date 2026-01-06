@@ -659,7 +659,17 @@ export function useGumballAnchorProgram() {
 
             if (ticketMint) {
                 /* -------- Ticket escrow (owner = gumball PDA) -------- */
-                ticketEscrow = await getAtaAddress(connection, ticketMint, gumballAddress, true);
+                const ticketEscrowRes = await ensureAtaIx({
+                    connection,
+                    mint: ticketMint,
+                    owner: gumballAddress,
+                    payer: wallet.publicKey,
+                    tokenProgram: ticketTokenProgram,
+                    allowOwnerOffCurve: true, // PDA owner
+                });
+
+                ticketEscrow = ticketEscrowRes.ata;
+                if (ticketEscrowRes.ix) tx.add(ticketEscrowRes.ix);
 
                 /* -------- Fee treasury ATA (owner = gumball config PDA) -------- */
                 const feeTreasuryRes = await ensureAtaIx({
