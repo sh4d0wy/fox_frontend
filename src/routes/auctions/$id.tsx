@@ -80,7 +80,8 @@ function AuctionDetails() {
       else setComputedStatus("LIVE");
 
       // Calculate countdown for Live/Upcoming
-      const target = (now < start) ? start : auction.status==="ACTIVE"? end:0;
+      const target =
+        now < start ? start : auction.status === "ACTIVE" ? end : 0;
       const distance = target - now;
 
       if (distance > 0) {
@@ -125,16 +126,16 @@ function AuctionDetails() {
     return highestBidInSol * incrementFactor;
   }, [auction]);
 
-  const isWrongBid = useMemo(()=>{
-    if(!bidAmountInput){
+  const isWrongBid = useMemo(() => {
+    if (!bidAmountInput) {
       return false;
-    }else{
-      if(auction?.hasAnyBid){
-        return !(parseFloat(bidAmountInput) >= minBidInSol)
+    } else {
+      if (auction?.hasAnyBid) {
+        return !(parseFloat(bidAmountInput) >= minBidInSol);
       }
-      return !(parseFloat(bidAmountInput) > minBidInSol)
+      return !(parseFloat(bidAmountInput) > minBidInSol);
     }
-  },[bidAmountInput])
+  }, [bidAmountInput]);
   // Handle Bid Submission
   const handlePlaceBid = async () => {
     const amount = Number(bidAmountInput);
@@ -205,11 +206,15 @@ function AuctionDetails() {
 
               {/* NFT Collection Info */}
               <div className="w-full pb-7 pt-6 md:py-10 hidden md:flex items-center justify-between">
-                
                 <div className="w-full pb-7 pt-6 md:py-10 hidden md:flex items-center justify-between">
                   <div className="flex items-center gap-3 2xl:gap-5">
                     <img
-                      src={VerifiedNftCollections.find((collection) => collection.name === auction.collectionName)?.image}
+                      src={
+                        VerifiedNftCollections.find(
+                          (collection) =>
+                            collection.name === auction.collectionName
+                        )?.image
+                      }
                       className="w-12 h-12 rounded-full object-cover"
                       alt=""
                     />
@@ -220,7 +225,14 @@ function AuctionDetails() {
 
                   <ul className="flex items-center gap-6">
                     <li>
-                      <a href={VerifiedNftCollections.find((collection) => collection.name === auction.collectionName)?.twitter}>
+                      <a
+                        href={
+                          VerifiedNftCollections.find(
+                            (collection) =>
+                              collection.name === auction.collectionName
+                          )?.twitter
+                        }
+                      >
                         <img
                           src="/icons/twitter-icon.svg"
                           className="w-7 h-7 object-contain"
@@ -230,7 +242,14 @@ function AuctionDetails() {
                     </li>
 
                     <li>
-                      <a href={VerifiedNftCollections.find((collection) => collection.name === auction.collectionName)?.website}>
+                      <a
+                        href={
+                          VerifiedNftCollections.find(
+                            (collection) =>
+                              collection.name === auction.collectionName
+                          )?.website
+                        }
+                      >
                         {" "}
                         <img
                           src="/icons/mcp-server-icon.svg"
@@ -241,7 +260,6 @@ function AuctionDetails() {
                     </li>
                   </ul>
                 </div>
-              
               </div>
 
               {/* Traits / Details (Static placeholders as API returns null) */}
@@ -425,19 +443,22 @@ function AuctionDetails() {
                                 onChange={(e) =>
                                   setBidAmountInput(e.target.value)
                                 }
-                                placeholder={auction.hasAnyBid?`Min. Bid ${minBidInSol.toFixed(5)}`:` Bid > ${minBidInSol.toFixed(5)}`}
-                                disabled={isBiddingAuction }
-                                className={`w-full px-5 py-4 bg-gray-1300 border border-gray-1100 rounded-xl outline-none ${isWrongBid?" border-red-500":" "} transition font-inter font-semibold`}
+                                placeholder={
+                                  auction.hasAnyBid
+                                    ? `Min. Bid ${minBidInSol.toFixed(5)}`
+                                    : ` Bid > ${minBidInSol.toFixed(5)}`
+                                }
+                                disabled={isBiddingAuction}
+                                className={`w-full px-5 py-4 bg-gray-1300 border border-gray-1100 rounded-xl outline-none ${isWrongBid ? " border-red-500" : " "} transition font-inter font-semibold`}
                               />
                               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">
                                 {auction.currency}
                               </div>
                             </div>
                             <p className="text-[10px] text-gray-500">
-                              {auction.hasAnyBid ?
-                              `You bid must be atleast ${minBidInSol.toFixed(5)}`:
-                              `Your bid must be greater than ${minBidInSol.toFixed(5)}`
-                            }
+                              {auction.hasAnyBid
+                                ? `Your bid must be atleast ${minBidInSol.toFixed(5)}`
+                                : `Your bid must be greater than ${minBidInSol.toFixed(5)}`}{" "}
                               {auction.currency}
                             </p>
                           </div>

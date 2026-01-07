@@ -34,7 +34,7 @@ export type AuctionOnChainArgs = {
 };
 
 const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
-const MIN_TIME = (24 * 60 * 60) + 100; // 24 hours in seconds
+const MIN_TIME = (5 * 60) + 100; // 24 hours in seconds
 
 export const useCreateAuction = () => {
     const { getAuctionConfig } = useAuctionAnchorProgram();
