@@ -80,7 +80,7 @@ function AuctionDetails() {
       else setComputedStatus("LIVE");
 
       // Calculate countdown for Live/Upcoming
-      const target = now < start ? start : end;
+      const target = (now < start) ? start : auction.status==="ACTIVE"? end:0;
       const distance = target - now;
 
       if (distance > 0) {

@@ -10,6 +10,7 @@ import {
 import { useCheckAuth } from "./useCheckAuth";
 import { connection } from "./helpers";
 import { Transaction } from "@solana/web3.js";
+import { useRouter } from "@tanstack/react-router";
 
 interface CancelAuctionArgs {
     auctionId: number;
@@ -19,7 +20,7 @@ export const useCancelAuction = () => {
     const { publicKey, sendTransaction } = useWallet();
     const queryClient = useQueryClient();
     const { checkAndInvalidateToken } = useCheckAuth();
-
+    const router = useRouter();
     const validateForm = async (args: CancelAuctionArgs) => {
         try {
             if (!publicKey) {
@@ -78,11 +79,12 @@ export const useCancelAuction = () => {
         onSuccess: (auctionId: number) => {
             toast.success("Auction cancelled successfully");
             queryClient.invalidateQueries({
-                queryKey: ["auction", auctionId],
+                queryKey: ["auction", auctionId.toString()],
             });
             queryClient.invalidateQueries({
                 queryKey: ["auctions"]
             });
+            router.navigate({ to: "/auctions" });
         },
         onError: () => {
             toast.error("Failed to cancel auction");

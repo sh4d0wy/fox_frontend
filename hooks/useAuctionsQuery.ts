@@ -25,6 +25,7 @@ export const useAuctionById = (id:string) => {
       return data as Promise<AuctionTypeBackendExtended>;
     },
     enabled: !!id,
-    staleTime: 60000,
+    staleTime: 20000,
+    refetchInterval: 20000,
   })
 }
