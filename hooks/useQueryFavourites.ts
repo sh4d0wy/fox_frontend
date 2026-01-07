@@ -1,13 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAuctionFavourite, getGumballFavourite, getRaffleFavourite } from "../api/routes/userRoutes";
-export const useQueryFavourites = (publicKey:string) => {
+
+export type MainFilter = "Rafflers" | "Gumballs" | "Auctions";
+export type TabFilter = "created" | "purchased" | "favourite";
+
+export const useQueryFavourites = (
+    publicKey: string,
+    mainFilter: MainFilter = "Rafflers",
+    tabFilter: TabFilter = "created"
+) => {
+    const isFavouriteTab = tabFilter === "favourite";
+    
     const getFavouriteRaffle = useQuery({
         queryKey:["favourite-raffle",publicKey],
         queryFn:async ()=>{
             const response = await getRaffleFavourite(publicKey);
             return response.raffles;
         },
-        enabled: !!publicKey,
+        enabled: !!publicKey && mainFilter === "Rafflers" && isFavouriteTab,
         staleTime: 60000,
     })
     const getFavouriteGumball = useQuery({
@@ -16,7 +26,7 @@ export const useQueryFavourites = (publicKey:string) => {
             const response = await getGumballFavourite(publicKey);
             return response.gumballs;
         },
-        enabled: !!publicKey,
+        enabled: !!publicKey && mainFilter === "Gumballs" && isFavouriteTab,
         staleTime: 60000,
     })
     const getFavouriteAuction = useQuery({
@@ -25,7 +35,7 @@ export const useQueryFavourites = (publicKey:string) => {
             const response = await getAuctionFavourite(publicKey);
             return response.auctions;
         },
-        enabled: !!publicKey,
+        enabled: !!publicKey && mainFilter === "Auctions" && isFavouriteTab,
         staleTime: 60000,
     })
     return { getFavouriteRaffle, getFavouriteGumball, getFavouriteAuction };

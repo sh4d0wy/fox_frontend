@@ -13,6 +13,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { isTokenExpired, setToken, removeToken } from "../../utils/auth";
 import { toast } from "sonner";
 import Toast from "./Toast";
+import { invalidateQueries } from "../../utils/invalidateQueries";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Navbar = () => {
@@ -49,6 +50,8 @@ export const Navbar = () => {
       
       if(!data.error && data.token){
         setToken(data.token.toString());
+        invalidateQueries(queryClient, publicKey?.toBase58() ?? "");
+
         return { data, success: true };
       }
       return { data, success: false };
@@ -173,7 +176,6 @@ export const Navbar = () => {
 
   const { data: notifications,refetch:refetchNotifications } = useNotificationQuery();
   const queryClient = useQueryClient();
-  
   useEffect(() => {
     if (!walletAddress || !notifications?.raffles) {
       return;
@@ -184,7 +186,6 @@ export const Navbar = () => {
     if (walletChanged) {
       hasShownNotificationsRef.current = false;
       lastNotifiedWalletRef.current = walletAddress;
-      queryClient.invalidateQueries({ queryKey: ["notification"] });
     }
 
     if (hasShownNotificationsRef.current) {
@@ -214,7 +215,7 @@ export const Navbar = () => {
       );
     }
   }, [walletAddress, notifications]);
-  
+
   return (
     <header className="w-full flex h-20 md:h-[90px] lg:h-[100px] bg-white border-b border-gray-1100 z-10 relative">
       <nav className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 flex justify-between items-center">

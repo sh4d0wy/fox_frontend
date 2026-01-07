@@ -99,10 +99,18 @@ function CreateProfile() {
     getGumballPurchasedCards,
     getAuctionCreatedCards,
     getAuctionPurchasedCards,
-  } = useProfileStats(publicKey?.toBase58() ?? "");
+  } = useProfileStats(
+    publicKey?.toBase58() ?? "",
+    mainFilter as "Rafflers" | "Gumballs" | "Auctions",
+    rafflerFilter as "created" | "purchased" | "favourite"
+  );
 
   const { getFavouriteRaffle, getFavouriteGumball, getFavouriteAuction } =
-    useQueryFavourites(publicKey?.toBase58() ?? "");
+    useQueryFavourites(
+      publicKey?.toBase58() ?? "",
+      mainFilter as "Rafflers" | "Gumballs" | "Auctions",
+      rafflerFilter as "created" | "purchased" | "favourite"
+    );
   const raffleStats = getRaffleStats.data?.stats;
   const gumballStats = getGumballStats.data?.stats;
   const auctionStats = getAuctionStats.data?.stats;
