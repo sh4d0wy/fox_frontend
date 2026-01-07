@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-
+import { useNotificationQuery } from "../../../hooks/useNotificationQuery";
 import { useNavbarStore } from "../../../store/globalStore";
 import { requestMessage, verifyMessage } from "../../../api/routes/userRoutes";
 import SettingsModel from "./SettingsModel";
@@ -11,6 +11,9 @@ import DynamicNewLink from "./DynamicNewLink";
 import StatsDropdown from "./StatsDropdown";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { isTokenExpired, setToken, removeToken } from "../../utils/auth";
+import { toast } from "sonner";
+import Toast from "./Toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Navbar = () => {
   const {
@@ -32,6 +35,8 @@ export const Navbar = () => {
   const tokenCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isAuthenticatingRef = useRef(false);
   const hasInitializedRef = useRef(false);
+  const lastNotifiedWalletRef = useRef<string | null>(null);
+  const hasShownNotificationsRef = useRef(false);
   
   const signAndVerifyMessage = async (message: string) => {
     if (!publicKey || !signMessage) {
@@ -166,7 +171,50 @@ export const Navbar = () => {
   const shortAddress =
     walletAddress && `${walletAddress.slice(0, 4)}..${walletAddress.slice(-4)}`;
 
+  const { data: notifications,refetch:refetchNotifications } = useNotificationQuery();
+  const queryClient = useQueryClient();
+  
+  useEffect(() => {
+    if (!walletAddress || !notifications?.raffles) {
+      return;
+    }
 
+    const walletChanged = lastNotifiedWalletRef.current !== walletAddress;
+    
+    if (walletChanged) {
+      hasShownNotificationsRef.current = false;
+      lastNotifiedWalletRef.current = walletAddress;
+      queryClient.invalidateQueries({ queryKey: ["notification"] });
+    }
+
+    if (hasShownNotificationsRef.current) {
+      return;
+    }
+
+    const unclaimedWinnings = notifications.raffles.filter(
+      (raffle: { id: number; claimed: boolean }) => !raffle.claimed
+    );
+
+    if (unclaimedWinnings.length > 0) {
+      hasShownNotificationsRef.current = true;
+
+      unclaimedWinnings.forEach(
+        (raffle: { id: number; claimed: boolean }, index: number) => {
+          setTimeout(() => {
+            toast.custom(
+              (toastId) => (
+                <Toast id={raffle.id} claimed={raffle.claimed} toastId={toastId as string} />
+              ),
+              {
+                duration: 8000,
+              }
+            );
+          }, index * 800);
+        }
+      );
+    }
+  }, [walletAddress, notifications]);
+  
   return (
     <header className="w-full flex h-20 md:h-[90px] lg:h-[100px] bg-white border-b border-gray-1100 z-10 relative">
       <nav className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 flex justify-between items-center">
