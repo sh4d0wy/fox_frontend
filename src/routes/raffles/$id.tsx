@@ -544,12 +544,12 @@ function RouteComponent() {
                           <PrimaryButton
                             className="w-full h-[54px]"
                             text={`Buy for ${
-                              (raffle?.ticketPrice /
+                              ((raffle?.ticketPrice /
                               10 **
                                 (VerifiedTokens.find(
                                   (token) =>
                                     token.address === raffle?.ticketTokenAddress
-                                )?.decimals || 0)) * ticketQuantity
+                                )?.decimals || 0)) * ticketQuantity).toFixed(4)
                             } ${
                               VerifiedTokens.find(
                                 (token) =>

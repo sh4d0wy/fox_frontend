@@ -25,7 +25,8 @@ export const useRaffleById = (raffleId:string) => {
       const data = await fetchRaffleById(raffleId);
       return data as RaffleTypeBackend;
     },
-    staleTime: 60000,
+    staleTime: 30000,
+    refetchInterval: 30000,
     enabled: !!raffleId,
   })
 }
@@ -38,6 +39,7 @@ export const useRaffleWinnersWhoClaimedPrize = (raffleId:string) => {
       return data.prizesClaimed;
     },
     staleTime: 60000,
+    refetchInterval: 60000,
     enabled: !!raffleId,
   });
 }

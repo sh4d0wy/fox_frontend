@@ -116,10 +116,33 @@ function CreateAuctions() {
     try {
       setIsCreatingAuction(true);
 
+      const isStartImmediately = startType === "manual";
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      
+      let startTime: number;
+      let endTime: number;
+      
+      if (isStartImmediately) {
+        startTime = currentTimestamp;
+        
+        if (selectedDuration) {
+          const durationHours = 
+            selectedDuration === "24hr" ? 24 : 
+            selectedDuration === "36hr" ? 36 : 
+            selectedDuration === "48hr" ? 48 : 0;
+          endTime = startTime + (durationHours * 60 * 60);
+        } else {
+          endTime = getEndTimestamp()!;
+        }
+      } else {
+        startTime = getStartTimestamp()!;
+        endTime = getEndTimestamp()!;
+      }
+
       await createAuction.mutateAsync({
-        startImmediately: startType === "manual" ? true : false,
-        startTime: getStartTimestamp()!,
-        endTime: getEndTimestamp()!,
+        startImmediately: isStartImmediately,
+        startTime,
+        endTime,
         baseBid: parseFloat(basePrice),
         bidMint: baseMint,
         isBidMintSol: symbol === "SOL" ? true : false,

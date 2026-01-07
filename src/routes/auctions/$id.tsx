@@ -58,7 +58,8 @@ function AuctionDetails() {
   const showCancelButton =
     isCreator &&
     computedStatus !== "COMPLETED" &&
-    auction?.status !== "CANCELLED";
+    auction?.status !== "CANCELLED" &&
+    auction?.bids?.length == 0;
 
   useEffect(() => {
     if (!auction) return;

@@ -45,6 +45,7 @@ export const useCreateAuction = () => {
 
     const validateForm = async (args: AuctionOnChainArgs) => {
         try {
+            console.log(args.endTime+100 - args.startTime, MIN_TIME)
             if (!publicKey) {
                 throw new Error("Wallet not connected");
             }
@@ -57,6 +58,9 @@ export const useCreateAuction = () => {
             }
             if (!args.endTime) {
                 throw new Error("End Time is required");
+            }
+            if (args.endTime <= args.startTime) {
+                throw new Error("End time must be after start time");
             }
             if (!args.baseBid) {
                 throw new Error("Base bid is required");
@@ -144,7 +148,9 @@ export const useCreateAuction = () => {
                 highestBidderWallet: "",
                 status: "INITIALIZED",
             });
-
+            if (data.error) {
+                throw new Error(data.error);
+            }
             const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getCreateAuctionTx(args.startTime, args.endTime + 100, args.startImmediately, args.isBidMintSol, args.baseBid * Math.pow(10, decimals!), args.minIncrement, args.timeExtension, args.prizeMint, args.bidMint);
             console.log("Received transaction from backend", base64Transaction);
             const decodedTx = Buffer.from(base64Transaction, "base64");
@@ -172,7 +178,8 @@ export const useCreateAuction = () => {
             //     prizeMint: new PublicKey(args.prizeMint),
             //     bidMint: new PublicKey(args.bidMint!) // ignored if SOL
             // });
-            if (confirmation.value.err || data.error) {
+            if (confirmation.value.err) {
+                console.log("Failed to create auction", confirmation.value.err);
                 throw new Error("Failed to create auction");
             } else {
                 const verifyData = await verifyAuctionCreation(data.auction.id, signature);
@@ -194,6 +201,7 @@ export const useCreateAuction = () => {
             if (context?.auctionId) {
                 await deleteAuctionOverBackend(context.auctionId);
             }
+            console.error(_error);
             toast.error("Failed to create auction");
         },
     });
