@@ -339,7 +339,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   getComputedVal:(tokenPrice:number, SolPrice:number)=>{
     set({ val: (Math.round((parseFloat(get().tokenPrizeAmount) * tokenPrice) / SolPrice * 1000) / 1000).toFixed(2) });
     if(parseFloat(get().val)>0 && get().ttv>0){
-      set({ percentage: ((get().ttv-parseFloat(get().val) / get().ttv) * 100).toFixed(4)});
+      set({ percentage: ((get().ttv-parseFloat(get().val) / get().ttv) * 100).toFixed(2)});
     }
     return Math.round((parseFloat(get().tokenPrizeAmount) * tokenPrice) / SolPrice * 1000) / 1000;
   },
@@ -351,7 +351,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
     set({ ttv: ttvValue });
     if (parseFloat(get().val) > 0 && ttvValue > 0) {
       set({
-        percentage: ((ttvValue - parseFloat(get().val)) / ttvValue * 100).toFixed(4),
+        percentage: ((ttvValue - parseFloat(get().val)) / ttvValue * 100).toFixed(2),
       });
     } else if (get().prizeType === "nft" && ttvValue > 0) {
       set({
@@ -359,7 +359,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
           (ttvValue - parseFloat(get().floor) / 1e9) /
           ttvValue *
           100
-        ).toFixed(4),
+        ).toFixed(2),
       });
     }
     return ttvValue;
