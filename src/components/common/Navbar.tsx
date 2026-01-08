@@ -15,11 +15,9 @@ import { toast } from "sonner";
 import Toast from "./Toast";
 import { invalidateQueries } from "../../utils/invalidateQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCheckAuth } from "../../../hooks/useCheckAuth";
 
 
 export const Navbar = () => {
-  const { checkAndInvalidateToken } = useCheckAuth();
   const {
     isAuth,
     walletAddress,
@@ -177,7 +175,7 @@ export const Navbar = () => {
   const shortAddress =
     walletAddress && `${walletAddress.slice(0, 4)}..${walletAddress.slice(-4)}`;
 
-  const { data: notifications,refetch:refetchNotifications } = useNotificationQuery();
+  const { data: notifications } =  useNotificationQuery();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (!walletAddress || !notifications?.raffles) {
@@ -219,16 +217,6 @@ export const Navbar = () => {
     }
   }, [walletAddress, notifications]);
 
-  useEffect(()=>{
-    const checkToken = async () => {
-      if(!publicKey){
-        return;
-      }else{
-        await checkAndInvalidateToken(publicKey.toBase58());
-      }
-    }
-    checkToken();
-  },[publicKey])
 
   return (
     <header className="w-full flex h-20 md:h-[90px] lg:h-[100px] bg-white border-b border-gray-1100 z-10 relative">
