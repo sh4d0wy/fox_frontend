@@ -345,7 +345,7 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   },
   getComputedTTV: () => {
     const supply = parseInt(get().supply) || 0;
-    const ticketPrice = parseFloat(get().ticketPricePerSol) || 0;
+    const ticketPrice = parseFloat(get().ticketPricePerSol) || 10;
     const calculatedTTV = (supply * ticketPrice);
     const ttvValue = Math.round(calculatedTTV * 1e9) / 1e9;
     set({ ttv: ttvValue });
