@@ -178,15 +178,15 @@ export const Navbar = () => {
   const { data: notifications } =  useNotificationQuery();
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (!walletAddress || !notifications?.raffles) {
+    if (!publicKey || !notifications?.raffles) {
       return;
     }
 
-    const walletChanged = lastNotifiedWalletRef.current !== walletAddress;
+    const walletChanged = lastNotifiedWalletRef.current !== publicKey.toBase58();
     
     if (walletChanged) {
       hasShownNotificationsRef.current = false;
-      lastNotifiedWalletRef.current = walletAddress;
+      lastNotifiedWalletRef.current = publicKey.toBase58();
     }
 
     if (hasShownNotificationsRef.current) {
@@ -215,7 +215,7 @@ export const Navbar = () => {
         }
       );
     }
-  }, [walletAddress, notifications]);
+  }, [publicKey, notifications]);
 
 
   return (
