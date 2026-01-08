@@ -181,15 +181,17 @@ export const Navbar = () => {
     if (!publicKey || !notifications?.raffles) {
       return;
     }
-
+    console.log("checking for wallet change")
     const walletChanged = lastNotifiedWalletRef.current !== publicKey.toBase58();
     
     if (walletChanged) {
+      console.log("wallet changed");
       hasShownNotificationsRef.current = false;
       lastNotifiedWalletRef.current = publicKey.toBase58();
     }
 
     if (hasShownNotificationsRef.current) {
+      console.log("notifications already shown");
       return;
     }
 
@@ -198,6 +200,7 @@ export const Navbar = () => {
     );
 
     if (unclaimedWinnings.length > 0) {
+      console.log("showing notifications");
       hasShownNotificationsRef.current = true;
 
       unclaimedWinnings.forEach(
@@ -208,10 +211,10 @@ export const Navbar = () => {
                 <Toast id={raffle.id} claimed={raffle.claimed} toastId={toastId as string} />
               ),
               {
-                duration: 8000,
+                duration: 3000,
               }
             );
-          }, index * 800);
+          }, index * 400);
         }
       );
     }
