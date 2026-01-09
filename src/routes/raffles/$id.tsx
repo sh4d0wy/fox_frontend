@@ -21,6 +21,7 @@ import { useClaimRafflePrize } from "../../../hooks/useClaimRafflePrize";
 import { useQueryFavourites } from "hooks/useQueryFavourites";
 import { useToggleFavourite } from "hooks/useToggleFavourite";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
+import { useClaimTicketRaffle } from "hooks/useClaimTicketRaffle";
 
 export const Route = createFileRoute("/raffles/$id")({
   component: RouteComponent,
@@ -61,6 +62,7 @@ function RouteComponent() {
   const { ticketQuantity } = useBuyRaffleTicketStore();
   const { cancelRaffle } = useCancelRaffle();
   const { claimPrize } = useClaimRafflePrize();
+  const { claimTicket } = useClaimTicketRaffle();
   // const [winnersWhoClaimedPrize, setWinnersWhoClaimedPrize] = useState<
   //   { sender: string }[]
   // >([]);
@@ -82,6 +84,10 @@ function RouteComponent() {
       (raffle?.ticketSold && raffle?.ticketSold > 0) || 
       (raffle?.state?.toLowerCase() !== "active" && raffle?.state?.toLowerCase()!=="failedended")
   }, [raffle?.ticketSold, raffle?.state, cancelRaffle.isPending]);
+
+  const shouldTicketClaimVisible = useMemo(() => {
+    return raffle?.state?.toLowerCase() === "successended";
+  }, [raffle?.ticketAmountClaimedByCreator, raffle?.state]);
 
   const isActive = useMemo(() => {
     return (
@@ -576,15 +582,25 @@ function RouteComponent() {
                       </div>
                     </div>
                   )}
-                  {publicKey && publicKey.toBase58() === raffle?.createdBy && !shouldBeDisabled ? (
+                  {publicKey && publicKey.toBase58() === raffle?.createdBy ? (
                     <div className="w-full mt-6">
                       <div className="w-full border rounded-xl px-10 items-center flex flex-col gap-5 justify-center py-2">
                         <h3 className="text-lg font-medium font-inter text-black-1000">
                           Raffle Administrator
                         </h3>
                         <div className="w-full md:mb-5">
-
-                          <PrimaryButton
+                        {
+                          shouldTicketClaimVisible ? (
+                            <PrimaryButton
+                              className="w-full h-[54px]"
+                              text="Claim Ticket Amount"
+                              disabled={claimTicket.isPending || raffle?.ticketAmountClaimedByCreator}
+                              onclick={() => {
+                                claimTicket.mutate(raffle?.id || 0);
+                              }}
+                            />
+                          ) : (
+                            <PrimaryButton
                             className={`w-full h-[54px] ${shouldBeDisabled ? "opacity-50 cursor-not-allowed" : ""} `}
                             text={`Cancel Raffle`}
                             disabled={shouldBeDisabled}
@@ -592,6 +608,9 @@ function RouteComponent() {
                               cancelRaffle.mutate(raffle?.id || 0);
                             }}
                           />
+                          )
+                        }
+                         
                         </div>
                       </div>
                     </div>

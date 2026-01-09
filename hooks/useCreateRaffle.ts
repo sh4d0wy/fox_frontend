@@ -160,6 +160,7 @@ export const useCreateRaffle = () => {
     return raffleConfig?.raffleCount || 0;
   }
   const raffleBackendPayload: RaffleTypeBackend = {
+    ticketAmountClaimedByCreator: false,
     id: fetchRaffleConfig(),
     createdAt: new Date(now * 1000),
     endsAt: new Date(getEndTimestamp()! * 1000),

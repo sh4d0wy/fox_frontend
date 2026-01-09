@@ -120,6 +120,22 @@ export const claimRafflePrize = async (raffleId: string, txSignature: string) =>
     }
 }
 
+export const claimTicketRaffle = async (raffleId: number, txSignature: string) => {
+    try {
+        const response = await api.post(`/raffle/claim-ticket-amount/${raffleId}`, {
+            txSignature: txSignature,
+        },{
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
 export const getRaffleWinnersWhoClaimedPrize = async (raffleId: string) => {
     try {
         const response = await api.get(`/raffle/winners/claim/${raffleId}`);
