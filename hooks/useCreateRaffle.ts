@@ -242,7 +242,7 @@ export const useCreateRaffle = () => {
             ?.decimals || 0),
         numWinners: 1,
         winShares: winShares,
-        isUniqueWinners: false,
+        isUniqueWinners: true,
         startRaffle: true,
 
         ticketMint: ticketCurrency.address,
