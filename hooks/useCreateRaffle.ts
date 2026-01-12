@@ -16,6 +16,7 @@ import { useRouter } from "@tanstack/react-router";
 // import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { useCheckAuth } from "./useCheckAuth";
 import { connection } from "./helpers";
+import { useMemo } from "react";
 
 export const useCreateRaffle = () => {
   // const { getAllRaffles } = useRaffleAnchorProgram();
@@ -159,6 +160,15 @@ export const useCreateRaffle = () => {
     const raffleConfig = getRaffleConfig.data;
     return raffleConfig?.raffleCount || 0;
   }
+
+  const maxEntries = useMemo(() => {
+    if(ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 0 && supply && parseInt(supply) > 0){
+      const entries = Math.floor((parseInt(ticketLimitPerWallet) * parseInt(supply)) / 100);
+      return entries > 0 ? entries : 1;
+    }
+    return 1;
+  },[ticketLimitPerWallet, supply]);
+
   const raffleBackendPayload: RaffleTypeBackend = {
     ticketAmountClaimedByCreator: false,
     id: fetchRaffleConfig(),
@@ -178,9 +188,7 @@ export const useCreateRaffle = () => {
     ttv: ttv,
     roi: parseFloat(percentage),
     maxTickets: parseInt(maximumTickets),
-    maxEntries: Math.floor(
-      (parseInt(ticketLimitPerWallet) * parseInt(supply)) / 100
-    ),
+    maxEntries: maxEntries,
     numberOfWinners: 1,
     prizeData: {
       type: prizeType === "nft" ? "NFT" : "TOKEN",

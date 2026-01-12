@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import FormInput from "../ui/FormInput";
 import { useCreateRaffleStore } from "store/createRaffleStore";
 
 export default function AdvancedSettingsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
-  const {numberOfWinners, ticketLimitPerWallet, setNumberOfWinners, setTicketLimitPerWallet, getComputedRent, prizeType} = useCreateRaffleStore();
+  const {numberOfWinners, ticketLimitPerWallet, setNumberOfWinners, setTicketLimitPerWallet, getComputedRent, prizeType, supply} = useCreateRaffleStore();
   
   const isNftPrize = true;
 
   const toggleAccordion = () => setIsOpen((prev) => !prev);
 
+  const isValidTicketLimitPerWallet = useMemo(() => {
+    const minTickets = (100+(parseInt(supply)-1))/parseInt(supply);
+    return ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 0  && parseInt(ticketLimitPerWallet) >= minTickets && parseInt(ticketLimitPerWallet) <= 100;
+  }, [ticketLimitPerWallet]);
+  
   return (
     <div className="my-10 border border-solid border-gray-1100 bg-gray-1300 rounded-[10px] md:pt-[27px] px-4 py-6 md:px-6 md:pb-6">
       <div>
@@ -71,7 +76,10 @@ export default function AdvancedSettingsAccordion() {
                 >
                   Ticket limit per wallet in percentage
                 </label>
-                <FormInput value={ticketLimitPerWallet} onChange={(e) => setTicketLimitPerWallet(e.target.value)} placeholder="0" className="bg-white" />
+                <FormInput value={ticketLimitPerWallet} onChange={(e) => {
+                  setTicketLimitPerWallet(e.target.value);
+                  getComputedRent();
+                }} placeholder="0" className={`bg-white ${!isValidTicketLimitPerWallet ? "border border-red-500" : ""}`} />
                 <p className="md:text-sm text-xs font-medium font-inter text-black-1000 pt-2.5">
                   Users can purchase 40% of total tickets as standard
                 </p>
