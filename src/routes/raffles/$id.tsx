@@ -269,7 +269,10 @@ function RouteComponent() {
                   <ul className="flex items-center gap-3 2xl:gap-5 flex-wrap">
                     <li>
                       <p className="md:text-sm text-xs inline-block px-2 sm:px-2.5 py-2 md:py-1.5 font-semibold text-center font-inter text-white bg-primary-color rounded-lg">
-                        Prize Value: {(raffle?.prizeData?.amount??0)/(10**(raffle?.prizeData?.decimals||0))} {raffle?.prizeData?.symbol}
+                        {raffle?.prizeData?.type === "NFT" ? "Floor Price: " : "Prize Value: "}
+                        
+                         {(raffle?.prizeData?.amount??0)/(10**(raffle?.prizeData?.decimals||0))} {" "}
+                        {raffle?.prizeData?.type === "NFT" ? <span>SOL</span> : <span>{raffle?.prizeData?.symbol}</span>}
                       </p>
                     </li>
                     <li>
