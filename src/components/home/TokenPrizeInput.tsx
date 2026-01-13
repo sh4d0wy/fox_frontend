@@ -38,8 +38,6 @@ export default function TokenPrizeInput() {
       setUserVerifiedTokens(userVerifiedTokens.map((token) => token.address));
     }
   }, [userVerifiedTokens]);
-  console.log("tokenPrizeMint",tokenPrizeMint);
-  console.log("tokenPrice",tokenPrice);
   return (
     <div>
     <div className="relative">

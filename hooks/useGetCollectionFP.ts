@@ -16,14 +16,14 @@ export const useGetCollectionFP = () => {
             if(NETWORK === "devnet") {
                 return 0;
             }
-            const response = await fetch(
-                `https://api.solscan.io/v1/nft/collection/floor-price?collectionAddress=${collectionAddress}`
-            );
+            const symbol = VerifiedNftCollections.find((collection) => collection.address === collectionAddress)?.symbol;
+            const url = `https://api-mainnet.magiceden.dev/v2/collections/${symbol}/stats`;
+            const options = {method: 'GET', headers: {accept: 'application/json'}};
+            const response = await fetch(url, options);
             if (!response.ok) {
                 throw new Error(`Failed to fetch floor price for ${collectionAddress}`);
             }
             const data = await response.json();
-            console.log("data",data);
             return data?.floorPrice || null;
         } catch (error) {
             console.error(`Error fetching floor price for ${collectionAddress}:`, error);
@@ -34,7 +34,7 @@ export const useGetCollectionFP = () => {
     const queries = useQueries({
         queries: VerifiedNftCollections.map((collection) => ({
             queryKey: ['collectionFP', collection.address],
-            queryFn: () => fetchCollectionFP(collection.address),
+            queryFn: async () => await fetchCollectionFP(collection.address),
             staleTime: 1000 * 60 * 60 * 24, 
             cacheTime: 1000 * 60 * 60 * 24,
             retry: 2,

@@ -126,6 +126,7 @@ function CreateRaffles() {
   
     const nfts = useMemo(() => {
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      console.log("collectionFPMap",collectionFPMap)
       return (userNfts || []).map((nft: any) => ({
         id: nft.id,
         name: nft.content.metadata.name,
@@ -171,7 +172,6 @@ function CreateRaffles() {
       const selectedNftData = nfts.find((nft: any) => nft.id === selectedNftId);
   
       if (!selectedNftData) return;
-      console.log("selectedNftData", selectedNftData);
       const prizeData = {
         mint: selectedNftData.mint,
         name: selectedNftData.name,
@@ -231,7 +231,6 @@ function CreateRaffles() {
       return parseInt(supply) < 3 || parseInt(supply) > 10000;
     }, [supply]);
 
-    console.log("raffleConfig", raffleConfig);
 
     
     const timePeriod = useMemo(()=>{

@@ -217,7 +217,7 @@ export const useCreateRaffle = () => {
           ?.decimals || 0),
     },
   };
-  console.log("raffleBackendPayload", raffleBackendPayload);
+
   const createRaffle = useMutation({
     mutationKey: ["createRaffle"],
     mutationFn: async () => {
@@ -256,7 +256,6 @@ export const useCreateRaffle = () => {
         ticketMint: ticketCurrency.address,
         prizeMint: prizeType === "nft" ? nftPrizeMint : tokenPrizeMint,
       });
-      console.log("Received transaction from backend", base64Transaction);
       const decodedTx = Buffer.from(base64Transaction, "base64");
       const transaction = Transaction.from(decodedTx);
 
