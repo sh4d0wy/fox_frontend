@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useWallet } from "@solana/wallet-adapter-react";

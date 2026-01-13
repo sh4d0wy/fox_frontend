@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SolanaProvider } from "./providers/SolanaProvider";
 import "./index.css";
 import { routeTree } from "./routeTree.gen";
-import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
 
 const router = createRouter({ routeTree });
 
@@ -27,26 +27,17 @@ if (!rootElement.innerHTML) {
       <SolanaProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-          <Toaster
-            position="bottom-left"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: "white",
-                color: "black",
-                borderRadius: "10px",
-                border: "1px solid #E5E5E5",
-                padding: "10px",
-                fontSize: "16px",
-                textAlign: "center",
-                fontFamily: "Inter",
-                lineHeight: "1.5",
-                letterSpacing: "0.01em",
-                textTransform: "capitalize",
-                position: "relative",
-                bottom: "50px",
-              },
-            }}
+          <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
           />
         </QueryClientProvider>
       </SolanaProvider>

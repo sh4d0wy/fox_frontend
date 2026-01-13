@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { claimTicketRaffle, claimPrizeBackTx } from "../api/routes/raffleRoutes";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { connection } from "./helpers";
 import { Transaction } from "@solana/web3.js";

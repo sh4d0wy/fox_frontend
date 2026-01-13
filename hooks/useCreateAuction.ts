@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useAuctionAnchorProgram } from "./useAuctionAnchorProgram";
 import { PublicKey, Transaction } from "@solana/web3.js";
 // import type { AuctionTypeBackend } from "../types/backend/auctionTypes";

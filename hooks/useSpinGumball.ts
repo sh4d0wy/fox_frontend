@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { prepareSpin, spinGumball } from "../api/routes/gumballRoutes";
 import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
 import { PublicKey } from "@solana/web3.js";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCheckAuth } from "./useCheckAuth";
 import { useWallet } from "@solana/wallet-adapter-react";

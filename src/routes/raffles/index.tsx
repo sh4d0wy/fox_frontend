@@ -129,7 +129,6 @@ function RafflesPage() {
   return (
     <main className="flex-1 font-inter">
       <section className="w-full md:pt-0 pt-5">
-        
         <div className="w-full max-w-[1440px] md:px-5 px-4 mx-auto">
           <Link
             to={"/"}

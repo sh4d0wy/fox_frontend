@@ -8,7 +8,7 @@ import { AgreeCheckbox } from '../common/AgreeCheckbox';
 import CreateTokenModel from './CreateTokenModel';
 import { useGumballStore } from '../../../store/useGumballStore';
 import { useCreateGumball } from '../../../hooks/useCreateGumball';
-import toast from 'react-hot-toast';
+import {toast} from 'react-toastify';
 import { useGumballAnchorProgram } from '../../../hooks/useGumballAnchorProgram';
 import { VerifiedTokens } from '@/utils/verifiedTokens';
 import { PublicKey } from '@solana/web3.js';

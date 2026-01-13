@@ -5,7 +5,7 @@ import { useGumballById } from "hooks/useGumballsQuery";
 import type { GumballBackendDataType } from "types/backend/gumballTypes";
 import { useFetchUserNfts } from "hooks/useFetchUserNfts";
 import { useGetCollectionFP } from "hooks/useGetCollectionFP";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { useAddPrizes, type AddPrizeInputData } from "hooks/useAddPrizes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGumballStore } from "store/useGumballStore";

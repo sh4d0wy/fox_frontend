@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { buyRaffleTicket, buyTicketTx } from "../api/routes/raffleRoutes";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCheckAuth } from "./useCheckAuth";
 import { connection } from "./helpers";

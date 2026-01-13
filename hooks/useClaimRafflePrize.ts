@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { claimRafflePrize, getClaimRaffleTx } from "../api/routes/raffleRoutes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCheckAuth } from "./useCheckAuth";

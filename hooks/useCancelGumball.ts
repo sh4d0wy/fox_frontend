@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { cancelGumballOverBackend } from "../api/routes/gumballRoutes";
 import { useRouter } from "@tanstack/react-router";
 import { useCheckAuth } from "./useCheckAuth";

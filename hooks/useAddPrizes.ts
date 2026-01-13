@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import type { AddMultiplePrizesTypeBackend, PrizeDataBackend } from "../types/backend/gumballTypes";
 import { addMultiplePrizesToGumball } from "../api/routes/gumballRoutes";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
 import { useWallet } from "@solana/wallet-adapter-react";

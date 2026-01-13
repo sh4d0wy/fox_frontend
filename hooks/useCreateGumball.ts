@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 // import type { GumballBackendType } from "../types/backend/gumballTypes";
 // import { createGumballSchema } from "../types/backend/gumballTypes";

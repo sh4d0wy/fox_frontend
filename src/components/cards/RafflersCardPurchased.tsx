@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { useClaimRafflePrize } from "../../../hooks/useClaimRafflePrize";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";

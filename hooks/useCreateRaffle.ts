@@ -1,6 +1,6 @@
 import { useCreateRaffleStore } from "../store/createRaffleStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import { useRaffleAnchorProgram } from "./useRaffleAnchorProgram";
 import { Transaction } from "@solana/web3.js";
 import type { RaffleTypeBackend } from "types/backend/raffleTypes";
