@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import FormInput from "../ui/FormInput";
 import { useCreateRaffleStore } from "store/createRaffleStore";
+import { useRaffleAnchorProgram } from "hooks/useRaffleAnchorProgram";
 
 export default function AdvancedSettingsAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const {numberOfWinners, ticketLimitPerWallet, setNumberOfWinners, setTicketLimitPerWallet, getComputedRent, prizeType, supply} = useCreateRaffleStore();
   const isNftPrize = true;
-
+  const {getRaffleConfig} = useRaffleAnchorProgram();
+  const {data:raffleConfig} = getRaffleConfig;
   const toggleAccordion = () => setIsOpen((prev) => !prev);
 
   const isValidTicketLimitPerWallet = useMemo(() => {
     const minTickets = (100+(parseInt(supply)-1))/parseInt(supply);
-    return ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 0  && parseInt(ticketLimitPerWallet) >= minTickets && parseInt(ticketLimitPerWallet) <= 100;
+    return ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 0  && parseInt(ticketLimitPerWallet) >= minTickets && parseInt(ticketLimitPerWallet) <= (raffleConfig?.maximumWalletPct ?? 100);
   }, [ticketLimitPerWallet,supply]);
 
   
@@ -82,7 +84,7 @@ export default function AdvancedSettingsAccordion() {
                 }} placeholder="0" className={`bg-white ${!isValidTicketLimitPerWallet && (supply.length > 0 )? "border border-red-500" : ""}`} />
                 {!isValidTicketLimitPerWallet && (supply.length > 0 ) && (
                   <p className="md:text-sm text-xs font-medium font-inter text-red-500 pt-2.5">
-                    Please enter a valid ticket limit per wallet (Min: {Math.ceil((100+(parseInt(supply)-1))/parseInt(supply)).toFixed(2)} / Max: 100)
+                    Please enter a valid ticket limit per wallet (Min: {Math.ceil((100+(parseInt(supply)-1))/parseInt(supply)).toFixed(2)} / Max: {raffleConfig?.maximumWalletPct ?? 100})
                   </p>
                 )}
                 <p className="md:text-sm text-xs font-medium font-inter text-black-1000 pt-2.5">

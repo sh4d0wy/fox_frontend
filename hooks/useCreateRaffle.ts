@@ -226,7 +226,7 @@ export const useCreateRaffle = () => {
         throw new Error("Validation failed");
       }
       const data = await createRaffleOverBackend(raffleBackendPayload);
-
+      console.log("raffleBackendPayload", raffleBackendPayload);
       const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await createRaffleTx({
         startTime: now + 60,
         endTime: getEndTimestamp()!,

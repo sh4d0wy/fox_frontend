@@ -20,6 +20,7 @@ import { useGetCollectionFP } from "hooks/useGetCollectionFP";
 import { useAuctionAnchorProgram } from "hooks/useAuctionAnchorProgram";
 import { calculateRent } from "hooks/helpers";
 import { formatTimePeriod } from "@/utils/helpers";
+import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 
 function CreateAuctions() {
   const { createAuction } = useCreateAuction();
@@ -319,6 +320,13 @@ function CreateAuctions() {
     return false;
   }, [startDate, startTimeHour, startTimeMinute, startTimePeriod, startType]);
 
+  const filteredVerifiedCollections = useMemo(() => {
+    if (!collectionSearchQuery.trim()) return VerifiedNftCollections;
+    const query = collectionSearchQuery.toLowerCase();
+    return VerifiedNftCollections.filter((collection) =>
+      collection.name.toLowerCase().includes(query)
+    );
+  }, [collectionSearchQuery]);
   console.log("auctionConfig", getAuctionConfig.data);
   return (
     <div>
@@ -905,111 +913,31 @@ The platform is not responsible for refund delays, fee deductions, or network-re
                       </button>
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-2 px-5 gap-2.5 md:gap-10">
+                  <div className="grid px-5 gap-2.5 grid-cols-1 md:gap-10 max-h-[50vh] overflow-y-auto">
                     <div>
-                      <ol>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Famous Fox Federation
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Famous Fox Dens
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            0rphans
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            AGE of SAM
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Aiternate - Entities
-                          </Link>
-                        </li>
-                        <li className="md:block hidden">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Alpha Pharaohs
-                          </Link>
-                        </li>
+                      <ol className="grid grid-cols-1 gap-2.5 place-items-center">
+                        {filteredVerifiedCollections.length === 0 ? (
+                          <li className="py-10 text-gray-500 font-medium">
+                            No collections found
+                          </li>
+                        ) : (
+                          filteredVerifiedCollections.map((collection) => (
+                            <li key={collection.address} className="md:pb-5 pb-2.5">
+                              <Link
+                                to="."
+                                className="rounded-lg text-center w-[300px] gap-3 justify-center hover:bg-gray-1300 h-13 md:h-15 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-black/20"
+                              >
+                                <img src={collection.image} alt={collection.name} className="w-10 h-10 rounded-full object-cover" />
+                                <span className="text-sm md:text-base font-medium font-inter text-black-1000">
+                                  {collection.name}
+                                </span>
+                              </Link>
+                            </li>
+                          ))
+                        )}
                       </ol>
                     </div>
-                    <div className="md:block hidden">
-                      <ol>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Transdimensional Fox Federation
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Famous Fox Friends & Foes
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            ABC
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            AGE of SAM PFP
-                          </Link>
-                        </li>
-                        <li className="md:pb-5 pb-2.5">
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Aiternate - Holotabs
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            to="."
-                            className="rounded-lg hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
-                          >
-                            Alpha Wolves
-                          </Link>
-                        </li>
-                      </ol>
-                    </div>
+                    
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

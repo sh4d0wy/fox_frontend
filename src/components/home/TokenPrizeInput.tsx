@@ -43,6 +43,12 @@ export default function TokenPrizeInput() {
       setUserVerifiedTokens(userVerifiedTokens.map((token) => token.address));
     }
   }, [userVerifiedTokens]);
+
+  useEffect(() => {
+    if (tokenPrizeAmount && tokenPrice?.price && SolPrice?.price) {
+      getComputedVal(tokenPrice.price, SolPrice.price);
+    }
+  }, [tokenPrizeMint, tokenPrice?.price, SolPrice?.price]);
   return (
     <div>
     <div className="relative">

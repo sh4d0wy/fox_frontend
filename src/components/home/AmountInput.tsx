@@ -14,10 +14,15 @@ export default function AmountInput() {
 
   const handleSelect = (value: string) => {
     setTicketCurrency(VerifiedTokens.find((token) => token.symbol === value) || { symbol: "", address: "" });
-    setTicketPricePerSol((parseFloat(ticketPrice) * (ticketTokenPrice?.price!/solPrice?.price!)).toString());
-    getComputedTTV();
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (ticketPrice && ticketTokenPrice?.price && solPrice?.price) {
+      setTicketPricePerSol((parseFloat(ticketPrice) * (ticketTokenPrice.price / solPrice.price)).toFixed(6));
+      getComputedTTV();
+    }
+  }, [ticketCurrency.address, ticketTokenPrice?.price, solPrice?.price]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

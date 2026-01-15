@@ -72,7 +72,7 @@ export const useCreateAuction = () => {
                 throw new Error("time extension is required");
             }
             if (!args.prizeMint) {
-                throw new Error("prize mint is required");
+                throw new Error("No NFT selected");
             }
             if (!args.bidMint) {
                 args.bidMint = FAKE_MINT.toString()

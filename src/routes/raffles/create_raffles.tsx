@@ -570,7 +570,7 @@ function CreateRaffles() {
                               3.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                            A single wallet may purchase between {minTicketPercentage} and up to 100% of the total ticket supply, depending on the options set by the raffle creator.
+                            A single wallet may purchase between {minTicketPercentage} and up to {raffleConfig?.maximumWalletPct ?? 100}% of the total ticket supply, depending on the options set by the raffle creator.
                             Any attempt to bypass these limits may result in participation restrictions or account sanctions.
                             </p>
                           </li>
@@ -737,9 +737,12 @@ All consequences resulting from configuration errors are solely the responsibili
                             <li key={collection.address} className="md:pb-5 pb-2.5">
                               <Link
                                 to="."
-                                className="rounded-lg text-center w-[200px] justify-center hover:bg-gray-1300 h-10 md:h-12 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-gray-1100"
+                                className="rounded-lg text-center w-[300px] gap-3 justify-center hover:bg-gray-1300 h-13 md:h-15 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-black/20"
                               >
-                                {collection.name}
+                                <img src={collection.image} alt={collection.name} className="w-10 h-10 rounded-full object-cover" />
+                                <span className="text-sm md:text-base font-medium font-inter text-black-1000">
+                                  {collection.name}
+                                </span>
                               </Link>
                             </li>
                           ))
