@@ -58,7 +58,7 @@ export const useClaimTicketRaffle = () => {
                 signature,
             });
             if (confirmation.value.err) {
-                throw new Error("Failed to cancel auction");
+                throw new Error("Failed to claim ticket amount");
             }
             const response = await claimTicketRaffle(raffleId, signature);
             if (response.error) {

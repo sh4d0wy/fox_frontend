@@ -60,7 +60,7 @@ export const useClaimRafflePrize = () => {
                 signature,
             });
             if (confirmation.value.err) {
-                throw new Error("Failed to cancel auction");
+                throw new Error("Failed to claim prize");
             }
             const response = await claimRafflePrize(args.raffleId.toString(), signature);
             if (response.error) {

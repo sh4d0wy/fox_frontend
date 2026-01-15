@@ -69,10 +69,6 @@ export const RafflersCardPurchased: React.FC<RafflersCardPurchasedProps> = (prop
                   }, {
                     onSuccess: () => {
                       queryClient.invalidateQueries({ queryKey: ["profile-raffle-purchased", publicKey?.toBase58() || ""] });
-                      toast.success("Prize claimed successfully");
-                    },
-                    onError: () => {
-                      toast.error("Failed to claim prize");
                     }
                   })
                 }}  
