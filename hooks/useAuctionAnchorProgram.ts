@@ -14,7 +14,7 @@ import { WRAPPED_SOL_MINT } from "@/constants";
 
 export const AUCTION_PROGRAM_ID = new anchor.web3.PublicKey(auctionIdl.address);
 const FAKE_MINT = new PublicKey(WRAPPED_SOL_MINT);
-const FAKE_ATA = new PublicKey('B9W4wPFWjTbZ9ab1okzB4D3SsGY7wntkrBKwpp5RC1Uv')
+const FAKE_ATA = new PublicKey('C3FzbX9n1YD2dow2dCmEv5uNyyf22Gb3TLAEqGBhw5fY')
 
 function getAuctionProgram(provider: anchor.AnchorProvider): anchor.Program<Auction> {
     return new anchor.Program<Auction>(auctionIdl as anchor.Idl, provider);

@@ -42,7 +42,7 @@ type CreateRaffleArgs = {
 };
 
 const FAKE_MINT = new PublicKey(WRAPPED_SOL_MINT);
-const FAKE_ATA = new PublicKey('B9W4wPFWjTbZ9ab1okzB4D3SsGY7wntkrBKwpp5RC1Uv')
+const FAKE_ATA = new PublicKey('C3FzbX9n1YD2dow2dCmEv5uNyyf22Gb3TLAEqGBhw5fY')
 
 function getRaffleProgram(provider: anchor.AnchorProvider): anchor.Program<Raffle> {
     return new anchor.Program<Raffle>(raffleIdl as anchor.Idl, provider);
