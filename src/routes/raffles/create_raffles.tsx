@@ -522,9 +522,9 @@ function CreateRaffles() {
                           onChange={setAgreedToTerms}
                         />
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setIsCreatingRaffle(true);
-                            createRaffle.mutateAsync();
+                            await createRaffle.mutateAsync();
                           }}
                           disabled={!agreedToTerms || isCreatingRaffle}
                           className={`text-white cursor-pointer font-semibold hover:from-primary-color hover:to-primary-color hover:via-primary-color text-sm md:text-base leading-normal font-inter h-11 md:h-14 rounded-full inline-flex items-center justify-center w-full transition duration-500 hover:opacity-90 bg-linear-to-r from-neutral-800 via-neutral-500 to-neutral-800 ${
