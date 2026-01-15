@@ -1,6 +1,7 @@
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { calculateRent } from "hooks/helpers";
 import { create } from "zustand";
+import { NATIVE_SOL_MINT } from "@/utils/verifiedTokens";
 
 /* ----------------------------- Types ----------------------------- */
 
@@ -154,7 +155,7 @@ const initialState = {
   ticketPricePerSol: "0",
   ticketCurrency: {
     symbol: "SOL",
-    address: "So11111111111111111111111111111111111111112",
+    address: NATIVE_SOL_MINT,
   },
 
   // Prize Configuration
@@ -162,7 +163,7 @@ const initialState = {
   nftPrizeMint: "",
   nftPrizeName: "",
   tokenPrizeAmount: "",
-  tokenPrizeMint: "So11111111111111111111111111111111111111112",
+  tokenPrizeMint: NATIVE_SOL_MINT,
   prizeImage:"",
   floor:"0" ,
   val:"0",

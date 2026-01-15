@@ -10,9 +10,10 @@ import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import auctionIdl from "../types/auction.json";
 import type { Auction } from "../types/auction";
 import { getTokenProgramFromMint, ensureAtaIx } from './helpers';
+import { WRAPPED_SOL_MINT } from "@/constants";
 
 export const AUCTION_PROGRAM_ID = new anchor.web3.PublicKey(auctionIdl.address);
-const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+const FAKE_MINT = new PublicKey(WRAPPED_SOL_MINT);
 const FAKE_ATA = new PublicKey('B9W4wPFWjTbZ9ab1okzB4D3SsGY7wntkrBKwpp5RC1Uv')
 
 function getAuctionProgram(provider: anchor.AnchorProvider): anchor.Program<Auction> {

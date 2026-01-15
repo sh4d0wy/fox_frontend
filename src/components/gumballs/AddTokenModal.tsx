@@ -1,7 +1,7 @@
 import { Dialog, DialogPanel, Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import clsx from "clsx";
-import { VerifiedTokens } from "@/utils/verifiedTokens";
+import { VerifiedTokens, NATIVE_SOL_MINT, WRAPPED_SOL_MINT } from "@/utils/verifiedTokens";
 import { useGumballStore } from "store/useGumballStore";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 import { useAddPrizes, type AddPrizeInputData } from "hooks/useAddPrizes";
@@ -33,7 +33,7 @@ interface TokenPrizeRowProps {
 }
 
 function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeRowProps) {
-  const { data: solPrice } = useGetTokenPrice("So11111111111111111111111111111111111111112");
+  const { data: solPrice } = useGetTokenPrice(WRAPPED_SOL_MINT);
   const { data: tokenPrice } = useGetTokenPrice(prize.token.address);
 
   const totalValue = useMemo(() => {
@@ -133,7 +133,7 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
       //   token.symbol === "VOTE" 
       // );
     // return VerifiedTokens;
-    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address!=="So11111111111111111111111111111111111111112")))
+    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address !== NATIVE_SOL_MINT)))
   }, [tokenPrizes, existingPrizes, userVerifiedTokens]);
 
   const handleAddToken = () => {

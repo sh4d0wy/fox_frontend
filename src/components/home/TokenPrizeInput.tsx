@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useCreateRaffleStore } from "../../../store/createRaffleStore";
-import { VerifiedTokens } from "../../utils/verifiedTokens";
+import { NATIVE_SOL_MINT, VerifiedTokens, WRAPPED_SOL_MINT } from "../../utils/verifiedTokens";
 import { useFetchUserToken } from "../../../hooks/useFetchUserToken";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 
@@ -9,8 +9,13 @@ export default function TokenPrizeInput() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [filteredVerifiedTokens, setFilteredVerifiedTokens] = useState(VerifiedTokens);
-    const { data: tokenPrice } = useGetTokenPrice(tokenPrizeMint);
-    const { data: SolPrice } = useGetTokenPrice("So11111111111111111111111111111111111111112");
+
+    const tokenPriceMint = useMemo(() => {
+      return tokenPrizeMint === NATIVE_SOL_MINT ? WRAPPED_SOL_MINT : tokenPrizeMint;
+    }, [tokenPrizeMint]);
+    
+    const { data: tokenPrice } = useGetTokenPrice(tokenPriceMint);
+    const { data: SolPrice } = useGetTokenPrice(WRAPPED_SOL_MINT);
     const { userVerifiedTokens } = useFetchUserToken();
     
     useEffect(() => {

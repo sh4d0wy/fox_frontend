@@ -7,7 +7,7 @@ import { useGumballStore } from "../../../store/useGumballStore";
 import { useGumballById } from "../../../hooks/useGumballsQuery";
 import type { GumballBackendDataType, PrizeDataBackend } from "../../../types/backend/gumballTypes";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
-import { VerifiedTokens } from "@/utils/verifiedTokens";
+import { VerifiedTokens, WRAPPED_SOL_MINT } from "@/utils/verifiedTokens";
 import { Loader2 } from "lucide-react";
 import { useCreatorClaimPrizeBack } from "../../../hooks/useCreatorClaimPrizeBack";
 interface GumballStudioProps {
@@ -32,7 +32,7 @@ const handleTabClick = (clickedName: string) => {
     )
   );
 };  
-const {data:solPrice} = useGetTokenPrice("So11111111111111111111111111111111111111112");
+const {data:solPrice} = useGetTokenPrice(WRAPPED_SOL_MINT);
 const {data:tokenPrice} = useGetTokenPrice(gumball?.ticketMint);
 const totalProceedsInSol = useMemo(()=>{
   const numTotalProceeds = parseFloat(gumball?.totalProceeds || "0") / 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);

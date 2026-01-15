@@ -1,4 +1,4 @@
-import { HELIUS_KEY, NETWORK } from "@/constants";
+import { HELIUS_KEY, NETWORK, WRAPPED_SOL_MINT } from "@/constants";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 
@@ -62,7 +62,7 @@ const fetchTokenPrice = async (tokenMint: string): Promise<TokenPriceResult | nu
   }
 };
 
-const SOL_MINT = "So11111111111111111111111111111111111111112";
+const SOL_MINT = WRAPPED_SOL_MINT;
 
 export const useGetTotalPrizeValueInSol = (prizes: Prize[] | undefined) => {
   // Filter out NFT prizes - they use floorPrice directly in SOL

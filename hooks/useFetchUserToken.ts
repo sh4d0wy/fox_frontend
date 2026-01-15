@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { VerifiedTokens } from "../src/utils/verifiedTokens";
+import { VerifiedTokens, NATIVE_SOL_MINT } from "../src/utils/verifiedTokens";
 import { NETWORK } from "@/constants";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 export const useFetchUserToken = () => {
     const { connection } = useConnection();
@@ -12,13 +13,11 @@ export const useFetchUserToken = () => {
         queryKey: ['userTokens', wallet.publicKey?.toString()],
         queryFn: async () => {
             if (!wallet.publicKey) return [];
-            console.log('RPC Endpoint:', connection.rpcEndpoint);
-            console.log('Wallet Public Key:', wallet.publicKey?.toString());
+            console.log("Entered useFetchUserToken");
             const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
                 wallet.publicKey,
                 { programId: TOKEN_PROGRAM_ID }
             );
-            console.log("tokenAccounts", tokenAccounts);
 
             const userTokenMints = tokenAccounts.value.map(account => 
                 account.account.data.parsed.info.mint
@@ -41,8 +40,22 @@ export const useFetchUserToken = () => {
                     decimals: tokenAccount?.account.data.parsed.info.tokenAmount.decimals || 0
                 };
             });
+
+            const userSolbalance = await connection.getBalance(wallet.publicKey);
+            console.log("userSolbalance", userSolbalance);
+            
             if(NETWORK === "devnet"){
-                return VerifiedTokens.filter((token) => (token.address === "So11111111111111111111111111111111111111112" || token.address === "BZfZhBoQSAMQVshvApFzwbKNA3dwuxKhK8m5GVCQ26yG"));
+                return VerifiedTokens.filter((token) => (token.address === NATIVE_SOL_MINT || token.address === "BZfZhBoQSAMQVshvApFzwbKNA3dwuxKhK8m5GVCQ26yG"));
+            }
+            if(userSolbalance > 0){
+                return [...tokensWithBalance, {
+                    name: "SOL",
+                    address: NATIVE_SOL_MINT,
+                    symbol: "SOL",
+                    image: "https://cryptologos.cc/logos/solana-sol-logo.png?v=040",
+                    decimals: 9,
+                    balance: userSolbalance / LAMPORTS_PER_SOL,
+                }];
             }
             return tokensWithBalance;
         },

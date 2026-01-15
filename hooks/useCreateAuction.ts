@@ -4,7 +4,7 @@ import { useAuctionAnchorProgram } from "./useAuctionAnchorProgram";
 import { PublicKey, Transaction } from "@solana/web3.js";
 // import type { AuctionTypeBackend } from "../types/backend/auctionTypes";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { VerifiedTokens } from "../src/utils/verifiedTokens";
+import { VerifiedTokens, WRAPPED_SOL_MINT } from "../src/utils/verifiedTokens";
 import {
     createAuctionOverBackend,
     deleteAuction,
@@ -33,7 +33,7 @@ export type AuctionOnChainArgs = {
     currency: string;
 };
 
-const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+const FAKE_MINT = new PublicKey(WRAPPED_SOL_MINT);
 const MIN_TIME = (5 * 60) + 100; // 24 hours in seconds
 
 export const useCreateAuction = () => {

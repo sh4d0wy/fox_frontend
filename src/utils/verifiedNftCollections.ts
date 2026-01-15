@@ -1,10 +1,10 @@
 export const VerifiedNftCollections = [
     {
-        name: "Fox NFT collection",
-        address: "C1jzvtJJQvLuAhwxQShPrirMScivV7g5GXhbbuCz8HAb",
-        image:"https://devnet.irys.xyz/Dc2fQ2itZggWzefzDJNVDrHcuEbY9Wq2fkGGRE7BfYLX",
-        twitter:"https://x.com",
-        website:"#",
-        symbol:"degods"
-    }
+        name: "COLLECTOR CRYPTO",
+        address: "CCryptWBYktukHDQ2vHGtVcmtjXxYzvw8XNVY64YN2Yf",
+        image:"https://prod-tensor-creators-s3.s3.us-east-1.amazonaws.com/image/9acf269c-4c4b-44e4-b230-9d8ce4be3078",
+        twitter:"https://x.com/Collector_Crypt",
+        website:"https://collectorcrypt.com/",
+        symbol:"collector_crypt"
+    },
 ]

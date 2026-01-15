@@ -10,7 +10,7 @@ import { useGumballStore } from '../../../store/useGumballStore';
 import { useCreateGumball } from '../../../hooks/useCreateGumball';
 import {toast} from 'react-toastify';
 import { useGumballAnchorProgram } from '../../../hooks/useGumballAnchorProgram';
-import { VerifiedTokens } from '@/utils/verifiedTokens';
+import { VerifiedTokens, NATIVE_SOL_MINT } from '@/utils/verifiedTokens';
 import { PublicKey } from '@solana/web3.js';
 
 export const GumballSetup = () => {
@@ -218,7 +218,7 @@ export const GumballSetup = () => {
                                 endTime,
                                 totalTickets: parseInt(prizeCount) || 0,
                                 ticketPrice: parseFloat(ticketPrice) || 0,
-                                isTicketSol:ticketCurrency.address==="So11111111111111111111111111111111111111112",
+                                isTicketSol:ticketCurrency.address===NATIVE_SOL_MINT,
                                 startGumball: startType === "manual",
                                 ticketMint: new PublicKey(ticketCurrency.address),
                               });

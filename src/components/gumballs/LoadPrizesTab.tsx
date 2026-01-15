@@ -3,7 +3,7 @@ import AddTokenModal from './AddTokenModal';
 import AddNftModal from './AddNftModal';
 import { useGumballById } from '../../../hooks/useGumballsQuery';
 import type { GumballBackendDataType } from 'types/backend/gumballTypes';
-import { VerifiedTokens } from '@/utils/verifiedTokens';
+import { VerifiedTokens, WRAPPED_SOL_MINT } from '@/utils/verifiedTokens';
 import { useGetTotalPrizeValueInSol } from '../../../hooks/useGetTotalPrizeValueInSol';
 import { useGetTokenPrice } from '../../../hooks/useGetTokenPrice';
 
@@ -15,7 +15,7 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
 
   const { totalValueInSol, isLoading: isPriceLoading, formattedValue } = useGetTotalPrizeValueInSol(gumball?.prizes);
   const {data: ticketTokenPrice} = useGetTokenPrice(gumball?.ticketMint);
-  const {data: solPrice} = useGetTokenPrice("So11111111111111111111111111111111111111112");
+  const {data: solPrice} = useGetTokenPrice(WRAPPED_SOL_MINT);
 
   
 

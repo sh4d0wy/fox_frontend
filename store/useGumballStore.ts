@@ -1,4 +1,4 @@
-import { VerifiedTokens } from "@/utils/verifiedTokens";
+import { VerifiedTokens, NATIVE_SOL_MINT } from "@/utils/verifiedTokens";
 import { calculateRent } from "hooks/helpers";
 import { create } from "zustand";
 
@@ -218,7 +218,7 @@ const initialSetupState = {
   isTicketSol: true,
   ticketCurrency: {
     symbol: "SOL",
-    address: "So11111111111111111111111111111111111111112",
+    address: NATIVE_SOL_MINT,
   },
   rent: 0,
 };

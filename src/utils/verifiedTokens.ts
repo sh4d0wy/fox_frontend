@@ -1,7 +1,12 @@
+import { NATIVE_SOL_MINT, WRAPPED_SOL_MINT } from "@/constants";
+
+// Re-export for convenience
+export { NATIVE_SOL_MINT, WRAPPED_SOL_MINT };
+
 export const VerifiedTokens = [
     {
         name:"SOL",
-        address:"So11111111111111111111111111111111111111112",
+        address: NATIVE_SOL_MINT, // Native SOL (not wrapped SOL)
         symbol:"SOL",
         image:"https://cryptologos.cc/logos/solana-sol-logo.png?v=040",
         decimals: 9,

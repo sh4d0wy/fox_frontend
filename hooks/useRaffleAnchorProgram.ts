@@ -11,6 +11,7 @@ import { useAnchorProvider } from "../src/providers/SolanaProvider";
 import raffleIdl from "../types/raffle.json";
 import type { Raffle } from "../types/raffle";
 import { getTokenProgramFromMint, ensureAtaIx } from './helpers';
+import { WRAPPED_SOL_MINT } from "@/constants";
 
 export const RAFFLE_PROGRAM_ID = new anchor.web3.PublicKey(raffleIdl.address);
 
@@ -40,7 +41,7 @@ type CreateRaffleArgs = {
     prizeMint: PublicKey;
 };
 
-const FAKE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+const FAKE_MINT = new PublicKey(WRAPPED_SOL_MINT);
 const FAKE_ATA = new PublicKey('B9W4wPFWjTbZ9ab1okzB4D3SsGY7wntkrBKwpp5RC1Uv')
 
 function getRaffleProgram(provider: anchor.AnchorProvider): anchor.Program<Raffle> {

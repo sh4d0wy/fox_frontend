@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useCreateRaffleStore } from "../../../store/createRaffleStore";
-import { VerifiedTokens } from "@/utils/verifiedTokens";
+import { VerifiedTokens, WRAPPED_SOL_MINT } from "@/utils/verifiedTokens";
 import { useGetTokenPrice } from "hooks/useGetTokenPrice";
 
 export default function AmountInput() {
@@ -8,7 +8,7 @@ export default function AmountInput() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: ticketTokenPrice } = useGetTokenPrice(ticketCurrency.address);
-  const { data: solPrice } = useGetTokenPrice("So11111111111111111111111111111111111111112");
+  const { data: solPrice } = useGetTokenPrice(WRAPPED_SOL_MINT);
   const toggleDropdown = () => setIsOpen((prev) => !prev);
 
   const handleSelect = (value: string) => {
