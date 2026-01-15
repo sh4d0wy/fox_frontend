@@ -36,11 +36,11 @@ const {data:solPrice} = useGetTokenPrice(WRAPPED_SOL_MINT);
 const {data:tokenPrice} = useGetTokenPrice(gumball?.ticketMint);
 const totalProceedsInSol = useMemo(()=>{
   const numTotalProceeds = parseFloat(gumball?.totalProceeds || "0") / 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);
-  const totalProcesds = numTotalProceeds * parseFloat(tokenPrice?.price || "1");
+  const totalProcesds = numTotalProceeds * parseFloat(tokenPrice?.price.toString() || "1");
   console.log(totalProcesds);
   console.log(solPrice?.price);
-  console.log(totalProcesds / parseFloat(solPrice?.price || "0"));
-  return totalProcesds / parseFloat(solPrice?.price || "0");
+  console.log(totalProcesds / parseFloat(solPrice?.price.toString() || "0"));
+  return totalProcesds / parseFloat(solPrice?.price.toString() || "0");
 }, [gumball?.totalProceeds, solPrice?.price]);
 
 const availablePrizeIndexes = useMemo(() => {
