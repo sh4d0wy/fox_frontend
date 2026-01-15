@@ -27,6 +27,7 @@ import clsx from "clsx";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { formatTimePeriod } from "@/utils/helpers";
+import { BN } from "@coral-xyz/anchor";
 
 function CreateRaffles() {
   const {
@@ -237,7 +238,12 @@ function CreateRaffles() {
       const maxDate = formatTimePeriod(raffleConfig?.maximumRafflePeriod ?? 0);
       return `${minDate} - ${maxDate}`;
     },[raffleConfig])
-  
+
+    const minTicketPercentage = useMemo(()=>{
+      if(!supply) return '1%';
+      return `${Math.ceil(((100+(parseInt(supply)-1))/parseInt(supply)))}%`;
+    },[supply])
+   console.log("raffleConfig",raffleConfig)
   return (
     <div>
       <section className="pt-10 pb-[122px]">
@@ -546,9 +552,8 @@ function CreateRaffles() {
                               1.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              When you add prizes to a Raffle, the prizes will
-                              be transferred from your wallet into an escrow
-                              wallet.
+                            A Raffle is a blockchain-based random draw service.
+                            All results are finalized based on on-chain transactions and are irreversible.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -556,12 +561,8 @@ function CreateRaffles() {
                               2.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              You will be charged an up-front rent fee, in SOL,
-                              which will be taken in proportion to the number of
-                              prizes you choose to add to the Raffle, with a
-                              maximum rent fee of 0.72 SOL. The rent fee will be
-                              automatically refunded after the Raffle has been
-                              closed.
+                            Raffle tickets are final upon purchase and cannot be canceled or refunded.
+                            Tickets are non-refundable even if the participant does not win.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -569,10 +570,8 @@ function CreateRaffles() {
                               3.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              FFF and TFF holders will get a 50% fee waiver for
-                              staking or sending foxes on missions prior to
-                              creating the Raffle and will be hosted on the
-                              "Featured" section of the home page.
+                            A single wallet may purchase between {minTicketPercentage} and up to 100% of the total ticket supply, depending on the options set by the raffle creator.
+                            Any attempt to bypass these limits may result in participation restrictions or account sanctions.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -580,8 +579,8 @@ function CreateRaffles() {
                               4.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              The prizes that do not get sold will be returned
-                              to you upon closing the Raffle.
+                            Winners are determined after the raffle ends, in accordance with smart contract logic and/or platform rules.
+                            Rewards are distributed based on on-chain status, and display delays do not affect validity.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -589,9 +588,8 @@ function CreateRaffles() {
                               5.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              You can specify the amount of time a Raffle runs
-                              at the creation of the Raffle. Raffles require a
-                              minimum 24 hour run time.
+                             Winners are determined after the raffle ends, in accordance with smart contract logic and/or platform rules.
+Rewards are distributed based on on-chain status, and display delays do not affect validity.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -599,10 +597,7 @@ function CreateRaffles() {
                               6.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              You can end the Raffle machine early if the
-                              expected value is at least -90% based on remaining
-                              prizes or if it has been at least 10 hours since
-                              the last spin on that Raffle.
+                            The creator bears full responsibility for having lawful ownership and distribution rights to all NFTs or reward assets registered in the raffle.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -610,8 +605,8 @@ function CreateRaffles() {
                               7.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              FFF will take a total of 5% commission fee from
-                              the Raffle sales.
+                            Assets registered for a raffle are held in escrow until the raffle ends.
+                            After completion, assets may be claimed by the winner or the creator according to the predefined conditions.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -619,10 +614,9 @@ function CreateRaffles() {
                               8.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              To enable Holder-only, you will be charged 1 SOL
-                              per Raffle creation, withdrawn at the time of
-                              creation. More information about holder-only
-                              Raffles is available on the create Raffle site.
+                            Once a raffle is created, ticket quantity, pricing, duration, and conditions cannot be modified.
+All consequences resulting from configuration errors are solely the responsibility of the creator.
+
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -630,9 +624,8 @@ function CreateRaffles() {
                               9.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              Scheduled Raffles will start at the scheduled
-                              date and time even if not all prizes have been
-                              added.
+                            Raffle proceeds are distributed automatically via smart contracts or platform logic.
+                            Creators may not dispute or reverse settlement results.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -640,9 +633,8 @@ function CreateRaffles() {
                               10.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              Raffles CANNOT be edited once it has been
-                              launched. Raffles cannot restart once it has been
-                              stopped.
+                            A {creationFee / 1e9} SOL creation fee is charged upon raffle creation.
+                            This fee is non-refundable under all circumstances.
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -650,31 +642,7 @@ function CreateRaffles() {
                               11.
                             </span>
                             <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              Once one Raffle has sold, the machine cannot be
-                              closed until the specified end date.
-                            </p>
-                          </li>
-                          <li className="flex items-start gap-1.5">
-                            <span className="flex items-start justify-end text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%]  w-6">
-                              12.
-                            </span>
-                            <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              Raffle, its agents, directors, or officers shall
-                              not assume any liability or responsibility for
-                              your use of Raffle, promoting or marketing the
-                              Raffles.
-                            </p>
-                          </li>
-                          <li className="flex items-start gap-1.5">
-                            <span className="flex items-start justify-end text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] w-6">
-                              13.
-                            </span>
-                            <p className="flex-1 w-full text-black-1000 font-medium font-inter text-sm md:text-base leading-[160%] break-all">
-                              Raffle currently does not support cNFTs, the
-                              program ID is:
-                              <strong className="font-medium block">
-                                MGUMqztv7MHgoHBYWbvMyL3E3NJ4UHfTwgLJUQAbKGa
-                              </strong>
+                            A {((raffleConfig?.ticketFeeBps && (raffleConfig?.ticketFeeBps / 10000) * 100) || 0)}% fee is deducted from participant payments and is retained by the platform operator.
                             </p>
                           </li>
                         </ul>
