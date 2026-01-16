@@ -195,9 +195,11 @@ export const useCreateAuction = () => {
             toast.success("Auction created successfully");
             router.navigate({ to: "/auctions/$id", params: { id: auctionId.toString() } });
         },
-        onError: async (error) => {
+        onError: async (error: Error) => {
             console.error(error);
-            toast.error("Failed to create auction");
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to create auction");
+            }
         },
     });
 

@@ -14,18 +14,40 @@ export const useCreatorClaimPrizeBack = () => {
     const queryClient = useQueryClient();
     const { checkAndInvalidateToken } = useCheckAuth();
 
-    const creatorClaimPrizeBackMutation = useMutation({
-        mutationKey: ["creatorClaimPrizeBack"],
-        mutationFn: async (args: {
-            gumballId: number;
-            prizeIndexes: number[];
-        }) => {
+    const validateForm = async (args: { gumballId: number; prizeIndexes: number[] }) => {
+        try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
             }
             const isValid = await checkAndInvalidateToken(publicKey.toBase58());
             if (!isValid) {
                 throw new Error("Signature verification failed");
+            }
+            if (!args.gumballId) {
+                throw new Error("Gumball ID is required");
+            }
+            if (!args.prizeIndexes || args.prizeIndexes.length === 0) {
+                throw new Error("At least one prize index must be selected");
+            }
+            return true;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error("Something went wrong");
+            }
+            return false;
+        }
+    };
+
+    const creatorClaimPrizeBackMutation = useMutation({
+        mutationKey: ["creatorClaimPrizeBack"],
+        mutationFn: async (args: {
+            gumballId: number;
+            prizeIndexes: number[];
+        }) => {
+            if (!(await validateForm(args))) {
+                throw new Error("Validation failed");
             }
             const tx = await claimMultiplePrizesBackMutation.mutateAsync({
                 gumballId: args.gumballId,
@@ -45,8 +67,10 @@ export const useCreatorClaimPrizeBack = () => {
             toast.success("Prize claimed successfully");
             router.navigate({ to: "/gumballs" });
         },
-        onError: () => {
-            toast.error("Failed to claim prize");
+        onError: (error: Error) => {
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to claim prize");
+            }
         },
     });
     return { creatorClaimPrizeBackMutation };

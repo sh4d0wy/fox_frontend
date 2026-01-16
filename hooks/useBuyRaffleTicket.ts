@@ -78,8 +78,10 @@ export const useBuyRaffleTicket = () => {
       queryClient.invalidateQueries({ queryKey: ["raffle", raffleId.toString()] });
       toast.success("Tickets bought successfully");
     },
-    onError: () => {
-      toast.error("Failed to buy tickets");
+    onError: (error: Error) => {
+      if (error.message !== "Validation failed") {
+        toast.error("Failed to buy tickets");
+      }
     }
   });
   return { buyTicket };

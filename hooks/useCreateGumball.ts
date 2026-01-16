@@ -29,48 +29,57 @@ export const useCreateGumball = () => {
         startGumball: boolean;
         ticketMint?: PublicKey;
     }) => {
-        if (!publicKey) {
-            throw new Error("Wallet not connected");
+        try {
+            if (!publicKey) {
+                throw new Error("Wallet not connected");
+            }
+            const isValid = await checkAndInvalidateToken(publicKey.toBase58());
+            console.log("args timeperiod", args.endTime-args.startTime);
+            console.log("max timeperiod", 24 * 60 * 60 * 7);
+            console.log("endTime",new Date(args.endTime * 1000).toISOString());
+            console.log("startTime", new Date(args.startTime * 1000).toISOString());
+            if (!isValid) {
+                throw new Error("Signature verification failed");
+            }
+            if (args.name.length === 0) {
+                throw new Error("Name is required");
+            }
+            if (args.startTime <= 0) {
+                throw new Error("Start time is required");
+            }
+            if (args.endTime <= 0) {
+                throw new Error("End time is required");
+            }
+            if (args.totalTickets <= 0) {
+                throw new Error("Prize Count must be greater than 0");
+            }
+            if (args.ticketPrice && args.ticketPrice <= 0) {
+                throw new Error("Gumball price must be greater than 0");
+            }
+            if (!args.isTicketSol && args.ticketMint === undefined) {
+                throw new Error("Ticket mint is required");
+            }
+            if (args.endTime-args.startTime > (24 * 60 * 60 * 7)) {
+                throw new Error("Gumball duration must be less than 7 days");
+            }
+            if(args.endTime-args.startTime < (24*60*60)){
+                throw new Error("Gumball duration must be equal or greater than 2 days")
+            }
+            if(args.totalTickets < 3) { 
+                throw new Error("Prize Count must be greater than 2");
+            }
+            if(args.totalTickets > 10000) {
+                throw new Error("Prize Count must be less than 10,000");
+            }
+            return true;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error("Something went wrong");
+            }
+            return false;
         }
-        const isValid = await checkAndInvalidateToken(publicKey.toBase58());
-        console.log("args timeperiod", args.endTime-args.startTime);
-        console.log("max timeperiod", 24 * 60 * 60 * 7);
-        console.log("endTime",new Date(args.endTime * 1000).toISOString());
-        console.log("startTime", new Date(args.startTime * 1000).toISOString());
-        if (!isValid) {
-            throw new Error("Signature verification failed");
-        }
-        if (args.name.length === 0) {
-            throw new Error("Name is required");
-        }
-        if (args.startTime <= 0) {
-            throw new Error("Start time is required");
-        }
-        if (args.endTime <= 0) {
-            throw new Error("End time is required");
-        }
-        if (args.totalTickets <= 0) {
-            throw new Error("Prize Count must be greater than 0");
-        }
-        if (args.ticketPrice && args.ticketPrice <= 0) {
-            throw new Error("Gumball price must be greater than 0");
-        }
-        if (!args.isTicketSol && args.ticketMint === undefined) {
-            throw new Error("Ticket mint is required");
-        }
-        if (args.endTime-args.startTime > (24 * 60 * 60 * 7)) {
-            throw new Error("Gumball duration must be less than 7 days");
-        }
-        if(args.endTime-args.startTime < (24*60*60)){
-            throw new Error("Gumball duration must be equal or greater than 2 days")
-        }
-        if(args.totalTickets < 3) { 
-            throw new Error("Prize Count must be greater than 2");
-        }
-        if(args.totalTickets > 10000) {
-            throw new Error("Prize Count must be less than 10,000");
-        }
-        return true;
     }
     const { getGumballConfig } = useGumballAnchorProgram();
     const gumballCount = getGumballConfig.data?.gumballCount || 0;
@@ -88,7 +97,7 @@ export const useCreateGumball = () => {
             ticketMint?: PublicKey;
         }) => {
             if (!(await validateForm(args))) {
-                return null;
+                throw new Error("Validation failed");
             }
             const createGumball = await createGumballOverBackend({
                 id: gumballCount,
@@ -134,7 +143,10 @@ export const useCreateGumball = () => {
         },
         onError: (error: Error) => {
             deleteGumballOverBackend(gumballCount.toString());
-            toast.error(error.message);
+            console.error(error);
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to create gumball");
+            }
         }
     });
     return { createGumball };

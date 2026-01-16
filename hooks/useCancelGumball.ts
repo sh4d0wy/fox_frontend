@@ -65,9 +65,11 @@ export const useCancelGumball = () => {
             toast.success("Gumball cancelled successfully");
             router.navigate({ to: "/gumballs" });
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error(error);
-            toast.error("Gumball cancelled failed");
+            if (error.message !== "Validation failed") {
+                toast.error("Gumball cancelled failed");
+            }
         },
     });
     return { cancelGumball };

@@ -74,9 +74,11 @@ export const useCancelRaffle = () => {
             toast.success("Raffle cancelled successfully");
             router.navigate({ to: "/raffles" });
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error("Raffle cancelled failed:", error);
-            toast.error("Raffle cancelled failed");
+            if (error.message !== "Validation failed") {
+                toast.error("Raffle cancelled failed");
+            }
         },
     });
     return { cancelRaffle };

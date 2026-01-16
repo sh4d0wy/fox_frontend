@@ -73,9 +73,11 @@ export const useClaimRafflePrize = () => {
             queryClient.invalidateQueries({ queryKey: ["raffleWinnersWhoClaimedPrize", raffleId.toString()] });
             toast.success("Prize claimed successfully");
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error(error);
-            toast.error("Failed to claim prize");
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to claim prize");
+            }
         },
     });
     return {

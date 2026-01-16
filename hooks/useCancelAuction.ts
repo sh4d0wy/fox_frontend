@@ -86,8 +86,10 @@ export const useCancelAuction = () => {
             });
             router.navigate({ to: "/auctions" });
         },
-        onError: () => {
-            toast.error("Failed to cancel auction");
+        onError: (error: Error) => {
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to cancel auction");
+            }
         },
     });
 

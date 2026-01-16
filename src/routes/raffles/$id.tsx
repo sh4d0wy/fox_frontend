@@ -64,6 +64,7 @@ function RouteComponent() {
   const { cancelRaffle } = useCancelRaffle();
   const { claimPrize } = useClaimRafflePrize();
   const { claimTicket } = useClaimTicketRaffle();
+  const [maxTicketsBought, setMaxTicketsBought] = useState(false);
   // const [winnersWhoClaimedPrize, setWinnersWhoClaimedPrize] = useState<
   //   { sender: string }[]
   // >([]);
@@ -106,6 +107,21 @@ function RouteComponent() {
     }
   },[raffle])
 
+  const isBuyTicketDisabled = useMemo(() => {
+    if((raffle?.raffleEntries?.filter((entry) => entry.userAddress === publicKey?.toString())[0]?.quantity ??0) == raffle?.maxEntries!){
+      setMaxTicketsBought(true);
+      return true;
+    }
+    if(raffle?.ticketSold && raffle?.ticketSold == raffle?.ticketSupply){
+      return true;
+    }
+    if(raffle?.state?.toLowerCase() === "successended"){
+      return true;
+    }
+    return false;
+  }, [raffle?.state]);
+  console.log("isBuyTicketDisabled",isBuyTicketDisabled);
+
   // useEffect(() => {
   //   if (raffle?.id) {
   //     getRaffleWinnersWhoClaimedPrize(raffle?.id.toString() || "")
@@ -135,7 +151,8 @@ function RouteComponent() {
       </main>
     );
   }
- 
+
+  
   return (
     <main>
       <div className="w-full py-5 md:py-10 max-w-[1440px] px-5 mx-auto">
@@ -561,8 +578,9 @@ function RouteComponent() {
 
                         <div className="w-full md:mb-5">
                           <PrimaryButton
-                            className="w-full h-[54px]"
-                            text={`Buy for ${
+                            className="w-full h-[54px] disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isBuyTicketDisabled}
+                            text={isBuyTicketDisabled ? maxTicketsBought ? "Max Tickets Bought" : "Sold Out" : `Buy for ${
                               ((raffle?.ticketPrice /
                               10 **
                                 (VerifiedTokens.find(

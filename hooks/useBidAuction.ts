@@ -102,8 +102,10 @@ export const useBidAuction = () => {
                 queryKey: ["auctions"]
             });
         },
-        onError: () => {
-            toast.error("Failed to bid auction");
+        onError: (error: Error) => {
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to bid auction");
+            }
         },
     });
 

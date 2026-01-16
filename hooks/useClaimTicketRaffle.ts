@@ -70,9 +70,11 @@ export const useClaimTicketRaffle = () => {
             queryClient.invalidateQueries({ queryKey: ["raffle", raffleId.toString()] });
             toast.success("Ticket amount claimed successfully");
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error(error);
-            toast.error("Failed to claim ticket amount");
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to claim ticket amount");
+            }
         },
     });
     return { claimTicket };

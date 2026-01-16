@@ -121,7 +121,9 @@ export const useAddPrizes = () => {
         },
         onError: (error: Error) => {
             console.error(error);
-            toast.error("Failed to add prizes");
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to add prizes");
+            }
         },
     });
     

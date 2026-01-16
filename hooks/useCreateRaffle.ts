@@ -286,9 +286,11 @@ export const useCreateRaffle = () => {
       toast.success("Raffle created successfully");
       router.navigate({ to: "/raffles/$id", params: { id: raffleId.toString() } });
     },
-    onError: async () => {
+    onError: async (error) => {
       setIsCreatingRaffle(false);
-      toast.error("Failed to create raffle");
+      if (error.message !== "Validation failed") {
+        toast.error("Failed to create raffle");
+      }
     },
   });
 

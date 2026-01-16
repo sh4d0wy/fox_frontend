@@ -73,8 +73,10 @@ export const useSpinGumball = () => {
             queryClient.invalidateQueries({ queryKey: ["gumball", gumballId.toString()] });
             toast.success("Gumball spun successfully");
         },
-        onError: () => {
-            toast.error("Failed to spin gumball");
+        onError: (error: Error) => {
+            if (error.message !== "Validation failed") {
+                toast.error("Failed to spin gumball");
+            }
         }
     });
     return { spinGumballFunction };
