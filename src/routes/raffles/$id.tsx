@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Disclosure, Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 // import { PrimaryLink } from "@/components/ui/PrimaryLink";
@@ -70,6 +70,8 @@ function RouteComponent() {
   // >([]);
   const { data: winnersWhoClaimedPrize } = useRaffleWinnersWhoClaimedPrize(id || "");
   const [showWinnersModal, setShowWinnersModal] = useState(false);
+  const [showSoldoutPopup, setShowSoldoutPopup] = useState(false);
+  const [soldoutPopupDismissed, setSoldoutPopupDismissed] = useState(false);
   const [tabs, setTabs] = useState([
     { name: "Participants", active: true },
     { name: "Transactions", active: false },
@@ -119,8 +121,38 @@ function RouteComponent() {
       return true;
     }
     return false;
-  }, [raffle?.state]);
+  }, [raffle?.state, raffle?.maxEntries, raffle?.ticketSupply, raffle?.ticketSold]);
   console.log("isBuyTicketDisabled",isBuyTicketDisabled);
+
+  const isEndingConditionMet = useMemo(() => {
+    if (!raffle) return false;
+    
+    const isActive = raffle.state?.toLowerCase() === "active";
+    if (!isActive) return false;
+    
+    // Check if all tickets are sold
+    const allTicketsSold = raffle.ticketSold !== undefined && 
+      raffle.ticketSupply !== undefined && 
+      raffle.ticketSold >= raffle.ticketSupply;
+    
+    // Check if end time has passed
+    const endTimePassed = raffle.endsAt ? new Date(raffle.endsAt).getTime() <= Date.now() : false;
+    
+    return allTicketsSold || endTimePassed;
+  }, [raffle?.state, raffle?.ticketSold, raffle?.ticketSupply, raffle?.endsAt]);
+
+  useEffect(() => {
+    if (isEndingConditionMet && !soldoutPopupDismissed) {
+      setShowSoldoutPopup(true);
+      
+      const timer = setTimeout(() => {
+        setShowSoldoutPopup(false);
+        setSoldoutPopupDismissed(true);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isEndingConditionMet, soldoutPopupDismissed]);
 
   // useEffect(() => {
   //   if (raffle?.id) {
@@ -921,6 +953,61 @@ function RouteComponent() {
                       {raffle?.numberOfWinners}
                     </p>
                   </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Soldout Popup */}
+      <Transition appear show={showSoldoutPopup} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-100"
+          onClose={() => {
+            setShowSoldoutPopup(false);
+            setSoldoutPopupDismissed(true);
+          }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-500"
+                enterFrom="opacity-0 scale-50"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-300"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-50"
+              >
+                <Dialog.Panel className="relative">
+                  <button
+                    onClick={() => {
+                      setShowSoldoutPopup(false);
+                      setSoldoutPopupDismissed(true);
+                    }}
+                    className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-white hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer shadow-lg z-10"
+                  >
+                    <X className="w-5 h-5 text-black-1000" />
+                  </button>
+                  <img
+                    src="/images/soldout.png"
+                    alt="Sold Out"
+                    className="animate-soldout-pulse max-w-[300px] md:max-w-[400px] w-full h-auto object-contain drop-shadow-2xl"
+                  />
                 </Dialog.Panel>
               </Transition.Child>
             </div>
