@@ -1,3 +1,5 @@
+import { API_URL } from "@/constants";
+
 interface Participant {
   id: number;
   userAddress:string;
@@ -54,6 +56,7 @@ export const ParticipantsTable = ({
   isLoading?: boolean;
   ticketSupply: number;
 }) => {
+  console.log("participants", participants);
   return (
     <div className="border border-gray-1100 md:pb-36 pb-24 rounded-[20px] w-full md:overflow-hidden overflow-x-auto">
       <table className="table w-full min-w-[600px]">
@@ -115,7 +118,7 @@ export const ParticipantsTable = ({
                 <td>
                   <div className="md:px-10 px-4 flex items-center gap-2.5 py-4 border-b border-gray-1100">
                     <img
-                      src={p.user.profileImage ? p.user.profileImage : "/icons/user-avatar.png"}
+                      src={p.user.profileImage ? API_URL + p.user.profileImage : "/icons/user-avatar.png"}
                       className="w-10 h-10 rounded-full object-cover"
                       alt="user"
                     />

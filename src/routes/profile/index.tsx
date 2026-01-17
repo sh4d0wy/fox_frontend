@@ -21,7 +21,7 @@ import { NoGumballs } from "@/components/home/NoGumballs";
 import { NoRaffles } from "@/components/home/NoRaffles";
 import { useEffect, useMemo, useState } from "react";
 import ProfilePictureModal from "@/components/profile/ProfilePictureModal";
-import { useUserStore } from "../../../store/userStore";
+import { useUserStore, DEFAULT_AVATAR } from "../../../store/userStore";
 import { updateProfilePicture } from "../../../api/routes/userRoutes";
 import { useMyProfile } from "../../../hooks/useMyProfile";
 import { toast } from "react-toastify";
@@ -76,6 +76,8 @@ function CreateProfile() {
     if (profileData?.user?.profileImage) {
       const fullImageUrl = `${API_URL}${profileData.user.profileImage}`;
       setProfilePicture(fullImageUrl);
+    } else if (profileData?.user) {
+      setProfilePicture(DEFAULT_AVATAR);
     }
   }, [profileData, setProfilePicture]);
 
@@ -83,7 +85,6 @@ function CreateProfile() {
     try {
       setIsUploadingProfilePicture(true);
       setProfilePictureError(null);
-      setProfilePicture(previewUrl);
       
       const response = await updateProfilePicture(file);
       
@@ -245,6 +246,9 @@ function CreateProfile() {
                         src={profilePicture}
                         alt="Profile"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_AVATAR;
+                        }}
                       />
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
