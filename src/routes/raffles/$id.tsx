@@ -23,6 +23,7 @@ import { useQueryFavourites } from "hooks/useQueryFavourites";
 import { useToggleFavourite } from "hooks/useToggleFavourite";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { useClaimTicketRaffle } from "hooks/useClaimTicketRaffle";
+import { API_URL } from "@/constants";
 
 export const Route = createFileRoute("/raffles/$id")({
   component: RouteComponent,
@@ -65,6 +66,7 @@ function RouteComponent() {
   const { claimPrize } = useClaimRafflePrize();
   const { claimTicket } = useClaimTicketRaffle();
   const [maxTicketsBought, setMaxTicketsBought] = useState(false);
+  const DEFAULT_AVATAR = "/icons/user-avatar.png";
   // const [winnersWhoClaimedPrize, setWinnersWhoClaimedPrize] = useState<
   //   { sender: string }[]
   // >([]);
@@ -77,7 +79,6 @@ function RouteComponent() {
     { name: "Transactions", active: false },
     { name: "Terms & Conditions", active: false },
   ]);
-  const userAvatar = "/icons/user-avatar.png";
   const router = useRouter();
   const { favouriteRaffle } = useToggleFavourite(publicKey?.toString() || "");
   const { getFavouriteRaffle } = useQueryFavourites(
@@ -183,6 +184,8 @@ function RouteComponent() {
       </main>
     );
   }
+
+  console.log("raffle",raffle);
 
   
   return (
@@ -395,7 +398,7 @@ function RouteComponent() {
                   <div className="w-full flex items-center justify-between md:pt-7 py-6 md:pb-10">
                     <div className="inline-flex gap-4">
                       <img
-                        src={raffle?.creator?.profileImage ? raffle?.creator?.profileImage : "/icons/user-avatar.png"}
+                        src={raffle?.creator?.profileImage ? `${API_URL}${raffle?.creator?.profileImage}` : DEFAULT_AVATAR}
                         className="w-10 h-10 rounded-full object-cover"
                         alt="no"
                       />
@@ -721,8 +724,11 @@ function RouteComponent() {
                 <div className="w-full pb-7 pt-6 md:py-10 flex items-center justify-between">
                   <div className="flex items-center gap-5 md:gap-3 2xl:gap-5">
                     <img
-                      src={userAvatar}
+                      src={`${API_URL}${raffle?.creator?.profileImage}`}
                       className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_AVATAR;
+                      }}
                       alt=""
                     />
                     <h3 className="md:text-[28px] text-lg font-bold text-black-1000 font-inter">

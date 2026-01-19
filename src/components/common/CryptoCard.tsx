@@ -293,11 +293,16 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
 
       <div className="w-full flex items-center justify-between p-4">
         <div className="flex items-center gap-4">
-          <img
-            src={creatorAvatar}
-            alt={raffle.createdBy}
-            className="w-6 h-6 rounded-full object-cover"
-          />
+          <div className="w-10 h-10 min-w-10 min-h-10 rounded-full overflow-hidden">
+            <img
+              src={creatorAvatar}
+              alt={raffle.createdBy}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_AVATAR;
+              }}
+            />
+          </div>
           <h4 className="text-base font-semibold font-inter text-black-1000">
             {raffle.createdBy.slice(0, 6)}...{raffle.createdBy.slice(-4)}
           </h4>
