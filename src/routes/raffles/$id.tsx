@@ -24,6 +24,7 @@ import { useToggleFavourite } from "hooks/useToggleFavourite";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { useClaimTicketRaffle } from "hooks/useClaimTicketRaffle";
 import { API_URL } from "@/constants";
+import { useCreateRaffleStore } from "store/createRaffleStore";
 
 export const Route = createFileRoute("/raffles/$id")({
   component: RouteComponent,
@@ -74,6 +75,7 @@ function RouteComponent() {
   const [showWinnersModal, setShowWinnersModal] = useState(false);
   const [showSoldoutPopup, setShowSoldoutPopup] = useState(false);
   const [soldoutPopupDismissed, setSoldoutPopupDismissed] = useState(false);
+  const { showTicketBuyingPopup, setShowTicketBuyingPopup, ticketBuyingPopupDismissed, setTicketBuyingPopupDismissed } = useCreateRaffleStore();
   const [tabs, setTabs] = useState([
     { name: "Participants", active: true },
     { name: "Transactions", active: false },
@@ -154,6 +156,17 @@ function RouteComponent() {
       return () => clearTimeout(timer);
     }
   }, [isEndingConditionMet, soldoutPopupDismissed]);
+
+  useEffect(() => {
+    if (showTicketBuyingPopup && !ticketBuyingPopupDismissed) {      
+      const timer = setTimeout(() => {
+        setShowTicketBuyingPopup(false);
+        setTicketBuyingPopupDismissed(true);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showTicketBuyingPopup, ticketBuyingPopupDismissed]);
 
   // useEffect(() => {
   //   if (raffle?.id) {
@@ -1012,6 +1025,61 @@ function RouteComponent() {
                   <img
                     src="/images/soldout.png"
                     alt="Sold Out"
+                    className="animate-soldout-pulse max-w-[300px] md:max-w-[400px] w-full h-auto object-contain drop-shadow-2xl"
+                  />
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Ticket Buying Popup */}
+      <Transition appear show={showTicketBuyingPopup} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-100"
+          onClose={() => {
+            setShowTicketBuyingPopup(false);
+            setTicketBuyingPopupDismissed(true);
+          }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-500"
+                enterFrom="opacity-0 scale-50"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-300"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-50"
+              >
+                <Dialog.Panel className="relative">
+                  <button
+                    onClick={() => {
+                      setShowTicketBuyingPopup(false);
+                      setTicketBuyingPopupDismissed(true);
+                    }}
+                    className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-white hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer shadow-lg z-10"
+                  >
+                    <X className="w-5 h-5 text-black-1000" />
+                  </button>
+                  <img
+                    src="/images/ticket.png"
+                    alt="Ticket Bought"
                     className="animate-soldout-pulse max-w-[300px] md:max-w-[400px] w-full h-auto object-contain drop-shadow-2xl"
                   />
                 </Dialog.Panel>

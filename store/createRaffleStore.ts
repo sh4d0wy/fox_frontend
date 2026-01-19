@@ -13,7 +13,9 @@ interface CreateRaffleState {
   isVerifiedCollectionsModalOpen: boolean;
   isCreateTokenModalOpen: boolean;
   isAdvancedSettingsOpen: boolean;
-  isCreatingRaffle: boolean;    
+  isCreatingRaffle: boolean;  
+  showTicketBuyingPopup: boolean;
+  ticketBuyingPopupDismissed: boolean;
   // Date & Time
   endDate: Date | null;
   endTimeHour: string;
@@ -77,6 +79,8 @@ interface CreateRaffleState {
   toggleAdvancedSettings: () => void;
   setAdvancedSettingsOpen: (open: boolean) => void;
   setIsCreatingRaffle: (isCreating: boolean) => void;
+  setShowTicketBuyingPopup: (show: boolean) => void;
+  setTicketBuyingPopupDismissed: (dismissed: boolean) => void;
   // Actions - Date & Time
   setEndDate: (date: Date | null) => void;
   setEndTimeHour: (hour: string) => void;
@@ -140,7 +144,8 @@ const initialState = {
   isCreateTokenModalOpen: false,
   isAdvancedSettingsOpen: true,
   isCreatingRaffle: false,
-
+  showTicketBuyingPopup: false,
+  ticketBuyingPopupDismissed: false,
   // Date & Time
   endDate: null as Date | null,
   endTimeHour: "12",
@@ -210,7 +215,8 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
   toggleAdvancedSettings: () =>
     set((state) => ({ isAdvancedSettingsOpen: !state.isAdvancedSettingsOpen })),
   setAdvancedSettingsOpen: (open) => set({ isAdvancedSettingsOpen: open }),
-
+  setShowTicketBuyingPopup: (show) => set({ showTicketBuyingPopup: show }),
+  setTicketBuyingPopupDismissed: (dismissed) => set({ ticketBuyingPopupDismissed: dismissed }),
   // Actions - Date & Time
   setEndDate: (date) => set({ endDate: date, selectedDuration: null }),
   setEndTimeHour: (hour) => set({ endTimeHour: hour }),

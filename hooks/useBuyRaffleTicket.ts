@@ -5,12 +5,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useCheckAuth } from "./useCheckAuth";
 import { connection } from "./helpers";
 import { Transaction } from "@solana/web3.js";
+import { useCreateRaffleStore } from "store/createRaffleStore";
 
 export const useBuyRaffleTicket = () => {
   const queryClient = useQueryClient();
   const { publicKey, sendTransaction } = useWallet();
   const { checkAndInvalidateToken } = useCheckAuth();
-
+  const { setShowTicketBuyingPopup, setTicketBuyingPopupDismissed } = useCreateRaffleStore();
   const validateForm = async (args: { raffleId: number; ticketsToBuy: number }) => {
     try {
       if (!publicKey) {
@@ -76,6 +77,8 @@ export const useBuyRaffleTicket = () => {
     },
     onSuccess: (raffleId) => {
       queryClient.invalidateQueries({ queryKey: ["raffle", raffleId.toString()] });
+      setShowTicketBuyingPopup(true);
+      setTicketBuyingPopupDismissed(false);
       toast.success("Tickets bought successfully");
     },
     onError: (error: Error) => {
