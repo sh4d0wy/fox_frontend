@@ -1072,41 +1072,35 @@ export function useRaffleAnchorProgram() {
     // });
 
     /* ---------------- Setup Raffle Config(Main owner call) ---------------- */
-    // const initializeRaffleConfigMutation = useMutation({
-    //     mutationKey: ["raffleConfig", "initialize"],
-    //     mutationFn: async (args: {
-    //         raffleOwner: PublicKey;
-    //         raffleAdmin: PublicKey;
-    //         creationFeeLamports: number;
-    //         ticketFeeBps: number;
-    //         minimumRafflePeriod: number;
-    //         maximumRafflePeriod: number;
-    //     }) => {
-    //         if (!raffleProgram || !wallet.publicKey) {
-    //             throw new Error("Wallet not ready");
-    //         }
+    const initializeRaffleConfigMutation = useMutation({
+        mutationKey: ["raffleConfig", "initialize"],
+        mutationFn: async () => {
+            if (!raffleProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
 
-    //         return await raffleProgram.methods
-    //             .initializeRaffleConfig(
-    //                 args.raffleOwner,
-    //                 args.raffleAdmin,
-    //                 new BN(args.creationFeeLamports),
-    //                 args.ticketFeeBps,
-    //                 args.minimumRafflePeriod,
-    //                 args.maximumRafflePeriod
-    //             )
-    //             .accounts({
-    //                 payer: wallet.publicKey,
-    //             })
-    //             .rpc();
-    //     },
-    //     onSuccess: (tx) => {
-    //         console.log("Raffle config Initialized TX:", tx);
-    //     },
-    //     onError: (error) => {
-    //         console.error("Raffle config Initialized Failed:", error);
-    //     },
-    // });
+            return await raffleProgram.methods
+                .initializeRaffleConfig(
+                    wallet.publicKey,
+                    new PublicKey("EE3c1tXXomTeyemiAyWe1o4qVV14iW8Hb3RPeMdVY5SE"),
+                    new BN(1_000_000),
+                    100,
+                    5 * 60,
+                    60 * 60 * 24 * 7,
+                    100
+                )
+                .accounts({
+                    payer: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Raffle config Initialized TX:", tx);
+        },
+        onError: (error) => {
+            console.error("Raffle config Initialized Failed:", error);
+        },
+    });
 
     /* ---------------- Update Raffle Config Owner(Main owner call) ---------------- */
     // const updateRaffleConfigOwnerMutation = useMutation({
@@ -1230,7 +1224,7 @@ export function useRaffleAnchorProgram() {
         getBuyersByRaffle,
 
         // config setup
-        // initializeRaffleConfigMutation,
+        initializeRaffleConfigMutation,
         // updateRaffleConfigOwnerMutation,
         // updateRaffleConfigAdminMutation,
         // updatePauseFlagsMutation,
