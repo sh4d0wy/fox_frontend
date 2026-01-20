@@ -12,6 +12,7 @@ import { useBidAuction } from "hooks/useBidAuction";
 import { useCancelAuction } from "hooks/useCancelAuction";
 import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
+import { toast } from "react-toastify";
 
 export const Route = createFileRoute("/auctions/$id")({
   component: AuctionDetails,
@@ -128,7 +129,7 @@ function AuctionDetails() {
 
   const isWrongBid = useMemo(() => {
     if (!bidAmountInput) {
-      return false;
+      return true;
     } else {
       if (auction?.hasAnyBid) {
         return !(parseFloat(bidAmountInput) >= minBidInSol);
@@ -141,8 +142,13 @@ function AuctionDetails() {
     const amount = Number(bidAmountInput);
 
     if (isNaN(amount) || amount < minBidInSol) {
-      alert(`Minimum bid is ${minBidInSol.toFixed(4)} ${auction?.currency}`);
-      return;
+      if(auction?.hasAnyBid) {
+        toast.error(`Your bid must be atleast ${minBidInSol.toFixed(5)} ${auction?.currency}`);
+        return;
+      } else {
+        toast.error(`Your bid must be greater than ${minBidInSol.toFixed(5)} ${auction?.currency}`);
+        return;
+      }
     }
 
     try {
@@ -329,6 +335,9 @@ function AuctionDetails() {
                     </li>
                     <li className="px-3 py-1.5 bg-black/80 text-white rounded-lg text-xs font-bold">
                       MIN INCREMENT: {auction.bidIncrementPercent}%
+                    </li>
+                    <li className="px-3 py-1.5 bg-black/80 text-white rounded-lg text-xs font-bold">
+                      TIME EXTENSION: {auction.timeExtension} minutes
                     </li>
                   </ul>
 
