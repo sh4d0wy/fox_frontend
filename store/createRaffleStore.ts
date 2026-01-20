@@ -363,8 +363,8 @@ export const useCreateRaffleStore = create<CreateRaffleState>((set, get) => ({
     } else if (get().prizeType === "nft" && ttvValue > 0) {
       set({
         percentage: (
-          (ttvValue - parseFloat(get().floor) / 1e9) /
-          ttvValue *
+          ((ttvValue - (parseFloat(get().floor)/10**9)) /
+          ttvValue) *
           100
         ).toFixed(2),
       });

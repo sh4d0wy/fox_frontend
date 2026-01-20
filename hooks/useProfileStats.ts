@@ -64,6 +64,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isRaffles && tabFilter === "created",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getRafflePurchasedCards = useQuery({
     queryKey: ["profile-raffle-purchased", publicKey],
@@ -73,6 +74,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isRaffles && tabFilter === "purchased",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getRaffleFavouriteCards = useQuery({
     queryKey: ["profile-raffle-favourite", publicKey],
@@ -82,6 +84,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isRaffles && tabFilter === "favourite",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
 
   const getGumballCreatedCards = useQuery({
@@ -92,6 +95,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isGumballs && tabFilter === "created",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getGumballPurchasedCards = useQuery({
     queryKey: ["profile-gumball-purchased", publicKey],
@@ -101,6 +105,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isGumballs && tabFilter === "purchased",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getGumballFavouriteCards = useQuery({
     queryKey: ["profile-gumball-favourite", publicKey],
@@ -110,6 +115,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isGumballs && tabFilter === "favourite",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getAuctionCreatedCards = useQuery({
     queryKey: ["profile-auction-created", publicKey],
@@ -119,6 +125,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isAuctions && tabFilter === "created",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getAuctionPurchasedCards = useQuery({
     queryKey: ["profile-auction-purchased", publicKey],
@@ -128,6 +135,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isAuctions && tabFilter === "purchased",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   const getAuctionFavouriteCards = useQuery({
     queryKey: ["profile-auction-favourite", publicKey],
@@ -137,6 +145,7 @@ export const useProfileStats = (
     },
     enabled: !!publicKey && isAuctions && tabFilter === "favourite",
     staleTime: 60000,
+    refetchInterval: 60000,
   });
   return {
     getRaffleStats,

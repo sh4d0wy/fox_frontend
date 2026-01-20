@@ -219,6 +219,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { API_URL } from "../../constants";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { useClaimTicketRaffle } from "../../../hooks/useClaimTicketRaffle";
+import { useCancelRaffle } from "hooks/useCancelRaffle";
 
 const DEFAULT_AVATAR = "/icons/user-avatar.png";
 
@@ -280,7 +281,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   
 
   const totalCost = getTicketQuantityById(raffle.id || 0) * raffle.ticketPrice;
-
+  const { cancelRaffle } = useCancelRaffle();
   return (
     <div
       className={`bg-white-1000 min-h-[500px] border border-gray-1100 rounded-2xl ${className}`}
@@ -292,7 +293,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
         <p className="text-sm hidden text-black">Raffles Purchased</p>
       )}
 
-      <div className="w-full flex items-center justify-between p-4">
+      <div className="w-full flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 min-w-10 min-h-10 rounded-full overflow-hidden">
             <img
@@ -320,21 +321,26 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
             ENDED
           </p>
         )}
+         {(raffle.state?.toLowerCase() === "cancelled" && (
+          <p className="text-xs font-semibold font-inter text-red-500 bg-red-500/10 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
+            CANCELLED
+          </p>
+        ))}
         </div>
       </div>
 
-      <div className="w-full relative group flex items-center justify-center">
+      <div className="w-full relative group flex items-center justify-center overflow-hidden">
         {raffle.prizeData.type === "NFT" ? (
           <img
             src={raffle.prizeData.image}
             alt={raffle.prizeData.name}
-            className="w-full object-cover h-72"
+            className="w-full object-cover h-72 group-hover:scale-105 transition-all duration-300"
           />
         ) : (
           <img
             src={raffle.prizeData.image}
             alt={raffle.prizeData.name}
-            className="w-72 object-contain h-72 "
+            className="w-72 object-contain h-72 group-hover:scale-105 transition-all duration-300"
           />
         )}
 
@@ -420,11 +426,11 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
       </div>
 
       <div className="w-full flex flex-col px-4 py-4 gap-3">
-        <div className={`w-full flex items-center justify-between ${raffle.prizeData.type === "NFT" ? "flex-col items-start" : ""}`}>
+        <div className={`w-full flex items-center justify-between`}>
           <h3 className="text-2xl text-black-1000 font-bold font-inter">
             {raffle.prizeData.type === "NFT" ? (
               <>
-                <span>{raffle.prizeData.name}</span>
+                <span>{raffle.prizeData.name.slice(0, 12)}...</span>
               </>
             ) : (
               <>
@@ -574,16 +580,29 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
           
         </div>
         )}
-        {(raffle.createdBy === publicKey?.toString() && category === "created"  && raffle.state?.toLowerCase() === "successended") && (
+        {(raffle.createdBy === publicKey?.toString() && category === "created") ? (
+          raffle.state?.toLowerCase() === "successended" ? (
           <PrimaryButton
-          className="w-full h-[54px]"
+          className="w-full h-[40px]"
           text="Claim Ticket Amount"
           disabled={claimTicket.isPending || raffle?.ticketAmountClaimedByCreator}
           onclick={() => {
             claimTicket.mutate(raffle?.id || 0);
           }}
         />
+        ):(
+            <PrimaryButton
+              className={`w-full h-[40px]`}
+              text={`Cancel Raffle`}
+              disabled={cancelRaffle.isPending || raffle?.state?.toLowerCase() === "cancelled"}
+              onclick={() => {
+                cancelRaffle.mutate(raffle?.id || 0);
+              }}
+            />
+        )) : (
+          <></>
         )}
+
       </div>
     </div>
   );

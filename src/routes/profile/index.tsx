@@ -26,6 +26,7 @@ import { updateProfilePicture } from "../../../api/routes/userRoutes";
 import { useMyProfile } from "../../../hooks/useMyProfile";
 import { toast } from "react-toastify";
 import { API_URL } from "../../constants";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/profile/")({
   component: CreateProfile,
@@ -68,7 +69,7 @@ function CreateProfile() {
     setProfilePictureError 
   } = useUserStore();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
-
+  const queryClient = useQueryClient();
   const isAuthenticated = !!publicKey && !!localStorage.getItem("authToken");
   const { data: profileData } = useMyProfile(isAuthenticated);
 
@@ -91,6 +92,7 @@ function CreateProfile() {
       if (response.imageUrl) {
         const fullImageUrl = `${API_URL}${response.imageUrl}`;
         setProfilePicture(fullImageUrl);
+        queryClient.invalidateQueries({ queryKey: ["my-profile", publicKey?.toBase58()] });
       }
       
       toast.success("Profile picture updated successfully!");
@@ -243,7 +245,7 @@ function CreateProfile() {
                   >
                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary-color shadow-lg transition-transform duration-300 group-hover:scale-105">
                       <img
-                        src={profilePicture}
+                        src={`${API_URL}${profileData?.user?.profileImage ?? DEFAULT_AVATAR}`}
                         alt="Profile"
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -682,7 +684,7 @@ function CreateProfile() {
       <ProfilePictureModal
         isOpen={isProfilePictureModalOpen}
         onClose={() => setIsProfilePictureModalOpen(false)}
-        currentImage={profilePicture}
+        currentImage={`${API_URL}${profileData?.user?.profileImage ?? DEFAULT_AVATAR}`}
         onImageChange={handleProfilePictureChange}
         isUploading={isUploadingProfilePicture}
       />

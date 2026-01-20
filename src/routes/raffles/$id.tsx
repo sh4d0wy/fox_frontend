@@ -634,7 +634,7 @@ function RouteComponent() {
                                 (VerifiedTokens.find(
                                   (token) =>
                                     token.address === raffle?.ticketTokenAddress
-                                )?.decimals || 0)) * ticketQuantity).toFixed(4)
+                                )?.decimals || 0)) * ticketQuantity).toFixed(6)
                             } ${
                               VerifiedTokens.find(
                                 (token) =>
