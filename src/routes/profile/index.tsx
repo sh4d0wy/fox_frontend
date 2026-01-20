@@ -88,11 +88,11 @@ function CreateProfile() {
       setProfilePictureError(null);
       
       const response = await updateProfilePicture(file);
-      
-      if (response.imageUrl) {
+      console.log(response);
+      if ( response.imageUrl) {
+        queryClient.invalidateQueries({ queryKey: ["my-profile", publicKey?.toBase58()] });
         const fullImageUrl = `${API_URL}${response.imageUrl}`;
         setProfilePicture(fullImageUrl);
-        queryClient.invalidateQueries({ queryKey: ["my-profile", publicKey?.toBase58()] });
       }
       
       toast.success("Profile picture updated successfully!");

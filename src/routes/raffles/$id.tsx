@@ -1035,7 +1035,7 @@ function RouteComponent() {
       </Transition>
 
       {/* Ticket Buying Popup */}
-      <Transition appear show={showTicketBuyingPopup} as={Fragment}>
+      <Transition appear show={showTicketBuyingPopup && !isEndingConditionMet} as={Fragment}>
         <Dialog
           as="div"
           className="relative z-100"
