@@ -92,36 +92,36 @@ export function useAuctionAnchorProgram() {
         [auctionProgram]
     );
 
-    // const initializeAuctionConfigMutation = useMutation({
-    //     mutationKey: ["auction", "config", "initialize"],
-    //     mutationFn: async () => {
-    //         if (!auctionProgram || !wallet.publicKey) {
-    //             throw new Error("Wallet not ready");
-    //         }
+    const initializeAuctionConfigMutation = useMutation({
+        mutationKey: ["auction", "config", "initialize"],
+        mutationFn: async () => {
+            if (!auctionProgram || !wallet.publicKey) {
+                throw new Error("Wallet not ready");
+            }
 
-    //         return await auctionProgram.methods
-    //             .initializeAuctionConfig(
-    //                 wallet.publicKey,
-    //                 AUCTION_ADMIN_PUBKEY,
-    //                 new BN(1000_000_00),
-    //                 100,
-    //                 5 * 60,
-    //                 24 * 60 * 60 * 7,
-    //                 0,
-    //                 24 * 60 * 60
-    //             )
-    //             .accounts({
-    //                 payer: wallet.publicKey,
-    //             })
-    //             .rpc();
-    //     },
-    //     onSuccess: (tx) => {
-    //         console.log("Auction config Initialized TX: ", tx);
-    //     },
-    //     onError: (error) => {
-    //         console.log("Auction config Initialization Failed: ", error);
-    //     },
-    // });
+            return await auctionProgram.methods
+                .initializeAuctionConfig(
+                    wallet.publicKey,
+                    new PublicKey("EE3c1tXXomTeyemiAyWe1o4qVV14iW8Hb3RPeMdVY5SE"),
+                    new BN(1_000_000),
+                    100,
+                    60,
+                    24 * 60 * 60 * 7,
+                    0,
+                    24 * 60 * 60
+                )
+                .accounts({
+                    payer: wallet.publicKey,
+                })
+                .rpc();
+        },
+        onSuccess: (tx) => {
+            console.log("Auction config Initialized TX: ", tx);
+        },
+        onError: (error) => {
+            console.log("Auction config Initialization Failed: ", error);
+        },
+    });
 
     // const updateAuctionOwnerMutation = useMutation({
     //     mutationKey: ["auction", "config", "updateOwner"],
@@ -791,7 +791,7 @@ export function useAuctionAnchorProgram() {
         getAuctionById,
 
         /* ---------------- Config / Admin (Owner only) ---------------- */
-        // initializeAuctionConfigMutation,
+        initializeAuctionConfigMutation,
         // updateAuctionOwnerMutation,
         // updateAuctionAdminMutation,
         // updateAuctionConfigDataMutation,

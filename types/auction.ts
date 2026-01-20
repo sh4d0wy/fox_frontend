@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/auction.json`.
  */
 export type Auction = {
-  "address": "4mhzWoT65ZtGgBtSAuUgmDpDvxExn9fb5S7UJzDr3Efj",
+  "address": "2J3du9mvh9t4bSP8DzNckVQrBQYupCW92SMnKRtTSaaJ",
   "metadata": {
     "name": "auction",
     "version": "0.1.0",
@@ -208,6 +208,40 @@ export type Auction = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
         }
       ],
       "args": [
@@ -333,6 +367,40 @@ export type Auction = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
         }
       ],
       "args": [
@@ -539,6 +607,40 @@ export type Auction = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
         }
       ],
       "args": [
@@ -1464,103 +1566,58 @@ export type Auction = {
   "errors": [
     {
       "code": 6000,
-      "name": "invalidAuctionId",
-      "msg": "Invalid Auction ID"
+      "name": "invalidPrizeMint",
+      "msg": "Invalid Prize Mint"
     },
     {
       "code": 6001,
-      "name": "invalidCreator",
-      "msg": "Invalid Auction Creator"
+      "name": "invalidPrizeEscrow",
+      "msg": "Invalid Prize Escrow"
     },
     {
       "code": 6002,
-      "name": "endTimeNotReached",
-      "msg": "End time not reached"
+      "name": "invalidPrizeEscrowOwner",
+      "msg": "Invalid Prize Escrow Owner"
     },
     {
       "code": 6003,
-      "name": "functionPaused",
-      "msg": "Particular Function is paused"
+      "name": "invalidPrizeAtaOwner",
+      "msg": "Invalid Prize ATA owner"
     },
     {
       "code": 6004,
-      "name": "overflow",
-      "msg": "Calculation Overflow Error"
+      "name": "invalidBidMint",
+      "msg": "Invalid Bid Token Mint"
     },
     {
       "code": 6005,
-      "name": "invalidZeroAmount",
-      "msg": "Invalid zero amount"
+      "name": "missingBidMint",
+      "msg": "Missing Bid Mint"
     },
     {
       "code": 6006,
-      "name": "startTimeExceedEndTime",
-      "msg": "Start time exceed end time or invalid duration"
+      "name": "invalidBidEscrow",
+      "msg": "Invalid Bid Escrow"
     },
     {
       "code": 6007,
-      "name": "startTimeInPast",
-      "msg": "Start time should be greater than current time"
+      "name": "invalidBidEscrowOwner",
+      "msg": "Invalid Bid Escrow Owner"
     },
     {
       "code": 6008,
-      "name": "auctionAlreadyStarted",
-      "msg": "Auction already started"
+      "name": "invalidBidAtaOwner",
+      "msg": "Invalid Bid ATA owner"
     },
     {
       "code": 6009,
-      "name": "auctionNotStarted",
-      "msg": "Auction not started yet"
+      "name": "invalidPreviousBidOwner",
+      "msg": "Invalid previous bid owner"
     },
     {
       "code": 6010,
-      "name": "auctionNotActive",
-      "msg": "Auction not active"
-    },
-    {
-      "code": 6011,
-      "name": "auctionAlreadyCompleted",
-      "msg": "Auction already completed"
-    },
-    {
-      "code": 6012,
-      "name": "invalidAuctionTimeExtension",
-      "msg": "Invalid auction time extension"
-    },
-    {
-      "code": 6013,
-      "name": "auctionHasBids",
-      "msg": "Auction has bids and cannot be cancelled"
-    },
-    {
-      "code": 6014,
-      "name": "invalidNft",
-      "msg": "Invalid NFT (must be a single-supply token with 0 decimals)"
-    },
-    {
-      "code": 6015,
-      "name": "bidTooLow",
-      "msg": "Bid amount is too low"
-    },
-    {
-      "code": 6016,
-      "name": "bidBelowIncrement",
-      "msg": "Bid increase is smaller than minimum increment"
-    },
-    {
-      "code": 6017,
-      "name": "cannotBidOwnHighBid",
-      "msg": "Cannot bid: caller is current highest bidder"
-    },
-    {
-      "code": 6018,
-      "name": "noBidsPresent",
-      "msg": "No bids present"
-    },
-    {
-      "code": 6019,
-      "name": "insufficientBalance",
-      "msg": "Insufficient balance to place bid"
+      "name": "invalidHighestBidder",
+      "msg": "Invalid highest bidder"
     }
   ],
   "types": [
