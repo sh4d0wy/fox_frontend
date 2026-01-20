@@ -736,7 +736,8 @@ All consequences resulting from configuration errors are solely the responsibili
                           filteredVerifiedCollections.map((collection) => (
                             <li key={collection.address} className="md:pb-5 pb-2.5">
                               <Link
-                                to="."
+                                to={collection.url}
+                                target="_blank"
                                 className="rounded-lg text-center w-[300px] gap-3 justify-center hover:bg-gray-1300 h-13 md:h-15 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-black/20"
                               >
                                 <img src={collection.image} alt={collection.name} className="w-10 h-10 rounded-full object-cover" />
