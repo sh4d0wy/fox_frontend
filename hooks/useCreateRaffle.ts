@@ -263,8 +263,8 @@ export const useCreateRaffle = () => {
                 ?.decimals ?? 0,
           verified: true,
           image: prizeType === "nft" ? prizeImage : VerifiedTokens.find((token) => token.address === tokenPrizeMint)?.image || "",
-          floor: prizeType === "nft" ? parseFloat(floor) / 10 ** 9 : undefined,
-          amount: prizeType === "nft" ? parseFloat(floor) / 10 ** 9 :
+          floor: prizeType === "nft" ? parseFloat(floor) : undefined,
+          amount: prizeType === "nft" ? undefined :
             parseFloat(tokenPrizeAmount) *
             10 **
             (VerifiedTokens.find((token) => token.address === tokenPrizeMint)
