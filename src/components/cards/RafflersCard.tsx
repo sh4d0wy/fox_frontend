@@ -299,6 +299,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { API_URL } from "../../constants";
+import { useUserStore } from "../../../store/userStore";
 
 const DEFAULT_AVATAR = "/icons/user-avatar.png";
 
@@ -315,6 +316,7 @@ export const RafflersCard: React.FC<RafflersCardProps> = (props) => {
   const { publicKey } = useWallet();
   const { favouriteRaffle } = useToggleFavourite(publicKey?.toString() || "");
   const { getFavouriteRaffle } = useQueryFavourites(publicKey?.toString() || "");
+  const { profilePictureVersion } = useUserStore();
 
   const {
     raffle,
@@ -335,8 +337,10 @@ export const RafflersCard: React.FC<RafflersCardProps> = (props) => {
     creator,
   } = props;
 
+  // Use profilePictureVersion for cache busting when the creator is the current user
+  const isCurrentUser = createdBy === publicKey?.toString();
   const creatorAvatar = creator?.profileImage 
-    ? `${API_URL}${creator.profileImage}` 
+    ? `${API_URL}${creator.profileImage}?t=${isCurrentUser ? profilePictureVersion : ''}`
     : DEFAULT_AVATAR;
 
   const remainingTickets = ticketSupply - ticketSold;

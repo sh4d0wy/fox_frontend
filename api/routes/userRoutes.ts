@@ -223,7 +223,7 @@ export const toggleAuctionFavourite = async (auctionId:string)=>{
     }
 }
 
-export const updateProfilePicture = async (imageFile: File): Promise<{ message: string; imageUrl: string }> => {
+export const updateProfilePicture = async (imageFile: File): Promise<{ message: string; user: { profileImage: string } }> => {
     try {
         const formData = new FormData();
         formData.append('profileImage', imageFile);

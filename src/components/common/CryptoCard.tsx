@@ -220,6 +220,7 @@ import { API_URL } from "../../constants";
 import { PrimaryButton } from "../ui/PrimaryButton";
 import { useClaimTicketRaffle } from "../../../hooks/useClaimTicketRaffle";
 import { useCancelRaffle } from "hooks/useCancelRaffle";
+import { useUserStore } from "../../../store/userStore";
 
 const DEFAULT_AVATAR = "/icons/user-avatar.png";
 
@@ -240,10 +241,14 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   category = "General",
   rafflesType = "All Raffles",
 }) => {
-  const creatorAvatar = raffle.creator?.profileImage 
-    ? `${API_URL}${raffle.creator.profileImage}` 
-    : DEFAULT_AVATAR;
   const {publicKey} = useWallet();
+  const { profilePictureVersion } = useUserStore();
+  
+  // Use profilePictureVersion for cache busting when the creator is the current user
+  const isCurrentUser = raffle.createdBy === publicKey?.toString();
+  const creatorAvatar = raffle.creator?.profileImage 
+    ? `${API_URL}${raffle.creator.profileImage}?t=${isCurrentUser ? profilePictureVersion : ''}`
+    : DEFAULT_AVATAR;
   const { buyTicket } = useBuyRaffleTicket();
   const {  getTicketQuantityById, updateTicketQuantityById } = useBuyRaffleTicketStore();
   const {favouriteRaffle} = useToggleFavourite(publicKey?.toString() || "");

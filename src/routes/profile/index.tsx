@@ -66,7 +66,8 @@ function CreateProfile() {
     setProfilePicture, 
     isUploadingProfilePicture, 
     setIsUploadingProfilePicture,
-    setProfilePictureError 
+    setProfilePictureError,
+    updateProfilePictureVersion
   } = useUserStore();
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -75,7 +76,8 @@ function CreateProfile() {
 
   useEffect(() => {
     if (profileData?.user?.profileImage) {
-      const fullImageUrl = `${API_URL}${profileData.user.profileImage}`;
+      // Add cache-busting timestamp to ensure fresh image is loaded
+      const fullImageUrl = `${API_URL}${profileData.user.profileImage}?t=${Date.now()}`;
       setProfilePicture(fullImageUrl);
     } else if (profileData?.user) {
       setProfilePicture(DEFAULT_AVATAR);
@@ -89,10 +91,28 @@ function CreateProfile() {
       
       const response = await updateProfilePicture(file);
       console.log(response);
-      if ( response.imageUrl) {
-        queryClient.invalidateQueries({ queryKey: ["my-profile", publicKey?.toBase58()] });
-        const fullImageUrl = `${API_URL}${response.imageUrl}`;
+      if (response.user.profileImage) {
+        console.log("inside if")
+        const fullImageUrl = `${API_URL}${response.user.profileImage}?t=${Date.now()}`;
+        console.log(fullImageUrl);
         setProfilePicture(fullImageUrl);
+        updateProfilePictureVersion();
+        queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+        queryClient.invalidateQueries({ queryKey: ["profile-raffle-created", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-raffle-purchased", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-raffle-favourite", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-gumball-created", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-gumball-purchased", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-gumball-favourite", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-auction-created", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-auction-purchased", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-auction-favourite", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["favourite-raffle", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["favourite-gumball", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["favourite-auction", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-raffle-stats", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-gumball-stats", publicKey?.toBase58()] });
+        queryClient.invalidateQueries({ queryKey: ["profile-auction-stats", publicKey?.toBase58()] });
       }
       
       toast.success("Profile picture updated successfully!");
@@ -245,7 +265,7 @@ function CreateProfile() {
                   >
                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary-color shadow-lg transition-transform duration-300 group-hover:scale-105">
                       <img
-                        src={`${API_URL}${profileData?.user?.profileImage ?? DEFAULT_AVATAR}`}
+                        src={profilePicture}
                         alt="Profile"
                         className="w-full h-full object-cover"
                         onError={(e) => {

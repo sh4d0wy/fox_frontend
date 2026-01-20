@@ -5,6 +5,7 @@ import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { VerifiedTokens } from "../../utils/verifiedTokens";
 import { API_URL } from "../../constants";
+import { useUserStore } from "../../../store/userStore";
 
 const DEFAULT_AVATAR = "/icons/user-avatar.png";
 
@@ -47,11 +48,14 @@ export const AuctionsCard: React.FC<AuctionsCardProps> = (props) => {
     creator,
   } = props;
 
-  const creatorAvatar = creator?.profileImage 
-    ? `${API_URL}${creator.profileImage}` 
-    : DEFAULT_AVATAR;
-
   const { publicKey } = useWallet();
+  const { profilePictureVersion } = useUserStore();
+  
+  // Use profilePictureVersion for cache busting when the creator is the current user
+  const isCurrentUser = createdBy === publicKey?.toString();
+  const creatorAvatar = creator?.profileImage 
+    ? `${API_URL}${creator.profileImage}?t=${isCurrentUser ? profilePictureVersion : ''}`
+    : DEFAULT_AVATAR;
   const { favouriteAuction } = useToggleFavourite(publicKey?.toString() || "");
   const { getFavouriteAuction } = useQueryFavourites(
     publicKey?.toString() || ""
