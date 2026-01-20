@@ -217,6 +217,8 @@ import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { API_URL } from "../../constants";
+import { PrimaryButton } from "../ui/PrimaryButton";
+import { useClaimTicketRaffle } from "../../../hooks/useClaimTicketRaffle";
 
 const DEFAULT_AVATAR = "/icons/user-avatar.png";
 
@@ -245,8 +247,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   const {  getTicketQuantityById, updateTicketQuantityById } = useBuyRaffleTicketStore();
   const {favouriteRaffle} = useToggleFavourite(publicKey?.toString() || "");
   const {getFavouriteRaffle} = useQueryFavourites(publicKey?.toString() || "");
-  console.log("getFavouriteRaffle",getFavouriteRaffle.data);
-
+  const { claimTicket } = useClaimTicketRaffle();
   const favorite = useMemo(() => {
     if(!getFavouriteRaffle.data || getFavouriteRaffle.data.length === 0) return false;
     return getFavouriteRaffle.data?.some((favourite) => favourite.id === raffle.id);
@@ -312,6 +313,11 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
           {raffle.state?.toLowerCase() === "active" && (
           <p className="text-xs font-semibold font-inter text-green-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
             Active
+          </p>
+        )}
+        {(raffle.state?.toLowerCase() && ["successended", "failedended"].includes(raffle.state?.toLowerCase())) && (
+          <p className="text-xs font-semibold font-inter text-red-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
+            ENDED
           </p>
         )}
         </div>
@@ -386,7 +392,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
                 <p className="text-xs font-semibold font-inter uppercase text-white">
                   {raffle.prizeData.type === "NFT" ? (
                     <>
-                      FP:<span>{raffle.prizeData.floor || 0}</span>
+                      FP:<span>{raffle.prizeData?.floor ? raffle.prizeData?.floor/10**9 : 0}</span>
                     </>
                   ) : (
                     <>
@@ -413,8 +419,8 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
         </div>
       </div>
 
-      <div className="w-full flex flex-col px-4 py-4 gap-7">
-        <div className="w-full flex items-center gap-5 justify-between">
+      <div className="w-full flex flex-col px-4 py-4 gap-3">
+        <div className={`w-full flex items-center justify-between ${raffle.prizeData.type === "NFT" ? "flex-col items-start" : ""}`}>
           <h3 className="text-2xl text-black-1000 font-bold font-inter">
             {raffle.prizeData.type === "NFT" ? (
               <>
@@ -558,12 +564,25 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
             </button>
           </div>
         )} */}
-        {rafflesType === "Past Raffles" && (
+        {(rafflesType === "Past Raffles") && (
+          <div className="w-full flex flex-col items-center justify-between gap-4">  
           <div className="w-full flex items-center justify-between">
             <h4 className="text-base text-primary-color font-inter text-center w-full font-semibold">
               Raffle Ended
             </h4>
           </div>
+          
+        </div>
+        )}
+        {(raffle.createdBy === publicKey?.toString() && category === "created"  && raffle.state?.toLowerCase() === "successended") && (
+          <PrimaryButton
+          className="w-full h-[54px]"
+          text="Claim Ticket Amount"
+          disabled={claimTicket.isPending || raffle?.ticketAmountClaimedByCreator}
+          onclick={() => {
+            claimTicket.mutate(raffle?.id || 0);
+          }}
+        />
         )}
       </div>
     </div>

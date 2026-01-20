@@ -68,6 +68,7 @@ export const useClaimTicketRaffle = () => {
         },
         onSuccess: (raffleId: number) => {
             queryClient.invalidateQueries({ queryKey: ["raffle", raffleId.toString()] });
+            queryClient.invalidateQueries({ queryKey: ["profile-raffle-created", publicKey?.toBase58()] });
             toast.success("Ticket amount claimed successfully");
         },
         onError: (error: Error) => {

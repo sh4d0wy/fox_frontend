@@ -17,7 +17,6 @@ import { connection } from "./helpers";
 import { useMemo } from "react";
 
 export const useCreateRaffle = () => {
-  // const { getAllRaffles } = useRaffleAnchorProgram();
   const { publicKey, sendTransaction } = useWallet();
   const queryClient = useQueryClient();
   const {
@@ -50,6 +49,7 @@ export const useCreateRaffle = () => {
   } = useCreateRaffleStore();
 
   const { getRaffleConfig } = useRaffleAnchorProgram();
+  const { data: raffleConfig } = getRaffleConfig;
   const { checkAndInvalidateToken } = useCheckAuth();
   const router = useRouter();
   const validateForm = async () => {
@@ -155,11 +155,6 @@ export const useCreateRaffle = () => {
   //   }
   // }
 
-  const fetchRaffleConfig = () => {
-    const raffleConfig = getRaffleConfig.data;
-    return raffleConfig?.raffleCount || 0;
-  }
-
   const maxEntries = useMemo(() => {
     if (ticketLimitPerWallet && parseInt(ticketLimitPerWallet) > 0 && supply && parseInt(supply) > 0) {
       const entries = Math.floor((parseInt(ticketLimitPerWallet) * parseInt(supply)) / 100);
@@ -225,7 +220,7 @@ export const useCreateRaffle = () => {
 
       const raffleBackendPayload: RaffleTypeBackend = {
         ticketAmountClaimedByCreator: false,
-        id: fetchRaffleConfig(),
+        id: raffleConfig?.raffleCount || 0,
         createdAt: new Date(now * 1000),
         endsAt: new Date(getEndTimestamp()! * 1000),
         createdBy: publicKey?.toBase58() || "",

@@ -473,7 +473,7 @@ function CreateProfile() {
               </div>
             </div>
             <div className="flex-1">
-              <div className="w-full flex flex-wrap gap-5 items-center justify-between">
+              <div className="w-full flex flex-wrap gap-5 items-center justify-between mb-5">
                 <ul className="flex items-center md:gap-5 gap-3">
                   {["Rafflers", "Auctions", "Gumballs"].map((tab) => (
                     <li key={tab}>
@@ -555,6 +555,7 @@ function CreateProfile() {
                                 key={card.id}
                                 raffle={card}
                                 soldTickets={card.ticketSold}
+                                category="created"
                               />
                               ))}
                       </div>
