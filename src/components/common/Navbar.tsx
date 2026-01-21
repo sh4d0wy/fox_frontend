@@ -3,6 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useNotificationQuery } from "../../../hooks/useNotificationQuery";
+import { useEndedRafflesNotificationQuery } from "../../../hooks/useEndedRafflesNotificationQuery";
 import { useNavbarStore } from "../../../store/globalStore";
 import { requestMessage, verifyMessage } from "../../../api/routes/userRoutes";
 import SettingsModel from "./SettingsModel";
@@ -13,6 +14,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { isTokenExpired, setToken, removeToken } from "../../utils/auth";
 import { toast } from "sonner";
 import Toast from "./Toast";
+import EndedRaffleToast from "./EndedRaffleToast";
 import { invalidateQueries } from "../../utils/invalidateQueries";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -39,6 +41,7 @@ export const Navbar = () => {
   const hasInitializedRef = useRef(false);
   const lastNotifiedWalletRef = useRef<string | null>(null);
   const hasShownNotificationsRef = useRef(false);
+  const hasShownEndedRafflesNotificationsRef = useRef(false);
   
   const signAndVerifyMessage = async (message: string) => {
     if (!publicKey || !signMessage) {
@@ -176,6 +179,7 @@ export const Navbar = () => {
     walletAddress && `${walletAddress.slice(0, 4)}..${walletAddress.slice(-4)}`;
 
   const { data: notifications } =  useNotificationQuery();
+  const { data: endedRafflesNotifications } = useEndedRafflesNotificationQuery();
   const queryClient = useQueryClient();
   useEffect(() => {
     if (!publicKey || !notifications?.raffles) {
@@ -187,6 +191,7 @@ export const Navbar = () => {
     if (walletChanged) {
       console.log("wallet changed");
       hasShownNotificationsRef.current = false;
+      hasShownEndedRafflesNotificationsRef.current = false;
       lastNotifiedWalletRef.current = publicKey.toBase58();
     }
 
@@ -219,6 +224,39 @@ export const Navbar = () => {
       );
     }
   }, [publicKey, notifications]);
+
+  useEffect(() => {
+    if (!publicKey || !endedRafflesNotifications?.raffles) {
+      return;
+    }
+
+    if (hasShownEndedRafflesNotificationsRef.current) {
+      return;
+    }
+
+    const endedRaffles = endedRafflesNotifications.raffles.filter(
+      (raffle: { id: number; ticketAmountClaimedByCreator: boolean }) => !raffle.ticketAmountClaimedByCreator
+    );
+
+    if (endedRaffles.length > 0) {
+      hasShownEndedRafflesNotificationsRef.current = true;
+
+      endedRaffles.forEach(
+        (raffle: { id: number; totalEntries: number }, index: number) => {
+          setTimeout(() => {
+            toast.custom(
+              (toastId) => (
+                <EndedRaffleToast id={raffle.id} totalEntries={raffle.totalEntries} toastId={toastId as string} />
+              ),
+              {
+                duration: 3000,
+              }
+            );
+          }, index * 400);
+        }
+      );
+    }
+  }, [publicKey, endedRafflesNotifications]);
 
 
   return (
