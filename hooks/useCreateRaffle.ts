@@ -269,7 +269,6 @@ export const useCreateRaffle = () => {
       };
 
       const data = await createRaffleOverBackend(raffleBackendPayload);
-      console.log("raffleBackendPayload", raffleBackendPayload);
       return data.raffle.id;
     },
     // onMutate: async () => {
