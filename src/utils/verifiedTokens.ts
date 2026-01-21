@@ -38,6 +38,36 @@ export const VerifiedTokens = [
         symbol:"RECON",
         image:"/icons/recon-logo.png",
         decimals: 6,
-    }
+    },
+    {
+        name:"USDT",
+        address:"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        symbol:"USDT",
+        image:"https://cryptologos.cc/logos/tether-usdt-logo.png?v=040",
+        decimals: 6,
+    },
+    {
+        name:"AON",
+        address:"AoNsv791tTJdvePYHEPShSfeENjbLu8E5omfB2e1zuX2",
+        symbol:"AON",
+        image:"https://ipfs.io/ipfs/QmRrWft5eCEkeQJNhrtpsvi2YRnKvEPae8ZTDFfF4kbnwX",
+        decimals: 6,
+    },
+    {
+        name:"LacDragon",
+        address:"2VZ46wWbwrQYbRFqRR3Kx68PS9ifVUPPiDmfmMrscDcX",
+        symbol:"LACD",
+        image:"https://ipfs.io/ipfs/QmSUQCBBxZAkpZmS1pZS1ke1ReeFXLtUtqmhE1ujX6dVH2",
+        decimals: 6,
+    },
+    {
+        name:"ALTON",
+        address:"ALtvSK7zhPTgjGbG86u5q6pqfcAQyGTntHJ2nKvcBiyE",
+        symbol:"ALTON",
+        image:"https://ipfs.io/ipfs/QmYjcCQcwTVSMhCfmPrECKzpytjwNBqFZX2i5Lnawa1dFy",
+        decimals: 6,
+    },
+    
+    
 ]
 

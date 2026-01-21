@@ -727,7 +727,7 @@ All consequences resulting from configuration errors are solely the responsibili
                   </div>
                   <div className="grid px-5 gap-2.5 grid-cols-1 md:gap-10 max-h-[50vh] overflow-y-auto">
                     <div>
-                      <ol className="grid grid-cols-1 gap-2.5 place-items-center">
+                      <ol className="grid grid-cols-1 md:grid-cols-2  gap-2.5 place-items-center">
                         {filteredVerifiedCollections.length === 0 ? (
                           <li className="py-10 text-gray-500 font-medium">
                             No collections found
@@ -738,10 +738,12 @@ All consequences resulting from configuration errors are solely the responsibili
                               <Link
                                 to={collection.url}
                                 target="_blank"
-                                className="rounded-lg text-center w-[300px] gap-3 justify-center hover:bg-gray-1300 h-13 md:h-15 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-black/20"
+                                className="rounded-lg text-center w-[300px] gap-3 justify-start hover:bg-gray-1300 h-13 md:h-15 px-3.5 md:px-5 flex items-center text-sm md:text-base font-medium font-inter text-black-1000 border border-solid border-black/20"
                               >
-                                <img src={collection.image} alt={collection.name} className="w-10 h-10 rounded-full object-cover" />
-                                <span className="text-sm md:text-base font-medium font-inter text-black-1000">
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-50 border border-solid border-gray-300">
+                                <img src={collection.image} alt={collection.name} className="w-full h-full object-cover" />
+                                </div>
+                                <span className="text-sm md:text-base font-medium font-inter text-black-1000 flex-2/3">
                                   {collection.name}
                                 </span>
                               </Link>
