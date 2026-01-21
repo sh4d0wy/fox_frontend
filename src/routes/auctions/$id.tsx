@@ -13,6 +13,7 @@ import { useCancelAuction } from "hooks/useCancelAuction";
 import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { VerifiedNftCollections } from "@/utils/verifiedNftCollections";
 import { toast } from "react-toastify";
+import { ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/auctions/$id")({
   component: AuctionDetails,
@@ -62,6 +63,13 @@ function AuctionDetails() {
     computedStatus !== "COMPLETED" &&
     auction?.status !== "CANCELLED" &&
     auction?.bids?.length == 0;
+
+  const endingTransaction = useMemo(() => {
+    if(auction?.status === "COMPLETED_SUCCESSFULLY" || auction?.status === "COMPLETED_FAILED"){
+      return auction?.endingTransaction?.transactionId;
+    }
+    return null;
+  }, [auction?.status]);
 
   useEffect(() => {
     if (!auction) return;
@@ -559,9 +567,20 @@ function AuctionDetails() {
                             <p className="text-[10px] uppercase font-black tracking-widest opacity-80">
                               Auction Winner
                             </p>
-                            <p className="font-bold text-lg">
-                              {shortenAddress(auction.highestBidderWallet)}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-lg">
+                                {shortenAddress(auction.highestBidderWallet)}
+                              </p>
+                              <ExternalLink className="w-5 h-5 cursor-pointer" 
+                                size={16}
+                                onClick={() =>
+                                  window.open(
+                                    `https://solscan.io/tx/${endingTransaction??""}`,
+                                    "_blank"
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">

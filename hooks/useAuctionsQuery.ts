@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { fetchAuctionById, fetchAuctions } from "../api/AuctionsApi"
 import type { AuctionTypeBackend } from "types/backend/auctionTypes"
+import type { TransactionTypeBackend } from "types/backend/raffleTypes"
 
 export const useAuctionsQuery = (filter: string) => {
   return useInfiniteQuery({
@@ -15,6 +16,7 @@ type AuctionTypeBackendExtended = AuctionTypeBackend & {
   status: string;
   creator: { walletAddress: string; twitterId?: string };
   bids: [];
+  endingTransaction: TransactionTypeBackend | null;
 };
 
 export const useAuctionById = (id:string) => {
