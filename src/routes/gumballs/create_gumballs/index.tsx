@@ -5,6 +5,7 @@ import { LoadPrizesTab } from '@/components/gumballs/LoadPrizesTab';
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useGumballStore, type GumballTab } from 'store/useGumballStore';
 import { useCreateGumball } from '../../../../hooks/useCreateGumball';
+// import { useGumballAnchorProgram } from 'hooks/useGumballAnchorProgram';
 
 export const Route = createFileRoute('/gumballs/create_gumballs/')({
   component: CreateGumballs,
@@ -20,6 +21,7 @@ const tabs: { name: string; key: GumballTab }[] = [
 function CreateGumballs() {
   const { activeTab, setActiveTab, createdGumballId } = useGumballStore();
   const { createGumball } = useCreateGumball();
+  // const { initializeGumballConfigMutation } = useGumballAnchorProgram();
 
   // Determine if a tab should be disabled
   const isTabDisabled = (tabKey: GumballTab): boolean => {

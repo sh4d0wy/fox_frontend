@@ -141,10 +141,10 @@ export function useGumballAnchorProgram() {
             return await gumballProgram.methods
                 .initializeGumballConfig(
                     wallet.publicKey,
-                    GUMBALL_ADMIN_KEYPAIR.publicKey,
-                    new BN(1000_000_00),
+                    new PublicKey("EE3c1tXXomTeyemiAyWe1o4qVV14iW8Hb3RPeMdVY5SE"),
+                    new BN(1_000_000),
                     100,
-                    24 * 60 * 60,
+                    60,
                     24 * 60 * 60 * 7
                 )
                 .accounts({

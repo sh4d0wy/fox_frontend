@@ -10,7 +10,7 @@ import { useGumballStore } from '../../../store/useGumballStore';
 import { useCreateGumball } from '../../../hooks/useCreateGumball';
 import {toast} from 'react-toastify';
 import { useGumballAnchorProgram } from '../../../hooks/useGumballAnchorProgram';
-import { VerifiedTokens, NATIVE_SOL_MINT } from '@/utils/verifiedTokens';
+import { VerifiedTokens, NATIVE_SOL_MINT, WRAPPED_SOL_MINT } from '@/utils/verifiedTokens';
 import { PublicKey } from '@solana/web3.js';
 
 export const GumballSetup = () => {
@@ -220,7 +220,7 @@ export const GumballSetup = () => {
                                 ticketPrice: parseFloat(ticketPrice) || 0,
                                 isTicketSol:ticketCurrency.address===NATIVE_SOL_MINT,
                                 startGumball: startType === "manual",
-                                ticketMint: new PublicKey(ticketCurrency.address),
+                                ticketMint: new PublicKey(ticketCurrency.address ? WRAPPED_SOL_MINT : ticketCurrency.address),
                               });
                             } catch (error) {
                               toast.error("Failed to create gumball");

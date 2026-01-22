@@ -163,7 +163,7 @@ export const Navbar = () => {
   const navLinks = [
     { label: "Raffles", path: "/" },
     { label: "Auctions", path: "/auctions" },
-    // { label: "Gumballs", path: "/gumballs" },
+    { label: "Gumballs", path: "/gumballs" },
   ];
 
   const isActive = (linkPath: string) => {
