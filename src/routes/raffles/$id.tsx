@@ -12,7 +12,7 @@ import QuantityBox from "@/components/home/QuantityBox";
 import { useRaffleById, useRaffleWinnersWhoClaimedPrize } from "../../../hooks/useRaffles";
 import { DynamicCounter } from "@/components/common/DynamicCounter";
 import { VerifiedTokens } from "@/utils/verifiedTokens";
-import { Loader, X, Trophy } from "lucide-react";
+import { Loader, X, Trophy, LoaderCircle } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBuyRaffleTicket } from "../../../hooks/useBuyRaffleTicket";
 import { useBuyRaffleTicketStore } from "../../../store/buyraffleticketstore";
@@ -125,7 +125,6 @@ function RouteComponent() {
     }
     return false;
   }, [raffle?.state, raffle?.maxEntries, raffle?.ticketSupply, raffle?.ticketSold]);
-  console.log("isBuyTicketDisabled",isBuyTicketDisabled);
 
   const isEndingConditionMet = useMemo(() => {
     if (!raffle) return false;
@@ -619,7 +618,7 @@ function RouteComponent() {
                   ) : (
                     <></>
                   )}
-                  {publicKey && publicKey.toBase58() !== raffle?.createdBy && raffle.state?.toLowerCase() === "active" && (
+                  {publicKey && publicKey.toBase58() !== raffle?.createdBy && raffle.state?.toLowerCase() === "active" && !isEndingConditionMet && (
                     <div className="w-full mt-6">
                       <div className="w-full items-center grid lg:grid-cols-2 sm:grid-cols-2 grid-cols-1 gap-5">
                         <QuantityBox max={maxTickets} />
@@ -651,6 +650,18 @@ function RouteComponent() {
                         </div>
                       </div>
                     </div>
+                  )}
+                  {isEndingConditionMet && raffle.state?.toLowerCase() === "active" && (
+                    <div className="w-full mt-6">
+                    <div className="w-full border rounded-xl px-10 flex gap-5 items-center justify-center py-10">
+                      <h3 className="text-lg font-medium font-inter text-black-1000">
+                        Raffle Ended Winners will be announced soon
+                      </h3>
+                      <div className=" flex items-center justify-center">
+                        <LoaderCircle className="w-10 h-10 animate-spin text-primary-color" />
+                      </div>
+                    </div>
+                  </div>
                   )}
                   {publicKey && publicKey.toBase58() === raffle?.createdBy ? (
                     <div className="w-full mt-6">
