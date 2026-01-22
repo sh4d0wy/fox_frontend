@@ -127,12 +127,12 @@ function RafflesPage() {
     <main className="flex-1 font-inter">
       <section className="w-full md:pt-0 pt-5">
         <div className="w-full max-w-[1440px] md:px-5 px-4 mx-auto">
-          <Link
+          {/* <Link
             to={"/"}
             className="md:text-base text-sm md:font-normal font-semibold transition duration-500 hover:opacity-90 bg-primary-color py-2.5 md:py-3 px-8 items-center justify-center text-black-1000 text-center md:hidden inline-flex w-full font-inter rounded-full"
           >
             Buy tickets, earn Juice! 🥤
-          </Link>
+          </Link> */}
           
           {/* <div className="p-10 pb-2 md:pt-10 pt-5 px-0 border border-gray-1100 rounded-[30px] bg-gray-1300 mt-5 relative">
             <div className="absolute top-10 left-0 w-full hidden md:block h-[150px] bg-linear-to-b from-gray-1300 to-transparent pointer-events-none"></div>
@@ -274,7 +274,9 @@ function RafflesPage() {
             >
               <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4">
                 {raffles?.map((r) => (
+                  <Link to="/raffles/$id" params={{ id: r.id?.toString() || "" }} key={r.id}>
                   <CryptoCard rafflesType={filter} key={r.id} raffle={r as unknown as RaffleTypeBackend} soldTickets={r.ticketSold!} />
+                  </Link>
                 ))}
               </div>
             </InfiniteScroll>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useEffect } from "react";
 import SearchBox from "../../components/home/SearchBox";
 import SortDropdown from "../../components/home/SortDropdown";
@@ -236,7 +236,9 @@ function Auctions() {
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {aucations.map((r) => (
+                  <Link to="/auctions/$id" params={{ id: r.id?.toString() || "" }} key={r.id}>
                   <AuctionsCard key={r.id} {...r} id={r.id ?? 0} prizeName={r.prizeName ?? ""} prizeImage={r.prizeImage ?? ""} collectionName={r.collectionName ?? ""} reservePrice={r.reservePrice ?? ""} status={r.status ?? ""} />
+                  </Link>
                 ))}
               </div>
             </InfiniteScroll>
