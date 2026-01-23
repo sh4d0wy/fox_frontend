@@ -145,7 +145,7 @@ function GumballsDetails() {
       .filter((prize) => prize.remainingQuantity > 0);
   }, [gumball?.prizes, gumball?.spins]);
 
-  const handleSpinClick = () => {
+  const handleSpinClick = async () => {
     setIsSpinning(true);
   };
 
@@ -156,7 +156,7 @@ function GumballsDetails() {
   const handleClaimPrize = async () => {
     setIsClaimPending(true);
     try {
-      await spinGumballFunction.mutateAsync({ gumballId: parseInt(id || ""), prizeIndex: prize?.prizeIndex || 0, prizeMint: prize?.prizeMint || "" });
+      await spinGumballFunction.mutateAsync({ gumballId: parseInt(id || "") });
       setIsPrizeModalOpen(false);
     } catch (error) {
       console.error('Failed to claim prize:', error);

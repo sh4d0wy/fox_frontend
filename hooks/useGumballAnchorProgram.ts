@@ -475,8 +475,6 @@ export function useGumballAnchorProgram() {
         mutationKey: ["gumball", "spin"],
         mutationFn: async (args: {
             gumballId: number;
-            prizeIndex: number;
-            prizeMint: PublicKey;
         }) => {
             if (!gumballProgram || !wallet.publicKey) {
                 throw new Error("Wallet not ready");
@@ -496,10 +494,10 @@ export function useGumballAnchorProgram() {
             const ticketMint: PublicKey | null = gumballState.ticketMint;
 
             /* ---------------- Token programs ---------------- */
-            const prizeTokenProgram = await getTokenProgramFromMint(
-                connection,
-                args.prizeMint
-            );
+            // const prizeTokenProgram = await getTokenProgramFromMint(
+            //     connection,
+            //     args.prizeMint
+            // );
 
             const ticketTokenProgram = ticketMint
                 ? await getTokenProgramFromMint(connection, ticketMint)
@@ -554,19 +552,18 @@ export function useGumballAnchorProgram() {
 
             /* ---------------- Anchor Instruction ---------------- */
             const ix = await gumballProgram.methods
-                .spinGumball(args.gumballId, args.prizeIndex)
+                .spinGumball(args.gumballId)
                 .accounts({
                     spinner: wallet.publicKey,
                     gumballAdmin: GUMBALL_ADMIN_KEYPAIR.publicKey,
 
-                    prizeMint: args.prizeMint,
                     ticketMint: ticketMint ?? FAKE_MINT,
 
                     ticketEscrow,
                     spinnerTicketAta,
 
-                    prizeTokenProgram,
                     ticketTokenProgram,
+                    randomnessAccountData: randomness.pubkey,
                 })
                 .instruction();
 

@@ -179,3 +179,33 @@ export const creatorClaimPrizeBack = async(gumballId:string, txSignature:string)
         throw error;
     }
 }
+
+export const getSpinGumballTx = async(gumballId:string)=>{
+    try {
+        const response = await api.get(`/gumball/spin-tx/${gumballId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getClaimGumballTx = async(gumballId:string)=>{
+    try {
+        const response = await api.get(`/gumball/claim-tx/${gumballId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}

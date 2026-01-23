@@ -1,19 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
-import { prepareSpin, spinGumball } from "../api/routes/gumballRoutes";
-import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
-import { PublicKey } from "@solana/web3.js";
-import {toast} from "react-toastify";
+import { prepareSpin, spinGumball, getSpinGumballTx, getClaimGumballTx } from "../api/routes/gumballRoutes";
+import { Transaction } from "@solana/web3.js";
+import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCheckAuth } from "./useCheckAuth";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { connection } from "./helpers";
 
 export const useSpinGumball = () => {
-    const { spinGumballMutation } = useGumballAnchorProgram();
     const queryClient = useQueryClient();
     const { checkAndInvalidateToken } = useCheckAuth();
-    const { publicKey } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
 
-    const validateForm = async (args: { gumballId: number; prizeIndex: number; prizeMint: string }) => {
+    const validateForm = async (args: { gumballId: number; }) => {
         try {
             if (!publicKey) {
                 throw new Error("Wallet not connected");
@@ -24,12 +23,6 @@ export const useSpinGumball = () => {
             }
             if (!args.gumballId) {
                 throw new Error("Gumball ID is required");
-            }
-            if (args.prizeIndex === undefined || args.prizeIndex === null) {
-                throw new Error("Prize index is required");
-            }
-            if (!args.prizeMint) {
-                throw new Error("Prize mint is required");
             }
 
             return true;
@@ -48,25 +41,29 @@ export const useSpinGumball = () => {
         mutationKey: ["gumball", "spin"],
         mutationFn: async (args: {
             gumballId: number;
-            prizeIndex: number;
-            prizeMint: string;
         }) => {
             if (!(await validateForm(args))) {
                 throw new Error("Validation failed");
             }
             console.log("args", args);
-            const tx = await spinGumballMutation.mutateAsync({
-                gumballId: args.gumballId,
-                prizeIndex: args.prizeIndex,
-                prizeMint: new PublicKey(args.prizeMint),
+            const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getSpinGumballTx(args.gumballId.toString());
+            const decodedTx = Buffer.from(base64Transaction, "base64");
+            const transaction = Transaction.from(decodedTx);
+
+            //Send Transaction
+            const signature = await sendTransaction(transaction, connection, {
+                minContextSlot,
             });
-            if (!tx) {
-                throw new Error("Failed to spin gumball");
-            }
-            const spinResponse = await spinGumball(args.gumballId.toString(), tx, args.prizeIndex);
-            if (spinResponse.error) {
-                throw new Error(spinResponse.error);
-            }
+
+            const confirmation = await connection.confirmTransaction({
+                blockhash,
+                lastValidBlockHeight,
+                signature,
+            });
+            // const spinResponse = await spinGumball(args.gumballId.toString(), transaction, args.prizeIndex);
+            // if (spinResponse.error) {
+            //     throw new Error(spinResponse.error);
+            // }
             return args.gumballId;
         },
         onSuccess: (gumballId: number) => {
