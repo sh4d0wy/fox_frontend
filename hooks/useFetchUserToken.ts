@@ -19,13 +19,12 @@ export const useFetchUserToken = () => {
                 { programId: TOKEN_PROGRAM_ID }
             );
 
-            const userTokenMints = tokenAccounts.value.map(account => 
-                account.account.data.parsed.info.mint
-            );
-            console.log("userTokenMints", userTokenMints);
-
-            const verifiedTokensHeld = VerifiedTokens.filter(verifiedToken => 
-                userTokenMints.includes(verifiedToken.address)
+            const verifiedTokensHeld = VerifiedTokens.filter((verifiedToken) =>
+                tokenAccounts.value.some(
+                    (account) =>
+                        account.account.data.parsed.info.mint === verifiedToken.address &&
+                        account.account.data.parsed.info.tokenAmount.uiAmount >= 1
+                )
             );
             console.log("verifiedTokensHeld", verifiedTokensHeld);
 
@@ -33,7 +32,7 @@ export const useFetchUserToken = () => {
                 const tokenAccount = tokenAccounts.value.find(
                     account => account.account.data.parsed.info.mint === verifiedToken.address
                 );
-                
+
                 return {
                     ...verifiedToken,
                     balance: tokenAccount?.account.data.parsed.info.tokenAmount.uiAmount || 0,
@@ -43,11 +42,11 @@ export const useFetchUserToken = () => {
 
             const userSolbalance = await connection.getBalance(wallet.publicKey);
             console.log("userSolbalance", userSolbalance);
-            
-            if(NETWORK === "devnet"){
+
+            if (NETWORK === "devnet") {
                 return VerifiedTokens.filter((token) => (token.address === NATIVE_SOL_MINT || token.address === "BZfZhBoQSAMQVshvApFzwbKNA3dwuxKhK8m5GVCQ26yG"));
             }
-            if(userSolbalance > 0){
+            if (userSolbalance > 0) {
                 return [...tokensWithBalance, {
                     name: "SOL",
                     address: NATIVE_SOL_MINT,
