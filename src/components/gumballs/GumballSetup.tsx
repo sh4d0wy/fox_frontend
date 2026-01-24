@@ -220,7 +220,7 @@ export const GumballSetup = () => {
                                 ticketPrice: parseFloat(ticketPrice) || 0,
                                 isTicketSol:ticketCurrency.address===NATIVE_SOL_MINT,
                                 startGumball: startType === "manual",
-                                ticketMint: new PublicKey(ticketCurrency.address ? WRAPPED_SOL_MINT : ticketCurrency.address),
+                                ticketMint: new PublicKey(ticketCurrency.address ? ticketCurrency.address : WRAPPED_SOL_MINT),
                               });
                             } catch (error) {
                               toast.error("Failed to create gumball");
