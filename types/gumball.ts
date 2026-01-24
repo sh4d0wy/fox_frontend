@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/gumball.json`.
  */
 export type Gumball = {
-  "address": "FfZ9oTD5aCyoGvCi2xWZiTydvxQyiWVAh4SdR52as7z5",
+  "address": "E3JKUYAdd2VeUo1YdwTKUmG43WG7zwUuzxcZbzphRejc",
   "metadata": {
     "name": "gumball",
     "version": "0.1.0",
@@ -302,6 +302,40 @@ export type Gumball = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
         }
       ],
       "args": [
@@ -393,6 +427,313 @@ export type Gumball = {
         {
           "name": "gumballId",
           "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "claimPrize",
+      "discriminator": [
+        157,
+        233,
+        139,
+        121,
+        246,
+        62,
+        234,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "gumballConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  109,
+                  98,
+                  97,
+                  108,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "gumball",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  109,
+                  98,
+                  97,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "gumballId"
+              }
+            ]
+          }
+        },
+        {
+          "name": "prize",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  109,
+                  98,
+                  97,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "gumballId"
+              },
+              {
+                "kind": "arg",
+                "path": "prizeIndex"
+              }
+            ]
+          }
+        },
+        {
+          "name": "spinState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  117,
+                  109,
+                  98,
+                  97,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "gumballId"
+              },
+              {
+                "kind": "account",
+                "path": "spinner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "randomnessAccountData"
+        },
+        {
+          "name": "spinner",
+          "docs": [
+            "Player who will receive the prize"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "gumballAdmin",
+          "signer": true
+        },
+        {
+          "name": "prizeMint"
+        },
+        {
+          "name": "prizeEscrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "gumball"
+              },
+              {
+                "kind": "account",
+                "path": "prizeTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "prizeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "spinnerPrizeAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "spinner"
+              },
+              {
+                "kind": "account",
+                "path": "prizeTokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "prizeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "prizeTokenProgram",
+          "docs": [
+            "Token program"
+          ]
+        },
+        {
+          "name": "associatedTokenProgram",
+          "docs": [
+            "system Programs"
+          ],
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
+        }
+      ],
+      "args": [
+        {
+          "name": "gumballId",
+          "type": "u32"
+        },
+        {
+          "name": "prizeIndex",
+          "type": "u16"
         }
       ]
     },
@@ -616,6 +957,40 @@ export type Gumball = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "metadataAccount",
+          "writable": true
+        },
+        {
+          "name": "editionAccount"
+        },
+        {
+          "name": "ownerTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", source_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "destTokenRecord",
+          "docs": [
+            "Required only for pNFTs. Derived as PDA(metadata, mint, \"token_record\", destination_ata)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authorizationRules",
+          "optional": true
+        },
+        {
+          "name": "authRulesProgram"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        },
+        {
+          "name": "sysvarInstructions"
         }
       ],
       "args": [
