@@ -12,6 +12,7 @@ export const createGumballSchema = z.object({
   ticketPrice: z.string().min(1),
   isTicketSol: z.boolean().default(true),
   maxPrizes: z.number().int().gt(2).default(1000),
+  txSignature: z.string().min(1),
 });
 
 

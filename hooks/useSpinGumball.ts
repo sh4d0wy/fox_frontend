@@ -60,6 +60,10 @@ export const useSpinGumball = () => {
                 lastValidBlockHeight,
                 signature,
             });
+            if (confirmation.value.err) {
+                console.log("Failed to create auction", confirmation.value.err);
+                throw new Error("Failed to create auction");
+            }
             // const spinResponse = await spinGumball(args.gumballId.toString(), transaction, args.prizeIndex);
             // if (spinResponse.error) {
             //     throw new Error(spinResponse.error);

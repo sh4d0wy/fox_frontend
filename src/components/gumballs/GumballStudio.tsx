@@ -70,7 +70,7 @@ const { creatorClaimPrizeBackMutation } = useCreatorClaimPrizeBack();
               gumballId: parseInt(gumballId),
               prizeIndexes: availablePrizeIndexes,
             })} className="inline-flex cursor-pointer items-center gap-2.5 md:text-base text-sm font-medium text-red-1000 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cancelGumball.isPending || availablePrizeIndexes.length === 0 || gumball?.status === "CANCELLED" || gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED"}
+            disabled={cancelGumball.isPending || gumball?.status === "CANCELLED" || gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED"}
             
             >
               {cancelGumball.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <img src="/icons/delete-icon-1.svg" className="w-6 h-6" alt="no-img" />}

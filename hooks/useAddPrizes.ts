@@ -1,17 +1,19 @@
 import { useMutation } from "@tanstack/react-query";
 import type { AddMultiplePrizesTypeBackend, PrizeDataBackend } from "../types/backend/gumballTypes";
-import { addMultiplePrizesToGumball } from "../api/routes/gumballRoutes";
+import { addMultiplePrizesToGumball, getAddMultiplePrizesTx } from "../api/routes/gumballRoutes";
 import {toast} from "react-toastify";
-import { PublicKey } from "@solana/web3.js";
-import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
+// import { PublicKey } from "@solana/web3.js";
+// import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCheckAuth } from "./useCheckAuth";
+import { connection } from "./helpers";
+import { Transaction } from "@solana/web3.js";
 
 type OnChainPrizeInput = {
     prizeIndex: number;
     prizeAmount: number;
     quantity: number;
-    prizeMint: PublicKey;
+    prizeMint: string;
 };
 
 export type AddPrizeInputData = {
@@ -28,9 +30,9 @@ export type AddPrizeInputData = {
 };
 
 export const useAddPrizes = () => {
-    const { addMultiplePrizesMutation } = useGumballAnchorProgram();
+    // const { addMultiplePrizesMutation } = useGumballAnchorProgram();
     const { checkAndInvalidateToken } = useCheckAuth();
-    const { publicKey } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
 
     const validateForm = async (args: { gumballId: string; prizes: AddPrizeInputData[] }) => {
         try {
@@ -74,21 +76,34 @@ export const useAddPrizes = () => {
             const onChainPrizes: OnChainPrizeInput[] = args.prizes.map((prize) => {
                 console.log("Processing prize:", prize);
                 console.log("Processing prize with mint:", prize.mint);
-                const mintPubkey = new PublicKey(prize.mint);
-                console.log("Converted to PublicKey:", mintPubkey.toString());
                 return {
                     prizeIndex: prize.prizeIndex,
                     prizeAmount: prize.prizeAmount>0 ? prize.prizeAmount : 1,
                     quantity: prize.quantity,
-                    prizeMint: mintPubkey,
+                    prizeMint: prize.mint,
                 };
             });
             console.log("onChainPrizes", onChainPrizes);
 
-            const txSignature = await addMultiplePrizesMutation.mutateAsync({
-                gumballId: parseInt(args.gumballId),
-                prizes: onChainPrizes,
+            const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getAddMultiplePrizesTx(parseInt(args.gumballId), onChainPrizes);
+            console.log("Received transaction from backend", base64Transaction);
+            const decodedTx = Buffer.from(base64Transaction, "base64");
+            const transaction = Transaction.from(decodedTx);
+
+            //Send Transaction
+            const signature = await sendTransaction(transaction, connection, {
+                minContextSlot,
             });
+
+            const confirmation = await connection.confirmTransaction({
+                blockhash,
+                lastValidBlockHeight,
+                signature,
+            });
+            if (confirmation.value.err) {
+                console.log("Failed to create auction", confirmation.value.err);
+                throw new Error("Failed to create auction");
+            }
 
             const backendPrizes: PrizeDataBackend[] = args.prizes.map((prize) => ({
                 prizeIndex: prize.prizeIndex,
@@ -106,7 +121,7 @@ export const useAddPrizes = () => {
 
             const backendPayload: AddMultiplePrizesTypeBackend = {
                 prizes: backendPrizes,
-                txSignature: txSignature,
+                txSignature: signature,
             };
 
             const response = await addMultiplePrizesToGumball(args.gumballId, backendPayload);
@@ -114,7 +129,7 @@ export const useAddPrizes = () => {
                 throw new Error(response.error);
             }
             
-            return { txSignature, backendResponse: response };
+            return { txSignature: signature, backendResponse: response };
         },
         onSuccess: () => {
             toast.success("Prizes added successfully");

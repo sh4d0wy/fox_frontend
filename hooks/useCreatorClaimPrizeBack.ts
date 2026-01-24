@@ -1,16 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
-import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
-import {toast} from "react-toastify";
+// import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
+import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { creatorClaimPrizeBack } from "../api/routes/gumballRoutes";
+import { creatorClaimPrizeBack, getClaimBackMultiplePrizesTx } from "../api/routes/gumballRoutes";
 import { useCheckAuth } from "./useCheckAuth";
+import { Transaction } from "@solana/web3.js";
+import { connection } from "./helpers";
 
 export const useCreatorClaimPrizeBack = () => {
     const router = useRouter();
-    const { claimMultiplePrizesBackMutation } = useGumballAnchorProgram();
-    const { publicKey } = useWallet();
+    // const { claimMultiplePrizesBackMutation } = useGumballAnchorProgram();
+    const { publicKey, sendTransaction } = useWallet();
     const queryClient = useQueryClient();
     const { checkAndInvalidateToken } = useCheckAuth();
 
@@ -49,14 +51,29 @@ export const useCreatorClaimPrizeBack = () => {
             if (!(await validateForm(args))) {
                 throw new Error("Validation failed");
             }
-            const tx = await claimMultiplePrizesBackMutation.mutateAsync({
-                gumballId: args.gumballId,
-                prizes: args.prizeIndexes.map((prizeIndex) => { return { prizeIndex: prizeIndex } }),
+            const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getClaimBackMultiplePrizesTx(
+                args.gumballId,
+                args.prizeIndexes.map((prizeIndex) => { return { prizeIndex: prizeIndex } }),
+            );
+            const decodedTx = Buffer.from(base64Transaction, "base64");
+            const transaction = Transaction.from(decodedTx);
+
+            //Send Transaction
+            const signature = await sendTransaction(transaction, connection, {
+                minContextSlot,
             });
-            if (!tx) {
-                throw new Error("Failed to claim prize");
+
+            const confirmation = await connection.confirmTransaction({
+                blockhash,
+                lastValidBlockHeight,
+                signature,
+            });
+            if (confirmation.value.err) {
+                console.log("Failed to create auction", confirmation.value.err);
+                throw new Error("Failed to create auction");
             }
-            const response = await creatorClaimPrizeBack(args.gumballId.toString(), tx);
+
+            const response = await creatorClaimPrizeBack(args.gumballId.toString(), signature);
             if (response.error) {
                 throw new Error(response.error);
             }

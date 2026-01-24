@@ -1,15 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
+// import { useGumballAnchorProgram } from "./useGumballAnchorProgram";
 import {toast} from "react-toastify";
-import { cancelGumballOverBackend } from "../api/routes/gumballRoutes";
+import { cancelGumballOverBackend, getCancelAndClaimGumballTx } from "../api/routes/gumballRoutes";
 import { useRouter } from "@tanstack/react-router";
 import { useCheckAuth } from "./useCheckAuth";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { connection } from "./helpers";
+import { Transaction } from "@solana/web3.js";
 export const useCancelGumball = () => {
-    const { cancelAndClaimSelectedPrizesMutation } = useGumballAnchorProgram();
+    // const { cancelAndClaimSelectedPrizesMutation } = useGumballAnchorProgram();
     const queryClient = useQueryClient();
     const router = useRouter();
-    const { publicKey } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
     const { checkAndInvalidateToken } = useCheckAuth();
 
     const validateForm = async (args: { gumballId: number; prizeIndexes: number[] }) => {
@@ -24,9 +26,9 @@ export const useCancelGumball = () => {
             if (!args.gumballId) {
                 throw new Error("Gumball ID is required");
             }
-            if (!args.prizeIndexes || args.prizeIndexes.length === 0) {
-                throw new Error("At least one prize index must be selected");
-            }
+            // if (!args.prizeIndexes || args.prizeIndexes.length === 0) {
+            //     throw new Error("At least one prize index must be selected");
+            // }
 
             return true;
         } catch (error: unknown) {
@@ -49,11 +51,26 @@ export const useCancelGumball = () => {
             if (!(await validateForm(args))) {
                 throw new Error("Validation failed");
             }
-            const tx = await cancelAndClaimSelectedPrizesMutation.mutateAsync({
-                gumballId: args.gumballId,
-                prizeIndexes: args.prizeIndexes,
+            const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getCancelAndClaimGumballTx(args.gumballId, args.prizeIndexes);
+            console.log("Received transaction from backend", base64Transaction);
+            const decodedTx = Buffer.from(base64Transaction, "base64");
+            const transaction = Transaction.from(decodedTx);
+
+            //Send Transaction
+            const signature = await sendTransaction(transaction, connection, {
+                minContextSlot,
             });
-            const response = await cancelGumballOverBackend(args.gumballId.toString(), tx);
+
+            const confirmation = await connection.confirmTransaction({
+                blockhash,
+                lastValidBlockHeight,
+                signature,
+            });
+            if (confirmation.value.err) {
+                console.log("Failed to create auction", confirmation.value.err);
+                throw new Error("Failed to create auction");
+            }
+            const response = await cancelGumballOverBackend(args.gumballId.toString(), signature);
             if (response.error) {
                 throw new Error(response.error);
             }

@@ -1,10 +1,10 @@
 import type { AddMultiplePrizesTypeBackend, AddPrizeTypeBackend, GumballBackendType } from "../../types/backend/gumballTypes";
 import { api } from "..";
 
-export const createGumballOverBackend = async(gumball:GumballBackendType)=>{
+export const createGumballOverBackend = async (gumball: GumballBackendType) => {
     try {
-        const response = await api.post("/gumball/create", gumball,{
-            headers:{
+        const response = await api.post("/gumball/create", gumball, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -16,12 +16,12 @@ export const createGumballOverBackend = async(gumball:GumballBackendType)=>{
     }
 }
 
-export const confirmGumballCreation = async(gumballId:string, txSignature:string)=>{
+export const confirmGumballCreation = async (gumballId: string, txSignature: string) => {
     try {
-        const response = await api.post(`/gumball/confirm/${gumballId}`,{
+        const response = await api.post(`/gumball/confirm/${gumballId}`, {
             txSignature
-        },{
-            headers:{
+        }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -33,66 +33,70 @@ export const confirmGumballCreation = async(gumballId:string, txSignature:string
     }
 }
 
-export const deleteGumballOverBackend = async(gumballId:string)=>{
+export const deleteGumballOverBackend = async (gumballId: string) => {
     try {
-        const response = await api.delete(`/gumball/delete/${gumballId}`,{
-            headers:{
+        const response = await api.delete(`/gumball/delete/${gumballId}`, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
         });
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 }
 
-export const addSinglePrizeToGumball = async(gumballId:string, prize:AddPrizeTypeBackend)=>{
+export const addSinglePrizeToGumball = async (gumballId: string, prize: AddPrizeTypeBackend) => {
     try {
-        const response = await api.post(`/gumball/addprize/${gumballId}`, prize,{
-            headers:{
+        const response = await api.post(`/gumball/addprize/${gumballId}`, prize, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
         });
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 
 }
 
-export const addMultiplePrizesToGumball = async(gumballId:string, prizes:AddMultiplePrizesTypeBackend)=>{
+export const addMultiplePrizesToGumball = async (gumballId: string, prizes: AddMultiplePrizesTypeBackend) => {
     try {
-        const response = await api.post(`/gumball/addprizes/${gumballId}`, prizes,{
-            headers:{
+        const response = await api.post(`/gumball/addprizes/${gumballId}`, prizes, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
         });
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 }
 
-export const cancelGumballOverBackend = async(gumballId:string,txSignature:string)=>{
+export const cancelGumballOverBackend = async (gumballId: string, txSignature: string) => {
     try {
-        const response = await api.post(`/gumball/cancel/${gumballId}`,{
+        const response = await api.post(`/gumball/cancel/${gumballId}`, {
             txSignature
-        },{
-            headers:{
+        }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
         });
         return response.data;
-    } catch (error) {   
+    } catch (error) {
+        console.error(error);
         throw error;
     }
 }
 
-export const getGumballs = async(page:number, limit:number)=>{
+export const getGumballs = async (page: number, limit: number) => {
     try {
         const response = await api.get(`/gumball?page=${page}&limit=${limit}`);
         return response.data;
@@ -102,7 +106,7 @@ export const getGumballs = async(page:number, limit:number)=>{
     }
 }
 
-export const getGumballById = async(id:string)=>{
+export const getGumballById = async (id: string) => {
     try {
         const response = await api.get(`/gumball/${id}`);
         return response.data;
@@ -112,10 +116,10 @@ export const getGumballById = async(id:string)=>{
     }
 }
 
-export const prepareSpin = async(gumballId:string)=>{
+export const prepareSpin = async (gumballId: string) => {
     try {
-        const response = await api.get(`/gumball/prepare-spin/${gumballId}`,{
-            headers:{
+        const response = await api.get(`/gumball/prepare-spin/${gumballId}`, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -127,13 +131,13 @@ export const prepareSpin = async(gumballId:string)=>{
     }
 }
 
-export const spinGumball = async(gumballId:string, txSignature:string, prizeIndex:number)=>{
+export const spinGumball = async (gumballId: string, txSignature: string, prizeIndex: number) => {
     try {
-        const response = await api.post(`/gumball/spin/${gumballId}`,{
+        const response = await api.post(`/gumball/spin/${gumballId}`, {
             txSignature,
             prizeIndex
-        },{
-            headers:{
+        }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -145,13 +149,13 @@ export const spinGumball = async(gumballId:string, txSignature:string, prizeInde
     }
 }
 
-export const claimPrize = async(gumballId:string, txSignature:string, prizeIndex:number)=>{
+export const claimPrize = async (gumballId: string, txSignature: string, prizeIndex: number) => {
     try {
-        const response = await api.post(`/gumball/claim-prize/${gumballId}`,{
+        const response = await api.post(`/gumball/claim-prize/${gumballId}`, {
             txSignature,
             prizeIndex
-        },{
-            headers:{
+        }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -163,12 +167,12 @@ export const claimPrize = async(gumballId:string, txSignature:string, prizeIndex
     }
 }
 
-export const creatorClaimPrizeBack = async(gumballId:string, txSignature:string)=>{
+export const creatorClaimPrizeBack = async (gumballId: string, txSignature: string) => {
     try {
-        const response = await api.post(`/gumball/creator-claim/${gumballId}`,{
+        const response = await api.post(`/gumball/creator-claim/${gumballId}`, {
             txSignature,
-        },{
-            headers:{
+        }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -180,10 +184,10 @@ export const creatorClaimPrizeBack = async(gumballId:string, txSignature:string)
     }
 }
 
-export const getSpinGumballTx = async(gumballId:string)=>{
+export const getSpinGumballTx = async (gumballId: string) => {
     try {
-        const response = await api.get(`/gumball/spin-tx/${gumballId}`,{
-            headers:{
+        const response = await api.get(`/gumball/spin-tx/${gumballId}`, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
@@ -195,10 +199,103 @@ export const getSpinGumballTx = async(gumballId:string)=>{
     }
 }
 
-export const getClaimGumballTx = async(gumballId:string)=>{
+export const getClaimGumballTx = async (gumballId: string) => {
     try {
-        const response = await api.get(`/gumball/claim-tx/${gumballId}`,{
-            headers:{
+        const response = await api.get(`/gumball/claim-tx/${gumballId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+type createGumballArgs = {
+    startTime: number,
+    endTime: number,
+    totalTickets: number,
+    ticketPrice: number,
+    isTicketSol: boolean,
+    startGumball: boolean,
+    ticketMint: string,
+}
+
+export const getCreateGumballTx = async (args: createGumballArgs) => {
+    try {
+        const response = await api.post("/gumball/create-tx", args, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export const getCancelAndClaimGumballTx = async (gumballId: number, prizeIndexes: number[]) => {
+    try {
+        const response = await api.post("/gumball/cancelandclaim-tx",
+            {
+                gumballId,
+                prizeIndexes
+            }, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+type OnChainPrizeInput = {
+    prizeIndex: number;
+    prizeAmount: number;
+    quantity: number;
+    prizeMint: string;
+};
+
+export const getAddMultiplePrizesTx = async (gumballId: number, prizes: OnChainPrizeInput[]) => {
+    try {
+        const response = await api.post("/gumball/add-multiple-prizes-tx",
+            {
+                gumballId,
+                prizes
+            }, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+type PrizeData = {
+    prizeIndex: number;
+}
+
+export const getClaimBackMultiplePrizesTx = async (gumballId: number, prizes: PrizeData[]) => {
+    try {
+        const response = await api.post("/gumball/claim-multiple-prizes-back-tx",
+            {
+                gumballId,
+                prizes
+            }, {
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
