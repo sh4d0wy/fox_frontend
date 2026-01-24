@@ -78,7 +78,7 @@ export const useAddPrizes = () => {
                 console.log("Processing prize with mint:", prize.mint);
                 return {
                     prizeIndex: prize.prizeIndex,
-                    prizeAmount: prize.prizeAmount>0 ? prize.prizeAmount : 1,
+                    prizeAmount: prize.isNft ? 1 : (prize.prizeAmount > 0 ? prize.prizeAmount : 1),
                     quantity: prize.quantity,
                     prizeMint: prize.mint,
                 };
