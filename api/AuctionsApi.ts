@@ -20,7 +20,7 @@ export const fetchAuctions = async ({
   if (filter === "All Auctions") {
     filteredData = filteredData.filter((r) => r.status === "ACTIVE" || r.status === "INITIALIZED");
   } else if (filter === "Past Auctions") {
-    filteredData = filteredData.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED" || r.status === "CANCELLED");
+    filteredData = filteredData.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED");
   }
 
   const pageItems = filteredData.slice((pageParam - 1) * pageSize, pageParam * pageSize);
