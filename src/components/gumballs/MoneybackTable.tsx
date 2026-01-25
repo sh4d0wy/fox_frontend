@@ -2,8 +2,10 @@ import { VerifiedTokens } from "@/utils/verifiedTokens";
 import type { SpinDataBackend } from "types/backend/gumballTypes";
 
 export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
-  const filterSpins = spins.filter((spin)=>{return {transaction:spin.transaction,spunAt:spin.spunAt}});
-  console.log(filterSpins);
+  //Unclaimed spins
+  const filterSpins = spins.filter((spin) => {
+    return spin.isPendingClaim === false && spin.claimedAt !== null;
+  });
   const formatPrice = (price: string, mint: string) => {
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === mint)?.decimals || 0);
     return `${numPrice}`;
@@ -40,21 +42,27 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
         </thead>
         <tbody>
           {filterSpins.map((spin)=>(
-          <tr className="flex-1">
+          <tr className="flex-1" key={spin.id}>
             <td scope="row">
               <div className="md:px-10 px-4 flex items-center gap-5 md:gap-2.5 py-6 border-b border-gray-1100">
                 <img
-                  src={spin.transaction.metadata?.prizeImage??"/images/placeholder-user.png"}
+                  src={spin.prize.image??"/images/placeholder-user.png"}
                   className="md:w-[60px] w-10 h-10 md:h-[60px] rounded-full object-cover"
                   alt="no img"
                 />
-                {spin.prize.isNft ? (
-                  <p className="text-base text-black-1000 font-medium font-inter">
-                    {spin.prize.name}
-                  </p>
+                {spin.prize ? (
+                  spin.prize.isNft ? (
+                    <p className="text-base text-black-1000 font-medium font-inter">
+                      {spin.prize.name}
+                    </p>
+                  ) : (
+                    <p className="text-base text-black-1000 font-medium font-inter">
+                      {formatPrice(spin.prize.prizeAmount, spin.prize.mint)}
+                    </p>
+                  )
                 ) : (
                   <p className="text-base text-black-1000 font-medium font-inter">
-                    {formatPrice(spin.prize.prizeAmount, spin.prize.mint)}
+                    Prize not claimed yet
                   </p>
                 )}
               </div>

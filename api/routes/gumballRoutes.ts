@@ -131,12 +131,10 @@ export const prepareSpin = async (gumballId: string) => {
     }
 }
 
-export const spinGumball = async (gumballId: string, txSignature: string, prizeIndex: number) => {
+export const spinGumball = async (gumballId: string, txSignature: string) => {
     try {
         const response = await api.post(`/gumball/spin/${gumballId}`, {
-            txSignature,
-            prizeIndex
-        }, {
+            txSignature        }, {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
@@ -149,11 +147,12 @@ export const spinGumball = async (gumballId: string, txSignature: string, prizeI
     }
 }
 
-export const claimPrize = async (gumballId: string, txSignature: string, prizeIndex: number) => {
+export const claimPrize = async (gumballId: string, txSignature: string, prizeIndex: number, spinId: number) => {
     try {
-        const response = await api.post(`/gumball/claim-prize/${gumballId}`, {
+        const response = await api.post(`/gumball/claim/${gumballId}`, {
             txSignature,
-            prizeIndex
+            prizeIndex,
+            spinId
         }, {
             headers: {
                 "Content-Type": "application/json",
@@ -199,15 +198,24 @@ export const getSpinGumballTx = async (gumballId: string) => {
     }
 }
 
-export const getClaimGumballTx = async (gumballId: string) => {
+type claimGumballResponse = {
+    prizeIndex:number,
+    base64Transaction:string,
+    minContextSlot:number,
+    blockhash:string,
+    lastValidBlockHeight:number,
+    message: string,
+  }
+
+export const getClaimGumballTx = async (gumballId: string, spinId: string): Promise<claimGumballResponse> => {
     try {
-        const response = await api.get(`/gumball/claim-tx/${gumballId}`, {
+        const response = await api.get(`/gumball/claim-tx/${gumballId}?spinId=${spinId}`, {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${localStorage.getItem("authToken")}`,
             }
         });
-        return response.data;
+        return response.data as claimGumballResponse;
     } catch (error) {
         console.error(error);
         throw error;

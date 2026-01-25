@@ -68,7 +68,7 @@ const spinDataSchema = z.object({
   winnerAddress: z.string().min(1),
   prizeAmount: z.string().min(1),
   spunAt: z.string().datetime(),
-  claimed: z.boolean(),
+  isPendingClaim: z.boolean(),
   claimedAt: z.string().datetime().nullable(),
   spinner: z.object({
     walletAddress: z.string().min(1),

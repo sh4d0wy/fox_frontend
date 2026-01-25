@@ -19,6 +19,6 @@ export const useGumballById = (id:string) => {
       return data as Promise<GumballBackendDataType>;
     },
     enabled: !!id,
-    staleTime: 60000,
+    staleTime: 5000,
   })
 }

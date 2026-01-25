@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { TransactionsTable } from '../../components/auctions/TransactionsTable';
 import { GumballPrizesTable } from '../../components/gumballs/GumballPrizesTable';
 import { MoneybackTable } from '../../components/gumballs/MoneybackTable';
@@ -9,8 +9,8 @@ import type { GumballBackendDataType, PrizeDataBackend } from '../../../types/ba
 import { VerifiedTokens } from '../../utils/verifiedTokens';
 import { useSpinGumball } from 'hooks/useSpinGumball';
 import { Dialog, DialogPanel } from '@headlessui/react';
-import { prepareSpin } from '../../../api/routes/gumballRoutes';
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useClaimGumballPrize } from '../../../hooks/useClaimGumballPrize';
 import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { DynamicCounter } from '@/components/common/DynamicCounter';
@@ -32,18 +32,20 @@ interface Prize{
 interface PrizeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  prize: Prize;
+  prize: Prize | null;
   onClaimPrize: () => void;
   isClaimPending: boolean;
+  isClaimed: boolean;
+  canClose: boolean;
 }
 
-const PrizeModal = ({ isOpen, onClose, prize, onClaimPrize, isClaimPending }: PrizeModalProps) => {
+const PrizeModal = ({ isOpen, onClose, prize, onClaimPrize, isClaimPending, isClaimed, canClose }: PrizeModalProps) => {
   const formatPrice = (price: string, mint: string) => {
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === mint)?.decimals || 0);
     return `${numPrice}`;
   }
   return (
-    <Dialog open={isOpen} as="div" className="relative z-50" onClose={onClose}>
+    <Dialog open={isOpen} as="div" className="relative z-50" onClose={canClose ? onClose : () => {}}>
       <div className="fixed inset-0 bg-black/70" aria-hidden="true" />
 
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -54,36 +56,49 @@ const PrizeModal = ({ isOpen, onClose, prize, onClaimPrize, isClaimPending }: Pr
           >
             <div className="bg-white rounded-[24px] p-6 shadow-2xl">
               <p className='text-primary-color text-center mb-4 font-bold text-2xl font-inter'>You won!</p>
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-300 cursor-pointer"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1L13 13M1 13L13 1" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+              {canClose && (
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-300 cursor-pointer"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L13 13M1 13L13 1" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
 
               <div className="flex flex-col items-center pt-4">
-                <div className="relative w-[300px]   h-[300px] flex items-center justify-center flex-col gap-4">
-                  <img src={prize.prizeImage??""} alt={prize.prizeImage} className="w-[200px] h-[200]px object-cover" />
-                  {prize.isNft ? (
-                    <p className="text-black-1000 font-bold text-lg font-inter">1x NFT</p>
+                <div className="relative w-[300px] h-[300px] flex items-center justify-center flex-col gap-4">
+                  {isClaimed && prize ? (
+                    <>
+                      <img src={prize.prizeImage??""} alt={prize.prizeImage} className="w-[200px] h-[200px] object-cover" />
+                      {prize.isNft ? (
+                        <p className="text-black-1000 font-bold text-lg font-inter">1x NFT</p>
+                      ) : (
+                        <p className="text-black-1000 font-bold text-lg font-inter">{formatPrice(prize.prizeAmount, prize.prizeMint)} {VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === prize.prizeMint)?.symbol}</p>
+                      )}
+                    </>
                   ) : (
-                    <p className="text-black-1000 font-bold text-lg font-inter">{formatPrice(prize.prizeAmount, prize.prizeMint)} {VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === prize.prizeMint)?.symbol}</p>
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <img src="/images/gumballs/gift_image.png" alt="Gift box" className="w-[200px] h-[200px] object-cover" />
+                      <p className="text-black-1000 font-bold text-lg font-inter">Open to reveal your prize!</p>
+                    </div>
                   )}
                 </div>
-                <button
-                  onClick={onClaimPrize}
-                  disabled={isClaimPending}
-                  className="mt-6 w-full cursor-pointer px-12 py-3.5 rounded-full font-bold text-lg font-inter transition-all duration-300 hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: 'var(--color-primary-color)',
-                    color: 'var(--color-white-1000)',
-                    boxShadow: '0 6px 24px rgba(255, 20, 147, 0.35)',
-                  }}
-                >
-                  {isClaimPending ? 'Claiming...' : 'Claim prize'}
-                </button>
+                {!isClaimed && (
+                  <button
+                    onClick={onClaimPrize}
+                    disabled={isClaimPending}
+                    className="mt-6 w-full cursor-pointer px-12 py-3.5 rounded-full font-bold text-lg font-inter transition-all duration-300 hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: 'var(--color-primary-color)',
+                      color: 'var(--color-white-1000)',
+                      boxShadow: '0 6px 24px rgba(255, 20, 147, 0.35)',
+                    }}
+                  >
+                    {isClaimPending ? 'Claiming...' : 'Claim prize'}
+                  </button>
+                )}
               </div>
             </div>
           </DialogPanel>
@@ -96,21 +111,24 @@ const PrizeModal = ({ isOpen, onClose, prize, onClaimPrize, isClaimPending }: Pr
 export const Route = createFileRoute('/gumballs/$id')({
   component: GumballsDetails,
 })
-//TODO: handle total tickets vs prize quantity
 interface AvailablePrize extends PrizeDataBackend {
   remainingQuantity: number;
 }
 function GumballsDetails() {
   const { id } = Route.useParams();
-  const { data, isLoading, isError } = useGumballById(id || "");
+  const { data, isLoading, isError, refetch } = useGumballById(id || "");
   const gumball = data as GumballBackendDataType | undefined;
   const router = useRouter();
   const [prize,setPrize] = useState<Prize | null>(null);
+  const [isPrizeClaimed, setIsPrizeClaimed] = useState(false);
+  const [claimedPrizeIndex, setClaimedPrizeIndex] = useState<number | null>(null);
+  const [unclaimedSpinId, setUnclaimedSpinId] = useState<number | null>(null);
   const { spinGumballFunction } = useSpinGumball();
+  const { claimGumballPrizeFunction } = useClaimGumballPrize();
   const { publicKey } = useWallet();
   const { favouriteGumball } = useToggleFavourite(publicKey?.toString() || "");
   const { getFavouriteGumball } = useQueryFavourites(publicKey?.toString() || "");
-
+  console.log("gumball", gumball);
   const isFavorite = getFavouriteGumball.data?.some(
     (favourite) => favourite.id === Number(id)
   );
@@ -126,15 +144,18 @@ function GumballsDetails() {
   const [quantityValue, setQuantityValue] = useState<number>(1);
   
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
-  const [isClaimPending, setIsClaimPending] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [shouldCheckForUnclaimedPrize, setShouldCheckForUnclaimedPrize] = useState(false);
+  const hasCheckedInitialLoad = useRef(false);
   const availableGumballs = useMemo(() => {
     if (!gumball?.prizes) return [];
     
     const spinCountByPrizeIndex: Record<number, number> = {};
     gumball.spins?.forEach((spin) => {
-      const prizeIndex = spin.transaction.metadata.prizeIndex;
-      spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
+      const prizeIndex = spin.prize.prizeIndex;
+      if (prizeIndex !== undefined && prizeIndex !== null) {
+        spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
+      }
     });
       
     return gumball.prizes
@@ -146,36 +167,46 @@ function GumballsDetails() {
   }, [gumball?.prizes, gumball?.spins]);
 
   const handleSpinClick = async () => {
-    setIsSpinning(true);
-  };
-
-  const handleSpinComplete = () => {
-    setIsPrizeModalOpen(true);
-  };
-
-  const handleClaimPrize = async () => {
-    setIsClaimPending(true);
     try {
       await spinGumballFunction.mutateAsync({ gumballId: parseInt(id || "") });
-      setIsPrizeModalOpen(false);
+      setIsSpinning(true);
     } catch (error) {
-      console.error('Failed to claim prize:', error);
-    } finally {
-      setIsClaimPending(false);
+      console.error('Failed to spin gumball:', error);
       setIsSpinning(false);
+      setShouldCheckForUnclaimedPrize(false);
     }
   };
 
-  // Calculate total prize value in SOL
+  const handleSpinComplete = () => {
+    setIsSpinning(false);
+    setShouldCheckForUnclaimedPrize(true);
+  };
+
+  const handleClaimPrize = async () => {
+    try {
+      if (!unclaimedSpinId) {
+        console.error('No unclaimed spin ID found');
+        return;
+      }
+      const result = await claimGumballPrizeFunction.mutateAsync({ 
+        gumballId: parseInt(id || ""),
+        spinId: unclaimedSpinId
+      });
+      setClaimedPrizeIndex(result.prizeIndex);
+    } catch (error) {
+      console.error('Failed to claim prize:', error);
+    }
+  };
+
   const { totalValueInSol, isLoading: isPrizeValueLoading, formattedValue: totalPrizeValueFormatted } = useGetTotalPrizeValueInSol(gumball?.prizes);
   const formatPrice = (price: string | undefined, isTicketSol: boolean | undefined) => {
     if (!price) return "0";
     if (isTicketSol) {
-        const priceNum = parseFloat(price)/10**9;
-      return `${priceNum.toFixed(2)} `;
+        const priceNum = parseFloat(price)/(10**9);
+      return `${priceNum.toFixed(7)} `;
     }
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);
-    return `${numPrice}`;
+    return `${numPrice.toFixed(7)} `;
   };
 
   const progressPercent = gumball ? (gumball.ticketsSold / gumball.totalTickets) * 100 : 0;
@@ -197,18 +228,79 @@ function GumballsDetails() {
     };
     
 
-    useEffect(()=>{
-      const fetchPrize = async () => {
-      if(isSpinning){
-          const data = await prepareSpin(id || "");
-          if(data.error){
-            console.error('Failed to prepare spin:', data.error);
-          }
-          setPrize(data);
-        }
+  useEffect(() => {
+    if (isPrizeClaimed && gumball && claimedPrizeIndex !== null) {
+      const prizeData = gumball.prizes.find(p => p.prizeIndex === claimedPrizeIndex);
+      if (prizeData) {
+        setPrize({
+          gumballId: gumball.id,
+          prizeIndex: prizeData.prizeIndex,
+          prizeMint: prizeData.mint,
+          ticketPrice: gumball.ticketPrice,
+          ticketMint: gumball.ticketMint,
+          isTicketSol: gumball.isTicketSol,
+          prizeImage: prizeData.image || "",
+          prizeAmount: prizeData.prizeAmount,
+          isNft: prizeData.isNft
+        });
       }
-      fetchPrize();
-    },[isSpinning, id])
+    }
+  }, [isPrizeClaimed, gumball, claimedPrizeIndex]);
+
+  useEffect(() => {
+    if (claimGumballPrizeFunction.isSuccess && claimGumballPrizeFunction.data) {
+      setIsPrizeClaimed(true);
+      setIsSpinning(false);
+      refetch();
+    }
+  }, [claimGumballPrizeFunction.isSuccess, claimGumballPrizeFunction.data, refetch]);
+
+  const findUnclaimedSpin = () => {
+    if (!gumball || !publicKey) return null;
+    
+    const userSpins = gumball.spins?.filter(
+      (spin) => spin.spinnerAddress === publicKey.toString()
+    ) || [];
+    
+    return userSpins
+      .sort((a, b) => new Date(b.spunAt).getTime() - new Date(a.spunAt).getTime())
+      .find((spin) => {
+        const isUnclaimed = spin.isPendingClaim === true || spin.claimedAt === null;
+        return isUnclaimed;
+      }) || null;
+  };
+
+  useEffect(() => {
+    hasCheckedInitialLoad.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (gumball && publicKey && !isSpinning && !hasCheckedInitialLoad.current && gumball.spins) {
+      const unclaimedSpin = findUnclaimedSpin();
+      if (unclaimedSpin) {
+        setIsPrizeModalOpen(true);
+        setIsPrizeClaimed(false);
+        setPrize(null);
+        setUnclaimedSpinId(unclaimedSpin.id);
+      }
+      
+      hasCheckedInitialLoad.current = true;
+    }
+  }, [gumball, publicKey, isSpinning, id]);
+
+  useEffect(() => {
+    if (shouldCheckForUnclaimedPrize && gumball && publicKey && !isSpinning) {
+      const unclaimedSpin = findUnclaimedSpin();
+      if (unclaimedSpin) {
+        setIsPrizeModalOpen(true);
+        setIsPrizeClaimed(false);
+        setPrize(null);
+        setUnclaimedSpinId(unclaimedSpin.id);
+      }
+      
+      setShouldCheckForUnclaimedPrize(false);
+    }
+  }, [shouldCheckForUnclaimedPrize, gumball, publicKey, isSpinning]);
   if (isLoading) {
     return (
       <main className="w-full min-h-screen flex items-center justify-center">
@@ -225,7 +317,7 @@ function GumballsDetails() {
       <main className="w-full min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-black-1000 font-inter font-semibold">Gumball not found</p>
-          <button onClick={() => router.history.go(-1)} className='mt-4 cursor-pointer px-6 py-2.5 bg-primary-color rounded-full text-white font-semibold'>
+          <button onClick={() => router.navigate({ to: "/gumballs" })} className='mt-4 cursor-pointer px-6 py-2.5 bg-primary-color rounded-full text-white font-semibold'>
             Go Back
           </button>
         </div>
@@ -236,7 +328,7 @@ function GumballsDetails() {
   return (
   <main>
     <div className="w-full pb-2 pt-5 md:py-10 max-w-[1440px] px-5 mx-auto">
-        <button onClick={() => router.history.go(-1)} className='cursor-pointer px-3.5 md:px-[30px] transition duration-300 hover:opacity-80 inline-flex items-center gap-2.5 py-2.5 bg-gray-1400 rounded-full text-sm md:text-base font-semibold text-black-1000'>
+        <button onClick={() => router.navigate({ to: "/gumballs" })} className='cursor-pointer px-3.5 md:px-[30px] transition duration-300 hover:opacity-80 inline-flex items-center gap-2.5 py-2.5 bg-gray-1400 rounded-full text-sm md:text-base font-semibold text-black-1000'>
         <img src="/icons/back-arw.svg" alt="" />
          Back
          </button>
@@ -409,7 +501,7 @@ function GumballsDetails() {
                                 </div> */}
 
                                 <div className="w-full flex mt-10">
-                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || gumball.prizesAdded == gumball.spins.length} />
+                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || availableGumballs.length === 0} />
                                 </div>
 
                                 {/* <p className='md:text-base text-sm text-black-1000 font-medium font-inter pt-[18px] pb-10'>Your balance: 0 SOL</p> */}
@@ -488,17 +580,22 @@ function GumballsDetails() {
                 </div>
         </div>
     </section>
-{prize && (
     <PrizeModal
       isOpen={isPrizeModalOpen}
       onClose={() => {
         setIsPrizeModalOpen(false);
         setIsSpinning(false);
+        setIsPrizeClaimed(false);
+        setPrize(null);
+        setClaimedPrizeIndex(null);
+        setShouldCheckForUnclaimedPrize(false);
+        setUnclaimedSpinId(null);
       }}
-      prize={prize as Prize}
+      prize={prize}
       onClaimPrize={handleClaimPrize}
-      isClaimPending={isClaimPending}
+      isClaimPending={claimGumballPrizeFunction.isPending}
+      isClaimed={isPrizeClaimed} 
+      canClose={isPrizeClaimed}
     />
-    )}
 </main>
   )}
