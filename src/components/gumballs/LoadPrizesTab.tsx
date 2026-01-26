@@ -16,17 +16,24 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   const {data: ticketTokenPrice} = useGetTokenPrice(gumball?.ticketMint);
   const {data: solPrice} = useGetTokenPrice(WRAPPED_SOL_MINT);
 
-  
-
   const maxProceeds = useMemo(()=>{
     const ticketPriceInSol = (ticketTokenPrice?.price && solPrice?.price) ? ticketTokenPrice.price / solPrice.price : 0;
-    const maxProceeds = Number(gumball?.maxPrizes) * parseFloat(ticketPriceInSol.toFixed(8));
+    const ticketPriceInToken = gumball?.isTicketSol?(parseFloat(gumball?.ticketPrice)/10**9) : parseFloat(ticketPriceInSol.toFixed(8)) * (Number(gumball?.ticketPrice) / (10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0)));
+    const maxProceeds = Number(gumball?.maxPrizes) * parseFloat(ticketPriceInToken.toFixed(8));
     return maxProceeds.toFixed(7);
-  },[gumball?.maxPrizes, gumball?.ticketMint, ticketTokenPrice?.price, solPrice?.price])
+  },[gumball?.ticketPrice,  gumball?.ticketMint, ticketTokenPrice?.price, solPrice?.price])
 
   const maxROI = useMemo(() => {
     if (!gumball) return '0';
     const roi = (parseFloat(maxProceeds) - totalValueInSol) / parseFloat(maxProceeds) * 100;
+    console.log("maxProceeds", maxProceeds);
+    console.log("totalValueInSol", totalValueInSol);
+    console.log("roi", roi);
+
+    console.log("isNaN(roi)", isNaN(roi));
+    console.log("roi === Infinity", roi === Infinity);
+    console.log("parseFloat(maxProceeds)-totalValueInSol", parseFloat(maxProceeds)-totalValueInSol);
+    console.log("parseFloat(maxProceeds)-totalValueInSol/parseFloat(maxProceeds)", (parseFloat(maxProceeds)-totalValueInSol)/parseFloat(maxProceeds));
     if (isNaN(roi) || roi === Infinity) return '0';
     return Math.max(roi, 0).toFixed(2); 
   }, [maxProceeds, totalValueInSol]);
@@ -42,7 +49,6 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   }
 
   const totalPrizesAdded = gumball.prizes.reduce((acc, prize) => acc + prize.quantity, 0) || 0;
-  console.log("maxProceeds", maxProceeds);
   return (
     <div className='w-full'>
          <div className="flex items-center gap-5 border border-solid border-primary-color rounded-[10px] bg-primary-color/5 py-4 px-5">

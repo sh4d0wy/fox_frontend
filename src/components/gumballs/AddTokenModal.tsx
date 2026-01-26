@@ -30,9 +30,10 @@ interface TokenPrizeRowProps {
   onUpdate: (id: string, field: 'prizeSize' | 'numberOfPrizes', value: string) => void;
   onRemove: (id: string) => void;
   onValueChange: (id: string, solValue: number) => void;
+  exceedsLimit: boolean;
 }
 
-function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeRowProps) {
+function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange, exceedsLimit }: TokenPrizeRowProps) {
   const { data: solPrice } = useGetTokenPrice(WRAPPED_SOL_MINT);
   const { data: tokenPrice } = useGetTokenPrice(prize.token.address);
 
@@ -43,7 +44,7 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
       ? tokenPrice.price / solPrice.price 
       : 0;
     const prizeValue = size * count * tokenPricePerSol;
-    return prizeValue;
+    return parseFloat(prizeValue.toFixed(8));
   }, [prize.prizeSize, prize.numberOfPrizes, tokenPrice?.price, solPrice?.price]);
 
   useEffect(() => {
@@ -84,8 +85,18 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
               onChange={(e) => onUpdate(prize.id, 'numberOfPrizes', e.target.value)}
               placeholder="1"
               min="1"
-              className="w-full h-12 px-4 rounded-lg border-2 border-primary-color/30 bg-white text-black-1000 font-medium font-inter focus:outline-none focus:border-primary-color transition"
+              className={clsx(
+                "w-full h-12 px-4 rounded-lg border-2 bg-white text-black-1000 font-medium font-inter focus:outline-none transition",
+                exceedsLimit 
+                  ? "border-red-500 focus:border-red-500" 
+                  : ""
+              )}
             />
+            {exceedsLimit && (
+              <p className="text-red-500 text-xs mt-1 font-inter">
+                Number of prizes exceeds remaining prizes
+              </p>
+            )}
           </div>
         </div>
         <button
@@ -100,7 +111,7 @@ function TokenPrizeRow({ prize, onUpdate, onRemove, onValueChange }: TokenPrizeR
 
       <div className="flex items-center gap-4 mt-3 ml-20 text-sm font-medium font-inter">
         <span className="text-primary-color">
-          Total value: <span className="text-black-1000">{totalValue.toFixed(2)} SOL</span>
+          Total value: <span className="text-black-1000">{totalValue.toFixed(7)} SOL</span>
         </span>
         
       </div>
@@ -124,15 +135,22 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
 
   const totalPrizesAdded = useMemo(() => {
     return gumball?.prizes.reduce((sum, prize) => sum + prize.quantity, 0) || 0;
-  }, [tokenPrizes]);
+  }, [gumball?.prizes]);
 
   const maxPrizes = gumball?.maxPrizes || 0;
 
+  // Calculate total prizes being added in the modal
+  const totalPrizesInModal = useMemo(() => {
+    return tokenPrizes.reduce((sum, tp) => sum + (parseInt(tp.numberOfPrizes) || 0), 0);
+  }, [tokenPrizes]);
+
+  // Calculate actual remaining prizes (accounting for prizes being added in modal)
+  const actualRemainingPrizes = maxPrizes - totalPrizesAdded - totalPrizesInModal;
+
+  // Check if total prizes exceed the limit
+  const exceedsLimit = actualRemainingPrizes < 0;
+
   const availableTokens = useMemo(() => {
-      // return VerifiedTokens.filter(token => 
-      //   token.symbol === "VOTE" 
-      // );
-    // return VerifiedTokens;
     return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address !== NATIVE_SOL_MINT)))
   }, [tokenPrizes, existingPrizes, userVerifiedTokens]);
 
@@ -292,6 +310,7 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
                   onUpdate={handleUpdatePrize}
                   onRemove={handleRemoveToken}
                   onValueChange={handleValueChange}
+                  exceedsLimit={exceedsLimit}
                 />
               ))}
 
@@ -397,7 +416,13 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
                     <div className="mt-4 ml-20">
                       <button
                         onClick={handleAddToken}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-primary-color text-primary-color font-medium font-inter cursor-pointer hover:bg-primary-color hover:text-white transition"
+                        disabled={actualRemainingPrizes < 1}
+                        className={clsx(
+                          "inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-primary-color font-medium font-inter transition",
+                          actualRemainingPrizes < 1 
+                            ? "opacity-50 cursor-not-allowed text-primary-color" 
+                            : "text-primary-color cursor-pointer hover:bg-primary-color hover:text-white"
+                        )}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -414,20 +439,28 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
             <div className="px-6 py-4 border-t border-gray-1100">
               {/* Remaining Prizes Count */}
               <div className="text-right mb-4">
-                <span className="text-sm font-medium font-inter text-primary-color">
-                  {maxPrizes - totalPrizesAdded} prizes remaining
+                <span className={clsx(
+                  "text-sm font-medium font-inter",
+                  exceedsLimit ? "text-red-500" : "text-primary-color"
+                )}>
+                  {Math.max(0, maxPrizes - totalPrizesAdded - totalPrizesInModal)} prizes remaining
+                  {exceedsLimit && (
+                    <span className="block w-full text-center text-sm mt-1">
+                      Exceeds limit by {Math.abs(actualRemainingPrizes)} prize{Math.abs(actualRemainingPrizes) !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </span>
               </div>
 
               {/* Add Prizes Button */}
               <button
                 onClick={handleAddPrizes}
-                disabled={tokenPrizes.length === 0 || addPrizes.isPending}
+                disabled={tokenPrizes.length === 0 || addPrizes.isPending || exceedsLimit}
                 className={clsx(
                   "w-full h-14 rounded-full font-semibold font-inter text-lg transition duration-300",
                   "bg-gradient-to-r from-primary-color via-orange-400 to-primary-color text-white",
                   "hover:shadow-lg hover:shadow-primary-color/30",
-                  (tokenPrizes.length === 0 || addPrizes.isPending) && "opacity-50 cursor-not-allowed"
+                  (tokenPrizes.length === 0 || addPrizes.isPending || exceedsLimit) && "opacity-50 cursor-not-allowed"
                 )}
               >
                 {addPrizes.isPending ? "Adding prizes..." : "Add prizes"}

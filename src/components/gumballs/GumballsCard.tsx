@@ -8,6 +8,7 @@ import { useToggleFavourite } from "../../../hooks/useToggleFavourite";
 import { useQueryFavourites } from "../../../hooks/useQueryFavourites";
 import { useGetTotalPrizeValueInSol } from "../../../hooks/useGetTotalPrizeValueInSol";
 import { PrizeCollage } from "./PrizeCollage";
+import { API_URL } from "@/constants";
 
 export interface GumballsCardProps {
   gumball: GumballBackendDataType;
@@ -115,7 +116,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
         <div className="w-full flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
             <img
-              src={creator?.profileImage || "/icons/user-avatar.png"}
+              src={creator?.profileImage ? `${API_URL}${creator?.profileImage}` : "/icons/user-avatar.png"}
               alt={displayAddress}
               className="w-6 h-6 rounded-full object-cover"
             />
@@ -128,6 +129,11 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
             {gumball.status === "ACTIVE" && (
               <p className="text-xs font-semibold font-inter text-green-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
                 Active
+              </p>
+            )}
+            {gumball.status === "CANCELLED" && (
+              <p className="text-xs font-semibold font-inter text-red-500 border border-gray-300 rounded-lg px-4 py-1  absolute z-10">
+                Cancelled
               </p>
             )}
           </div>

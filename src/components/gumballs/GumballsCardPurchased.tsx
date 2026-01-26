@@ -38,8 +38,8 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
     return prizeWithImage?.image || "/images/gumballs/sol-img-frame.png";
   }, [prizes]);
 
-  const tokenDecimals = VerifiedTokens.find((token) => token.address === ticketMint)?.decimals || 0;
-  const tokenSymbol = VerifiedTokens.find((token) => token.address === ticketMint)?.symbol || "SOL";
+  const tokenDecimals = gumball?.isTicketSol ? 9 : VerifiedTokens.find((token) => token.address === ticketMint)?.decimals || 0;
+  const tokenSymbol = gumball?.isTicketSol ? "SOL" : VerifiedTokens.find((token) => token.address === ticketMint)?.symbol || "SOL";
 
   const pricePerTicketNum = parseFloat(ticketPrice) || 0;
   
@@ -138,7 +138,7 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
         <div className="flex-1">
           <h4 className="text-sm mb-1.5 text-gray-1200 font-inter">Price per Spin</h4>
           <h4 className="md:text-base text-sm text-black-1000 font-inter font-medium">
-            <span>{pricePerTicketNum / 10 ** tokenDecimals}</span> {tokenSymbol}
+            <span>{(pricePerTicketNum / 10 ** tokenDecimals).toFixed(8).replace(/0+$/, '')}</span> {tokenSymbol}
           </h4>
         </div>
 
@@ -161,7 +161,7 @@ export const GumballsCardPurchased: React.FC<GumballsCardPurchasedProps> = ({
         <div className="flex-1">
           <h4 className="text-sm mb-1.5 text-gray-1200 font-inter">Spent</h4>
           <h4 className="md:text-base text-sm text-black-1000 font-inter font-medium">
-            <span>{totalSpent / 10 ** tokenDecimals}</span> {tokenSymbol}
+            <span>{(totalSpent / 10 ** tokenDecimals).toFixed(8).replace(/0+$/, '')}</span> {tokenSymbol}
           </h4>
         </div>
       </div>

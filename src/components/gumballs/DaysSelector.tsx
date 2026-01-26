@@ -68,8 +68,7 @@ export default function DaysSelector() {
 
   const showDurationError = isDurationTouched && !isDurationValid;
   useEffect(() => {
-    if(days && parseInt(days) > 0 && isDurationValid) {
-      setIsDurationTouched(true);
+    if(days && parseInt(days) > 0 ) {
       updateEndTime(days);
     }
   }, [days]);

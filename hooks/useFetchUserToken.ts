@@ -26,23 +26,22 @@ export const useFetchUserToken = () => {
                         account.account.data.parsed.info.tokenAmount.uiAmount >= 1
                 )
             );
-            console.log("verifiedTokensHeld", verifiedTokensHeld);
-
+            
             const tokensWithBalance = verifiedTokensHeld.map(verifiedToken => {
                 const tokenAccount = tokenAccounts.value.find(
                     account => account.account.data.parsed.info.mint === verifiedToken.address
                 );
-
+                
                 return {
                     ...verifiedToken,
                     balance: tokenAccount?.account.data.parsed.info.tokenAmount.uiAmount || 0,
                     decimals: tokenAccount?.account.data.parsed.info.tokenAmount.decimals || 0
                 };
             });
-
+            console.log("tokensWithBalance", tokensWithBalance);
             const userSolbalance = await connection.getBalance(wallet.publicKey);
             console.log("userSolbalance", userSolbalance);
-
+            
             if (NETWORK === "devnet") {
                 return VerifiedTokens.filter((token) => (token.address === NATIVE_SOL_MINT || token.address === "BZfZhBoQSAMQVshvApFzwbKNA3dwuxKhK8m5GVCQ26yG"));
             }

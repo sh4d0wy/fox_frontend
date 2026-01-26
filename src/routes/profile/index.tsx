@@ -686,7 +686,7 @@ function CreateProfile() {
                             : sortedGumballCreatedCards.map((card: any) => (
                               // <GumballsCard key={card.id} gumball={card} />
                               
-                                <GumballsCardCreated
+                                <GumballsCard
                                   key={card.id}
                                   gumball={card}
                                 />
