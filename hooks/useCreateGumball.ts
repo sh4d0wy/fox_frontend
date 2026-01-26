@@ -12,6 +12,7 @@ import { useCheckAuth } from "./useCheckAuth";
 import { WRAPPED_SOL_MINT } from "@/constants";
 import { connection } from "./helpers";
 
+
 export const useCreateGumball = () => {
     //TODO: Add activation logic from contract if the gumball starting immediately
     const queryClient = useQueryClient();
@@ -35,10 +36,7 @@ export const useCreateGumball = () => {
                 throw new Error("Wallet not connected");
             }
             const isValid = await checkAndInvalidateToken(publicKey.toBase58());
-            console.log("args timeperiod", args.endTime - args.startTime);
-            console.log("max timeperiod", 24 * 60 * 60 * 7);
-            console.log("endTime", new Date(args.endTime * 1000).toISOString());
-            console.log("startTime", new Date(args.startTime * 1000).toISOString());
+       
             if (!isValid) {
                 throw new Error("Signature verification failed");
             }
@@ -69,8 +67,8 @@ export const useCreateGumball = () => {
             if (args.totalTickets < 3) {
                 throw new Error("Prize Count must be greater than 2");
             }
-            if (args.totalTickets > 10000) {
-                throw new Error("Prize Count must be less than 10,000");
+            if (args.totalTickets > 10) {
+                throw new Error("Prize Count must be less than or equal to 10");
             }
             return true;
         } catch (error: unknown) {

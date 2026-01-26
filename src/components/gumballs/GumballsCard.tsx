@@ -32,9 +32,12 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
     endTime = new Date().toISOString(),
     totalTickets = 0,
     ticketsSold = 0,
+    ticketMint = "",
     ticketPrice = "0",
+    isTicketSol = false,
     totalPrizeValue = "0",
     prizes = [],
+    creator
   } = gumball || {};
 
   const favorite = useMemo(() => {
@@ -77,15 +80,7 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
     return { hours, minutes, seconds };
   }, [endTime]);
  
-  // Calculate EV (Expected Value) = totalPrizeValueFormatted / (totalTickets * ticketPrice)
-  const evValue = useMemo(() => {
-    const prizeVal = parseFloat(totalPrizeValueFormatted) || 0;
-    const ticketPriceNum = parseFloat(ticketPrice)/10**(VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.decimals || 0);
-    const maxProceeds = totalTickets * ticketPriceNum;
-    if (maxProceeds === 0) return "0.00";
-    return (prizeVal / maxProceeds).toFixed(2);
-  }, [totalPrizeValueFormatted, totalTickets, ticketPrice, gumball.ticketMint]);
-
+  
   // VAL is the total prize value
   const val = useMemo(() => {
     return parseFloat(totalPrizeValueFormatted) || 0;
@@ -99,15 +94,28 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
 
   // Price per ticket as number
   const pricePerTicket = useMemo(() => {
-    return parseFloat(ticketPrice) || 0;
-  }, [ticketPrice]);
+    if (isTicketSol) {
+      return (parseFloat(ticketPrice)/10**9).toFixed(7).trim().replace(/\.?0+$/, "");
+    }
+    return (parseFloat(ticketPrice)/10**(VerifiedTokens.find((token) => token.address === ticketMint)?.decimals || 0)).toFixed(7).trim().replace(/\.?0+$/, "");
+  }, [ticketPrice, ticketMint, isTicketSol]);
+
+  // Calculate EV (Expected Value) = totalPrizeValueFormatted / (totalTickets * ticketPrice)
+  const evValue = useMemo(() => {
+    const prizeVal = parseFloat(totalPrizeValueFormatted) || 0;
+    const maxProceeds = totalTickets * parseFloat(pricePerTicket);
+    if (maxProceeds === 0) return "0.00";
+    return `${((prizeVal / maxProceeds)*100).toFixed(2)}%` ;
+  }, [totalPrizeValueFormatted, totalTickets, pricePerTicket]);
+
 
   return (
-      <div className={`bg-white-1000 border border-gray-1100 rounded-2xl ${className || ''}`}>
+    <Link to="/gumballs/$id" params={{ id: id.toString() }}>
+      <div className={`bg-white-1000 border border-gray-300 rounded-2xl ${className || ''}`}>
         <div className="w-full flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
             <img
-              src="/icons/user-avatar.png"
+              src={creator?.profileImage || "/icons/user-avatar.png"}
               alt={displayAddress}
               className="w-6 h-6 rounded-full object-cover"
             />
@@ -125,11 +133,11 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
           </div>
         </div>
         
-        <div className="w-full relative group">
+        <div className="w-full relative group overflow-hidden">
             <PrizeCollage
               prizes={prizes}
-              className="w-full border-y border-gray-1100 h-[300px]"
-              rotation={-25}
+              className="w-full border-y border-gray-1100 h-[300px] group-hover:scale-105 transition duration-300"
+              rotation={-35}
               gridSize={3}
             />
 
@@ -233,12 +241,13 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
               <h4 className="text-base text-red-1000 font-semibold font-inter">SOLD OUT</h4>
               }
               <h4 className="md:text-base text-sm text-primary-color text-right font-inter font-semibold">
-                <span>{pricePerTicket /10**(VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.decimals || 0)}</span> {VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.symbol || "SOL"}
+                <span>{pricePerTicket} {gumball.isTicketSol ? "SOL" : VerifiedTokens.find((token) => token.address === gumball.ticketMint)?.symbol || "SOL"}</span>
               </h4>
             </div>
           </div>
 
         </div>
       </div>
+      </Link>
   );
 };

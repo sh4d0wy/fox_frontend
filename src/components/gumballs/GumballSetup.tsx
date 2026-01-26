@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import DateSelector from '../ui/DateSelector';
 import TimeSelector from '../ui/TimeSelector';
 import DaysSelector from './DaysSelector';
@@ -52,12 +52,41 @@ export const GumballSetup = () => {
         startTimePeriod,
     } = useGumballStore();
 
+
     const tabs = [
         { name: "Start Immediately", type: "manual" as const },
         { name: "Schedule Start", type: "schedule" as const },
     ];
 
+    const [isNameTouched, setIsNameTouched] = useState(false);
+    const [isPriceCountTouched, setIsPriceCountTouched] = useState(false);
+    const isNameValid = useMemo(() => {
+        return name.length>0 && name.length<=100;
+    }, [name]);
 
+    const showNameError = isNameTouched && !isNameValid;
+
+    const isStartTimeInPast = useMemo(() => {
+        if (startType !== "schedule") return false;
+        if (!startDate) return false;
+        
+        const startTimestamp = getStartTimestamp();
+        if (!startTimestamp) return false;
+        
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        return startTimestamp < nowSeconds;
+    }, [startType, startDate, startTimeHour, startTimeMinute, startTimePeriod, getStartTimestamp]);
+
+    const isPriceCountValid = useMemo(() => {
+        return parseInt(prizeCount) >= 3 && parseInt(prizeCount) <= 10;
+    }, [prizeCount]);
+
+    const showPriceCountError = isPriceCountTouched && !isPriceCountValid;
+
+    const handlePriceCountChange = (value: string) => {
+        setIsPriceCountTouched(true);
+        setPrizeCount(value);
+    };
   return (
     <div className='w-full'>
            {/* <div className="flex items-center gap-5 border border-solid border-primary-color rounded-[10px] bg-primary-color/5 py-4 px-5">
@@ -89,12 +118,16 @@ export const GumballSetup = () => {
                 <input
                   id="name"
                   type="text"
-                  className="text-black-1000 outline outline-gray-1100 focus:outline-primary-color  placeholder:text-gray-1200 md:text-base text-sm w-full font-inter px-5 h-12 rounded-lg font-medium"
+                  className={`text-black-1000 outline outline-gray-1100  placeholder:text-gray-1200 md:text-base text-sm w-full font-inter px-5 h-12 rounded-lg font-medium ${showNameError ? "border border-red-1000" : ""}`}
                   placeholder="Name your Gumball"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setIsNameTouched(true);
+                    setName(e.target.value);
+                  }}
                   disabled={isCreatingGumball}
                 />
+                <p className="text-sm font-medium text-red-1000 pt-2.5 font-inter">{showNameError ? "Name must be between 1 and 100 characters" : ""}</p>
               </div>
               <div className="pb-10">
                 <p className="md:text-base text-sm text-black-1000 font-inter font-medium pb-5">
@@ -118,32 +151,41 @@ export const GumballSetup = () => {
 
                <div className="w-full mt-10">
                 {startType === "schedule" &&
-                    <div className='pb-10 grid grid-cols-2 md:gap-5 gap-3'>
-                      <div className="">
-                        <DateSelector 
-                          label='Start Date' 
-                          value={startDate}
-                          onChange={setStartDate}
-                          minDate={new Date()}
-                          disabled={isCreatingGumball}
-                          limit="2d-7d"
-                        /> 
+                    <div className='pb-10'>
+                      <div className='grid grid-cols-2 md:gap-5 gap-3'>
+                        <div className="">
+                          <DateSelector 
+                            label='Start Date' 
+                            value={startDate}
+                            onChange={setStartDate}
+                            minDate={new Date()}
+                            disabled={isCreatingGumball}
+                            limit="2d-7d"
+                            className={isStartTimeInPast ? "outline-red-500" : ""}
+                          /> 
+                        </div>
+                         <div className="">
+                          <TimeSelector 
+                            label='Start Time'
+                            hour={startTimeHour}
+                            minute={startTimeMinute}
+                            period={startTimePeriod}
+                            onTimeChange={(hour, minute, period) => {
+                              setStartTimeHour(hour);
+                              setStartTimeMinute(minute);
+                              setStartTimePeriod(period);
+                            }}
+                            disabled={isCreatingGumball}
+                            hasValue={!!startDate}
+                            isInvalid={isStartTimeInPast}
+                          />
+                        </div>
                       </div>
-                       <div className="">
-                        <TimeSelector 
-                          label='Start Time'
-                          hour={startTimeHour}
-                          minute={startTimeMinute}
-                          period={startTimePeriod}
-                          onTimeChange={(hour, minute, period) => {
-                            setStartTimeHour(hour);
-                            setStartTimeMinute(minute);
-                            setStartTimePeriod(period);
-                          }}
-                          disabled={isCreatingGumball}
-                          hasValue={!!startDate}
-                        />
-                      </div>
+                      {isStartTimeInPast && (
+                        <p className="text-sm font-medium text-red-500 pt-2.5 font-inter">
+                          Start time cannot be in the past
+                        </p>
+                      )}
                     </div>}
 
                     <DaysSelector/>
@@ -156,20 +198,25 @@ export const GumballSetup = () => {
                               Prize count
                             </p>
                             <p className="text-gray-1200 font-inter text-sm font-medium">
-                              Min: 3 / Max: 10,000
+                              Min: 3 / Max: 10
                             </p>
                           </div>
                           <input
                             id="count"
                             type="text"
-                            className="text-black-1000 outline outline-gray-1100 focus:outline-primary-color placeholder:text-gray-1200 md:text-base text-sm w-full font-inter md:px-5 px-[14px] h-12 rounded-lg font-medium"
+                            className={`text-black-1000 outline outline-gray-1100 ${showPriceCountError ? "outline-red-500" : ""} placeholder:text-gray-1200 md:text-base text-sm w-full font-inter md:px-5 px-[14px] h-12 rounded-lg font-medium`}
                             placeholder="Enter Count"
                             value={prizeCount}
-                            onChange={(e) => setPrizeCount(e.target.value)}
+                            onChange={(e) => handlePriceCountChange(e.target.value)}
                             disabled={isCreatingGumball}
                             min={3}
-                            max={10000}
+                            max={10}
                           />
+                          {showPriceCountError && (
+                            <p className="text-sm font-medium text-red-500 pt-2.5 font-inter">
+                              Prize count must be between 3 and 10
+                            </p>
+                          )}
                           <p className="text-sm font-medium text-black-1000 pt-2.5 font-inter">
                             Rent: {rent} SOL
                           </p>

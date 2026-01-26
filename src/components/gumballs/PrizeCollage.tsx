@@ -17,7 +17,7 @@ interface PrizeCollageProps {
 export const PrizeCollage: React.FC<PrizeCollageProps> = ({
   prizes,
   className = "",
-  rotation = -25,
+  rotation = -45,
   gridSize = 3,
 }) => {
   const prizeImages = useMemo(() => {
@@ -54,15 +54,16 @@ export const PrizeCollage: React.FC<PrizeCollageProps> = ({
       <div
         className="absolute inset-0 flex items-center justify-center"
         style={{
-          transform: `rotate(${rotation}deg) scale(1.8)`,
+          transform: `rotateX(45deg) rotateZ(${rotation}deg) rotateY(15deg) scale(1.8)`,
         }}
       >
         <div
           className="grid gap-1"
           style={{
             gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+            gridAutoRows: "1fr",
             width: "150%",
-            height: "150%",
+            height: "110%",
           }}
         >
           {tiles.map((tile) => (

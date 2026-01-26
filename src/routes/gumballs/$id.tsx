@@ -365,7 +365,7 @@ function GumballsDetails() {
                         <div className="w-full flex flex-col gap-5">
                             <div className="w-full flex items-center justify-between md:pt-5 py-6 md:pb-6">
                                 <div className="inline-flex gap-4">
-                                    <img src="/images/placeholder-user.png" className="w-10 h-10 rounded-full object-cover" alt="creator" />
+                                    <img src={gumball.creator?.profileImage || "/icons/user-avatar.png"   } className="w-10 h-10 rounded-full object-cover" alt="creator" />
                                     <div className="">
                                         <p className='text-xs font-inter font-normal text-gray-1200 md:pb-0 pb-1'>Creator</p>
                                         <h4 className='md:text-base text-sm text-black-1000 font-inter font-semibold'>{truncateAddress(gumball.creatorAddress)}</h4>

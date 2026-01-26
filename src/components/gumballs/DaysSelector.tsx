@@ -1,9 +1,12 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useGumballStore } from "../../../store/useGumballStore";
+import { useGumballAnchorProgram } from "hooks/useGumballAnchorProgram";
 
 export default function DaysSelector() {
   const [days, setDaysLocal] = useState("2");
-  
+  const [isDurationTouched, setIsDurationTouched] = useState(false);
+  const {getGumballConfig} = useGumballAnchorProgram();  
+  const gumballConfig = getGumballConfig.data;
   const { 
     startType,
     getStartTimestamp,
@@ -19,6 +22,13 @@ export default function DaysSelector() {
     { label: "5d", value: "5" },
     { label: "7d", value: "7" },
   ];
+  const maxDuration = useMemo(() => {
+    return Math.floor(gumballConfig?.maximumGumballPeriod!/60/60/24) || 0;
+  }, [gumballConfig]);
+
+  const minDuration = useMemo(() => {
+    return Math.floor(gumballConfig?.minimumGumballPeriod!/60/60/24) ||1;
+  }, [gumballConfig]);
 
   const updateEndTime = useCallback((daysValue: string) => {
     const daysNum = parseInt(daysValue) || 1;
@@ -45,13 +55,21 @@ export default function DaysSelector() {
   }, [startType, getStartTimestamp, setEndDate, setEndTimeHour, setEndTimeMinute, setEndTimePeriod]);
 
   const handleDaysChange = (value: string) => {
+    setIsDurationTouched(true);
     setDaysLocal(value);
     if (value && parseInt(value) > 0) {
       updateEndTime(value);
     }
   };
+
+  const isDurationValid = useMemo(() => {
+    return parseInt(days) >= minDuration && parseInt(days) <= maxDuration;
+  }, [days, minDuration, maxDuration]);
+
+  const showDurationError = isDurationTouched && !isDurationValid;
   useEffect(() => {
-    if(days && parseInt(days) > 0) {
+    if(days && parseInt(days) > 0 && isDurationValid) {
+      setIsDurationTouched(true);
       updateEndTime(days);
     }
   }, [days]);
@@ -68,9 +86,10 @@ export default function DaysSelector() {
         onChange={(e) => handleDaysChange(e.target.value)}
         onBlur={() => updateEndTime(days)}
         disabled={isCreatingGumball}
-        className="text-black-1000 outline outline-gray-1100 focus:outline-primary-color placeholder:text-black-1000 text-base w-full font-inter px-5 h-12 rounded-lg font-medium [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
-        placeholder="1"
-        min="1"
+        className={`text-black-1000 outline outline-gray-1100 ${showDurationError ? "outline-red-500" : ""} placeholder:text-gray-300 text-base w-full font-inter px-5 h-12 rounded-lg font-medium [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
+        placeholder={`${minDuration} - ${maxDuration}`}
+        min={minDuration}
+        max={maxDuration}
       />
 
       <ol className="flex items-center gap-4 pt-2.5">
@@ -94,6 +113,11 @@ export default function DaysSelector() {
           </li>
         ))}
       </ol>
+      {showDurationError && (
+        <p className="text-sm font-medium text-red-500 pt-2.5 font-inter">
+          Duration must be between {minDuration} and {maxDuration} days
+        </p>
+      )}
     </div>
   );
 }

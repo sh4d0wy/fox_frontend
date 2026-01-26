@@ -136,6 +136,11 @@ export const gumballBackendDataSchema = z.object({
     spins: z.number().int(),
   }),
   spins: z.array(spinDataSchema),
+  creator: z.object({
+    walletAddress: z.string().min(1),
+    twitterId: z.string().nullable(),
+    profileImage: z.string().nullable(),
+  }),
 });
 
 export type GumballBackendDataType = z.infer<typeof gumballBackendDataSchema>;

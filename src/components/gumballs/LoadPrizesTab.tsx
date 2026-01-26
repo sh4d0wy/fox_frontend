@@ -11,7 +11,6 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   const [isAddTokenModalOpen, setIsAddTokenModalOpen] = useState(false);
   const [isAddNftModalOpen, setIsAddNftModalOpen] = useState(false);
   const { data: gumball, isLoading } = useGumballById(gumballId) as { data: GumballBackendDataType, isLoading: boolean };
-  console.log("gumball", gumball);
 
   const { totalValueInSol, isLoading: isPriceLoading, formattedValue } = useGetTotalPrizeValueInSol(gumball?.prizes);
   const {data: ticketTokenPrice} = useGetTokenPrice(gumball?.ticketMint);
@@ -21,13 +20,13 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
 
   const maxProceeds = useMemo(()=>{
     const ticketPriceInSol = (ticketTokenPrice?.price && solPrice?.price) ? ticketTokenPrice.price / solPrice.price : 0;
-    const maxProceeds = gumball.maxPrizes * ticketPriceInSol;
-    return maxProceeds;
+    const maxProceeds = Number(gumball?.maxPrizes) * parseFloat(ticketPriceInSol.toFixed(8));
+    return maxProceeds.toFixed(7);
   },[gumball?.maxPrizes, gumball?.ticketMint, ticketTokenPrice?.price, solPrice?.price])
 
   const maxROI = useMemo(() => {
     if (!gumball) return '0';
-    const roi = (maxProceeds - totalValueInSol) / maxProceeds * 100;
+    const roi = (parseFloat(maxProceeds) - totalValueInSol) / parseFloat(maxProceeds) * 100;
     if (isNaN(roi) || roi === Infinity) return '0';
     return Math.max(roi, 0).toFixed(2); 
   }, [maxProceeds, totalValueInSol]);
@@ -43,7 +42,7 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   }
 
   const totalPrizesAdded = gumball.prizes.reduce((acc, prize) => acc + prize.quantity, 0) || 0;
-  
+  console.log("maxProceeds", maxProceeds);
   return (
     <div className='w-full'>
          <div className="flex items-center gap-5 border border-solid border-primary-color rounded-[10px] bg-primary-color/5 py-4 px-5">
@@ -66,7 +65,7 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
                <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Total Prize Value</h3>
                 <h4 className='text-2xl font-bold font-inter text-black-1000'>
-                  {isPriceLoading ? 'Loading...' : `${totalValueInSol.toFixed(2)} SOL`}
+                  {isPriceLoading ? 'Loading...' : `${totalValueInSol.toFixed(6)} SOL`}
                 </h4>
             </div>
 
