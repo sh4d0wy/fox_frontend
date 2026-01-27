@@ -153,7 +153,7 @@ function GumballsDetails() {
     
     const spinCountByPrizeIndex: Record<number, number> = {};
     gumball.spins?.forEach((spin) => {
-      const prizeIndex = spin.prize.prizeIndex;
+      const prizeIndex = spin.prize?.prizeIndex;
       if (prizeIndex !== undefined && prizeIndex !== null) {
         spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
       }
