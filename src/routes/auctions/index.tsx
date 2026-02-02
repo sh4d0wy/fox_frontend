@@ -18,6 +18,8 @@ import {
   hasActiveFilters,
   type AuctionItem,
 } from "../../utils/sortAndFilter";
+import { useAuctionAnchorProgram } from "hooks/useAuctionAnchorProgram";
+import { BN } from "@coral-xyz/anchor";
 
 const options = [
   { label: "Recently Added", value: "Recently Added" },
@@ -80,7 +82,10 @@ function Auctions() {
   const activeFilters = useMemo(() => {
     return getActiveFiltersList(filterOptions, "auctions");
   }, [filterOptions]);
+  const {getAllAuctions} = useAuctionAnchorProgram();
 
+  const auction = getAllAuctions.data?.find((auction) => auction.account.auctionId === 15);
+  console.log("auction end time", new BN(auction?.account.endTime as BN).toNumber());
   const showActiveFilters = hasActiveFilters(filterOptions, "auctions");
 
   const aucations = useMemo(() => {
