@@ -16,6 +16,7 @@ const SoldGumball: BoughtRow[] = [
 export const SoldGumballTable = ({gumballId}: {gumballId: string}) => {
   const { data: gumball } = useGumballById(gumballId) as { data: GumballBackendDataType };
   const soldGumballs = gumball?.spins;
+  const claimedGumballs = gumball?.spins.filter((spin) => spin.prize?.prizeIndex !== undefined && spin.prize?.prizeIndex !== null && spin.claimedAt !== null);
 
   return (
     <div className="mt-5 border relative border-gray-1100 md:pb-32 pb-10 min-h-[494px] rounded-[20px] w-full overflow-hidden">
@@ -42,26 +43,26 @@ export const SoldGumballTable = ({gumballId}: {gumballId: string}) => {
           </tr>
         </thead>
         <tbody>
-          {soldGumballs?.map((row, idx) => {
+          {claimedGumballs?.map((row, idx) => {
             return (
               <tr key={idx} className="w-full">
                 <td>
                   <div className="px-6 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <img src={row.transaction.metadata.prizeImage} className="w-[60px] h-[60px] rounded-full" alt="no-img" />
+                    <img src={row.prize?.image || "/images/prize-image.png"} className="w-[60px] h-[60px] rounded-full" alt="no-img" />
                     <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
-                      {row.transaction.metadata.prizeName}
+                      {row.prize?.name || "Prize"}
                     </p>
                   </div>
                 </td>
                 <td>
                   {/* TODO: handle NFTs and fix this logic*/}
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{parseFloat(row.transaction.metadata.prizeAmount)/10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0)}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{parseFloat(row.prize?.prizeAmount || "0")/10** (row.prize?.decimals || 0)}</p>
                   </div>
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.transaction.isNft?"N/A":0}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.prize?.isNft?"N/A":0}</p>
                   </div>
                 </td>
       

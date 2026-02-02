@@ -13,11 +13,13 @@ export const AvailableGumballTable = ({gumballId}: {gumballId: string}) => {
     if (!gumball?.prizes) return [];
     
     const spinCountByPrizeIndex: Record<number, number> = {};
+    console.log("gumball.spins", gumball.spins);
     gumball.spins?.forEach((spin) => {
-      const prizeIndex = spin.transaction.metadata.prizeIndex;
+      if (spin.prize?.prizeIndex === undefined || spin.prize?.prizeIndex === null) return;
+      const prizeIndex = spin.prize?.prizeIndex;
       spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
     });
-    
+    console.log(spinCountByPrizeIndex);
     return gumball.prizes
       .map((prize): AvailablePrize => ({
         ...prize,
@@ -25,6 +27,8 @@ export const AvailableGumballTable = ({gumballId}: {gumballId: string}) => {
       }))
       .filter((prize) => prize.remainingQuantity > 0);
   }, [gumball?.prizes, gumball?.spins]);
+  console.log(availableGumballs);
+
   return (
     <div className="mt-5 border relative border-gray-1100 md:pb-32 pb-10 rounded-[20px] w-full overflow-hidden">
       {availableGumballs?.length === 0 || gumball?.status === "CANCELLED" && (

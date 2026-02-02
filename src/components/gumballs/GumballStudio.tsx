@@ -48,6 +48,7 @@ const availablePrizeIndexes = useMemo(() => {
   
   const spinCountByPrizeIndex: Record<number, number> = {};
   gumball.spins?.forEach((spin) => {
+    if (spin.transaction.metadata?.prizeIndex === undefined || spin.transaction.metadata?.prizeIndex === null) return;
     const prizeIndex = spin.transaction.metadata.prizeIndex;
     spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
   });
@@ -95,7 +96,7 @@ const { creatorClaimPrizeBackMutation } = useCreatorClaimPrizeBack();
                <div className="">
                 <h3 className='md:text-base text-sm text-black-1000 font-medium font-inter mb-[22px]'>Proceed</h3>
                 <div className="flex items-center gap-4">
-                <h4 className='text-2xl font-bold font-inter text-black-1000'>{totalProceedsInSol} SOL</h4>
+                <h4 className='text-2xl font-bold font-inter text-black-1000'>{(totalProceedsInSol/1e9).toFixed(6)} SOL</h4>
                 <h4 className="text-base font-medium font-inter text-primary-color">{gumball?.uniqueBuyers} Unique Buyers</h4>
                 </div>
             </div>
