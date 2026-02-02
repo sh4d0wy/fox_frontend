@@ -37,7 +37,7 @@ export const Navbar = () => {
   const { publicKey, connected, signMessage } = useWallet();
   const location = useLocation();
   const tokenCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isAuthenticatingRef = useRef(false);
+  const authenticatingWalletRef = useRef<string | null>(null); // Track which wallet is being authenticated
   const hasInitializedRef = useRef(false);
   const lastNotifiedWalletRef = useRef<string | null>(null);
   const hasShownNotificationsRef = useRef(false);
@@ -66,15 +66,21 @@ export const Navbar = () => {
   };
 
   const authenticateWallet = async (currentWalletKey: string, reason: string) => {
-    if (isAuthenticatingRef.current) {
+    // Check if we're already authenticating this specific wallet
+    if (authenticatingWalletRef.current === currentWalletKey) {
       return;
     }
 
     try {
-      isAuthenticatingRef.current = true;
+      authenticatingWalletRef.current = currentWalletKey;
       
       const message = await requestMessage(currentWalletKey);
       const result = await signAndVerifyMessage(message.message);
+      
+      // Only update state if we're still authenticating the same wallet
+      if (authenticatingWalletRef.current !== currentWalletKey) {
+        return; // Wallet changed during authentication, ignore result
+      }
       
       if (result.success && result.data?.token) {
         setToken(result.data.token.toString());
@@ -86,11 +92,17 @@ export const Navbar = () => {
         hasInitializedRef.current = false;
       }
     } catch (error) {
-      removeToken();
-      setAuth(false, null);
-      hasInitializedRef.current = false;
+      // Only update state if we're still authenticating the same wallet
+      if (authenticatingWalletRef.current === currentWalletKey) {
+        removeToken();
+        setAuth(false, null);
+        hasInitializedRef.current = false;
+      }
     } finally {
-      isAuthenticatingRef.current = false;
+      // Only clear if we're still the active authentication
+      if (authenticatingWalletRef.current === currentWalletKey) {
+        authenticatingWalletRef.current = null;
+      }
     }
   };
 
@@ -102,7 +114,10 @@ export const Navbar = () => {
         // Check if wallet changed - reset initialization state
         if (walletAddress && walletAddress !== currentWalletKey) {
           hasInitializedRef.current = false;
-          isAuthenticatingRef.current = false;
+          // Clear the authenticating wallet ref if it was for a different wallet
+          if (authenticatingWalletRef.current && authenticatingWalletRef.current !== currentWalletKey) {
+            authenticatingWalletRef.current = null;
+          }
           // Remove old token when wallet changes
           removeToken();
         }
@@ -111,8 +126,8 @@ export const Navbar = () => {
           return;
         }
 
-        // Skip if authentication is in progress
-        if (isAuthenticatingRef.current) {
+        // Skip if authentication is already in progress for this wallet
+        if (authenticatingWalletRef.current === currentWalletKey) {
           return;
         }
 
@@ -132,7 +147,7 @@ export const Navbar = () => {
       } else if (!connected) {
         if (hasInitializedRef.current) {
           hasInitializedRef.current = false;
-          isAuthenticatingRef.current = false;
+          authenticatingWalletRef.current = null;
           removeToken();
           setAuth(false, null);
         }
