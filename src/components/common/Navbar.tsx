@@ -11,7 +11,7 @@ import NotificationsModel from "./NotificationsModel";
 import DynamicNewLink from "./DynamicNewLink";
 import StatsDropdown from "./StatsDropdown";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
-import { isTokenExpired, setToken, removeToken } from "../../utils/auth";
+import { isTokenValidForWallet, setToken, removeToken } from "../../utils/auth";
 import { toast } from "sonner";
 import Toast from "./Toast";
 import EndedRaffleToast from "./EndedRaffleToast";
@@ -99,6 +99,14 @@ export const Navbar = () => {
       if (connected && publicKey) {
         const currentWalletKey = publicKey.toBase58();
         
+        // Check if wallet changed - reset initialization state
+        if (walletAddress && walletAddress !== currentWalletKey) {
+          hasInitializedRef.current = false;
+          isAuthenticatingRef.current = false;
+          // Remove old token when wallet changes
+          removeToken();
+        }
+        
         if (hasInitializedRef.current && isAuth && walletAddress === currentWalletKey) {
           return;
         }
@@ -110,10 +118,15 @@ export const Navbar = () => {
 
         const authToken = localStorage.getItem('authToken');
         
-        if (authToken && !isTokenExpired(authToken)) {
+        // Check if token is valid AND belongs to the current wallet
+        if (isTokenValidForWallet(authToken, currentWalletKey)) {
           setAuth(true, currentWalletKey);
           hasInitializedRef.current = true;
         } else {
+          // Remove invalid/mismatched token before authentication
+          if (authToken) {
+            removeToken();
+          }
           await authenticateWallet(currentWalletKey, "initial connection");
         }
       } else if (!connected) {
@@ -143,11 +156,18 @@ export const Navbar = () => {
     }
 
     tokenCheckIntervalRef.current = setInterval(() => {
-      const authToken = localStorage.getItem('authToken');
+      // Don't prompt for re-auth if the page is not visible (user is on different window/tab)
+      if (document.hidden) {
+        return;
+      }
       
-      if (isTokenExpired(authToken) && publicKey) {
-        console.log("Token check: Token expired, renewing...");
-        authenticateWallet(publicKey.toBase58(), "token renewal");
+      const authToken = localStorage.getItem('authToken');
+      const currentWalletKey = publicKey.toBase58();
+      
+      // Only re-authenticate if token is expired or doesn't belong to current wallet
+      if (!isTokenValidForWallet(authToken, currentWalletKey)) {
+        console.log("Token check: Token expired or invalid, renewing...");
+        authenticateWallet(currentWalletKey, "token renewal");
       }
     }, 60 * 1000);
 

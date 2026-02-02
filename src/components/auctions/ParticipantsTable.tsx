@@ -45,7 +45,7 @@ interface Bid {
 //   },
 // ];
 
-export const ParticipantsTable = ({
+export const  ParticipantsTable = ({
   bids,
   isLoading = false,
   currency,
