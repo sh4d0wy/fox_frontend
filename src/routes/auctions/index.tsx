@@ -121,6 +121,14 @@ function Auctions() {
     setSearchQuery("");
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && aucations.length === 0 && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [isLoading, aucations.length, hasNextPage, fetchNextPage]);
+
+  console.log("auctions", aucations);
+
   return (
     <main className="main font-inter">
       <section className="w-full lg:pt-[60px] pt-5 pb-20 md:pb-[120px]">
@@ -224,6 +232,7 @@ function Auctions() {
               dataLength={aucations.length}
               next={fetchNextPage}
               hasMore={!!hasNextPage}
+              scrollThreshold={0.8}
               loader={
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-5">
                   {Array(4)

@@ -4,6 +4,7 @@ import type { AuctionTypeBackend } from "../types/backend/auctionTypes";
 interface AuctionsPage {
   items: AuctionTypeBackend[];
   nextPage: number | null;
+  totalPages: number | null;
 }
 
 export const fetchAuctions = async ({
@@ -13,26 +14,27 @@ export const fetchAuctions = async ({
   pageParam?: number;
   filter?: string;
 }): Promise<AuctionsPage> => {
-  const pageSize = 8;
+  const pageSize = 12;
   const response = await getAuctions(pageParam, pageSize);
-  let filteredData: AuctionTypeBackend[] = response.auctions || [];
+  const originalAuctions: AuctionTypeBackend[] = response.auctions || [];
+  let filteredAuctions = originalAuctions;
 
+  // Filter based on status
   if (filter === "All Auctions") {
-    filteredData = filteredData.filter((r) => r.status === "ACTIVE" || r.status === "INITIALIZED");
+    filteredAuctions = originalAuctions.filter((r) => r.status === "ACTIVE" || r.status === "INITIALIZED");
   } else if (filter === "Past Auctions") {
-    filteredData = filteredData.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED");
+    filteredAuctions = originalAuctions.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED");
   }
 
-  const pageItems = filteredData.slice((pageParam - 1) * pageSize, pageParam * pageSize);
+  // Use the backend's pagination info if available, otherwise determine from ORIGINAL response length
+  // (not filtered length) to ensure we keep fetching even if current page has few matching items
+  const hasMoreFromBackend = response.totalPages ? pageParam < response.totalPages : originalAuctions.length >= pageSize;
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        items: pageItems,
-        nextPage: pageItems.length < pageSize ? null : pageParam + 1,
-      });
-    }, 500);
-  });
+  return {
+    items: filteredAuctions,
+    nextPage: hasMoreFromBackend ? pageParam + 1 : null,
+    totalPages: response.totalPages || null,
+  };
 };
 
 

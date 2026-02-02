@@ -68,7 +68,7 @@ export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{prize.floorPrice || "0"}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{(prize.floorPrice ? parseFloat(prize.floorPrice)/1e9 : 0).toFixed(6)} SOL</p>
                   </div>
                 </td>
       

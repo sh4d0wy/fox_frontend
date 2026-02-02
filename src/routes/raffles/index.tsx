@@ -111,6 +111,12 @@ function RafflesPage() {
       setSearchQuery("");
     }, []);
 
+    useEffect(() => {
+      if (!isLoading && raffles.length === 0 && hasNextPage) {
+        fetchNextPage();
+      }
+    }, [isLoading, raffles.length, hasNextPage, fetchNextPage]);
+
     useEffect(()=>{
       if(raffles){
         raffles.map((r)=>{
@@ -262,6 +268,7 @@ function RafflesPage() {
               dataLength={raffles?.length || 0}
               next={fetchNextPage}
               hasMore={!!hasNextPage}
+              scrollThreshold={0.8}
               loader={
                 <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4 mt-5">
                   {Array(4)

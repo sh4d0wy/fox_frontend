@@ -4,6 +4,7 @@ import type { GumballBackendDataType } from "../types/backend/gumballTypes";
 interface GumballsPage {
   items: GumballBackendDataType[];
   nextPage: number | null;
+  totalPages: number | null;
 }
 
 export const fetchGumballs = async ({
@@ -13,28 +14,31 @@ export const fetchGumballs = async ({
   pageParam?: number;
   filter?: string;
 }): Promise<GumballsPage> => {
-  const pageSize = 8;
+  const pageSize = 12;
   const response = await getGumballs(pageParam, pageSize);
-  let filteredData: GumballBackendDataType[] = response.gumballs.filter((r:GumballBackendDataType) => r.prizes.length >0 ) || [];
-  
+  const originalGumballs: GumballBackendDataType[] = (response.gumballs || []).filter(
+    (r: GumballBackendDataType) => r.prizes.length > 0
+  );
+  let filteredGumballs = originalGumballs;
+
+  // Filter based on status
   if (filter === "All Gumballs") {
-    filteredData = filteredData.filter((r) => r.status === "ACTIVE");
+    filteredGumballs = originalGumballs.filter((r) => r.status === "ACTIVE");
   } else if (filter === "Past Gumballs") {
-    filteredData = filteredData.filter((r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED");
-  }else{
-    filteredData = []
+    filteredGumballs = originalGumballs.filter(
+      (r) => r.status === "COMPLETED_SUCCESSFULLY" || r.status === "COMPLETED_FAILED"
+    );
   }
 
-  const pageItems = filteredData.slice((pageParam - 1) * pageSize, pageParam * pageSize);
+  // Use the backend's pagination info if available, otherwise determine from ORIGINAL response length
+  // (not filtered length) to ensure we keep fetching even if current page has few matching items
+  const hasMoreFromBackend = response.totalPages ? pageParam < response.totalPages : originalGumballs.length >= pageSize;
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        items: pageItems,
-        nextPage: pageItems.length < pageSize ? null : pageParam + 1,
-      });
-    }, 500); 
-  });
+  return {
+    items: filteredGumballs,
+    nextPage: hasMoreFromBackend ? pageParam + 1 : null,
+    totalPages: response.totalPages || null,
+  };
 };
 
 export const fetchGumballById = async(id:string)=>{

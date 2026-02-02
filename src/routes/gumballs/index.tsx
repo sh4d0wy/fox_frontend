@@ -98,6 +98,12 @@ function Gumballs() {
     setSearchQuery("");
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && gumballs.length === 0 && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [isLoading, gumballs.length, hasNextPage, fetchNextPage]);
+
   return (
     <main className="main font-inter">
       {/* <section className="w-full md:pt-0 pt-5">
@@ -231,6 +237,7 @@ function Gumballs() {
               dataLength={gumballs.length}
               next={fetchNextPage}
               hasMore={!!hasNextPage}
+              scrollThreshold={0.8}
               loader={
                 <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4 mt-5">
                   {Array(4)
