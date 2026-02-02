@@ -689,6 +689,7 @@ function CreateProfile() {
                                 <GumballsCard
                                   key={card.id}
                                   gumball={card}
+                                  type="created"
                                 />
                               ))}
                       </div>

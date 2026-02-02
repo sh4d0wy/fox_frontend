@@ -14,11 +14,13 @@ export interface GumballsCardProps {
   gumball: GumballBackendDataType;
   isFavorite?: boolean;
   className?: string;
+  type?: "gumball" | "created";
 }
 
 export const GumballsCard: React.FC<GumballsCardProps> = ({
   gumball,
   isFavorite = false,
+  type = "gumball",
   className,
 }) => {
   const { publicKey } = useWallet();
@@ -176,13 +178,21 @@ export const GumballsCard: React.FC<GumballsCardProps> = ({
               </button>
 
                 <div className="w-full">
-                 {/* <p className="bg-black/60 rounded-lg py-1 mb-3.5 px-4 w-full text-white text-center text-xs font-semibold font-inter">EV is 15% higher than the average EV.</p> */}
-                 <Link 
-                  to="/gumballs/$id"
-                  params={{ id: id.toString() }}
-                    className="w-full transition duration-300 hover:opacity-90 flex items-center justify-center py-1.5 px-6 h-11 text-white font-semibold font-inter bg-primary-color rounded-full" >
-                    View Gumball
-                  </Link>
+                  {type === "gumball" ? (
+                    <Link 
+                      to="/gumballs/$id"
+                      params={{ id: id.toString() }}
+                      className="w-full transition duration-300 hover:opacity-90 flex items-center justify-center py-1.5 px-6 h-11 text-white font-semibold font-inter bg-primary-color rounded-full" >
+                      View Gumball
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/gumballs/create_gumballs/$id"
+                      params={{ id: id.toString() }}
+                      className="w-full transition duration-300 hover:opacity-90 flex items-center justify-center py-1.5 px-6 h-11 text-white font-semibold font-inter bg-primary-color rounded-full" >
+                      Gumball Studio
+                    </Link>
+                  )}
                 </div>
 
             </div>

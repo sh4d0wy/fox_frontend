@@ -502,7 +502,7 @@ function GumballsDetails() {
                                 </div> */}
 
                                 <div className="w-full flex mt-10">
-                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || availableGumballs.length === 0} />
+                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || availableGumballs.length === 0 || !publicKey} />
                                 </div>
 
                                 {/* <p className='md:text-base text-sm text-black-1000 font-medium font-inter pt-[18px] pb-10'>Your balance: 0 SOL</p> */}

@@ -139,20 +139,23 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
 
   const maxPrizes = gumball?.maxPrizes || 0;
 
-  // Calculate total prizes being added in the modal
   const totalPrizesInModal = useMemo(() => {
     return tokenPrizes.reduce((sum, tp) => sum + (parseInt(tp.numberOfPrizes) || 0), 0);
   }, [tokenPrizes]);
 
-  // Calculate actual remaining prizes (accounting for prizes being added in modal)
   const actualRemainingPrizes = maxPrizes - totalPrizesAdded - totalPrizesInModal;
 
-  // Check if total prizes exceed the limit
   const exceedsLimit = actualRemainingPrizes < 0;
 
+  const MAX_PRIZE_ENTRIES = 2;
+
+  const hasReachedEntryLimit = tokenPrizes.length >= MAX_PRIZE_ENTRIES;
+
   const availableTokens = useMemo(() => {
-    return VerifiedTokens.filter((token) => userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address !== NATIVE_SOL_MINT)))
-  }, [tokenPrizes, existingPrizes, userVerifiedTokens]);
+    return VerifiedTokens.filter((token) => 
+      userVerifiedTokens.some((userToken) => (userToken.address === token.address && userToken.address !== NATIVE_SOL_MINT))
+    );
+  }, [userVerifiedTokens]);
 
   const handleAddToken = () => {
     if (!selectedToken) return;
@@ -314,8 +317,21 @@ export default function AddTokenModal({ isOpen, onClose, gumballId, remainingPri
                 />
               ))}
 
-              {/* Add Token Dropdown */}
-              {availableTokens.length > 0 && (
+              {/* Message when 2 prize entries limit is reached */}
+              {hasReachedEntryLimit && tokenPrizes.length > 0 && (
+                <div className="mt-4 p-4 bg-primary-color/10 border border-primary-color/30 rounded-lg">
+                  <p className="text-sm text-primary-color font-medium font-inter flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M12 8V12M12 16H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    You can add up to 2 prizes at a time. Submit these prizes to add more.
+                  </p>
+                </div>
+              )}
+
+              {/* Add Token Dropdown - Hidden when 2 prize entries are already added */}
+              {availableTokens.length > 0 && !hasReachedEntryLimit && (
                 <div className="mt-4">
                   <div className="flex items-start gap-4">
                     {/* Empty Token Placeholder */}
