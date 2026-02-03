@@ -196,6 +196,8 @@ function AuctionDetails() {
       </main>
     );
 
+  console.log("auction", auction);
+
   return (
     <main>
       <div className="w-full py-5 md:py-10 max-w-[1440px] px-5 mx-auto">

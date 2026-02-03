@@ -126,7 +126,30 @@ export const useCreateAuction = () => {
             if (decimals === undefined) {
                 throw new Error("Unsupported currency");
             }
-
+            console.log("data from frontend",{
+                id: fetchAuctionConfig(),
+                createdBy: publicKey?.toString() || "",
+                prizeMint: args.prizeMint,
+                collectionVerified: true,
+                floorPrice: args.floorPrice,
+                startImmediately: args.startImmediately,
+                startsAt: args.startImmediately ? new Date(args.startTime * 1000) : new Date((args.startTime + 60) * 1000),
+                endsAt: new Date((args.endTime + 100) * 1000),
+                timeExtension: args.timeExtension,
+                reservePrice: (args.baseBid * Math.pow(10, decimals)).toString(),
+                currency: args.isBidMintSol ? "SOL" : args.currency,
+                bidIncrementPercent: args.minIncrement,
+                payRoyalties: false,
+                royaltyPercentage: 0,
+                bidEscrow: args.bidMint || FAKE_MINT.toString(),
+                prizeName: args.prizeName,
+                prizeImage: args.prizeImage,
+                collectionName: args.collectionName,
+                hasAnyBid: false,
+                highestBidAmount: 0,
+                highestBidderWallet: "",
+                status: args.startImmediately ? "ACTIVE" : "INITIALIZED",
+            })
             const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getCreateAuctionTx(args.startTime, args.endTime + 100, args.startImmediately, args.isBidMintSol, args.baseBid * Math.pow(10, decimals), args.minIncrement, args.timeExtension, args.prizeMint, args.bidMint || FAKE_MINT.toString());
             console.log("Received transaction from backend", base64Transaction);
             const decodedTx = Buffer.from(base64Transaction, "base64");
@@ -158,6 +181,7 @@ export const useCreateAuction = () => {
                 console.log("Failed to create auction", confirmation.value.err);
                 throw new Error("Failed to create auction");
             }
+           
             const response = await createAuctionOverBackend({
                 id: fetchAuctionConfig(),
                 createdBy: publicKey?.toString() || "",
@@ -165,7 +189,7 @@ export const useCreateAuction = () => {
                 collectionVerified: true,
                 floorPrice: args.floorPrice,
                 startImmediately: args.startImmediately,
-                startsAt: args.startImmediately ? new Date() : new Date((args.startTime + 60) * 1000),
+                startsAt: args.startImmediately ? new Date(args.startTime * 1000) : new Date((args.startTime + 60) * 1000),
                 endsAt: new Date((args.endTime + 100) * 1000),
                 timeExtension: args.timeExtension,
                 reservePrice: (args.baseBid * Math.pow(10, decimals)).toString(),
@@ -180,7 +204,7 @@ export const useCreateAuction = () => {
                 hasAnyBid: false,
                 highestBidAmount: 0,
                 highestBidderWallet: "",
-                status: "INITIALIZED",
+                status: args.startImmediately ? "ACTIVE" : "INITIALIZED",
                 txSignature: signature,
             });
             if (response.error) {
