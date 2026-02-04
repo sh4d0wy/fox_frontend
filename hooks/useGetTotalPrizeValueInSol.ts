@@ -151,7 +151,7 @@ export const useGetTotalPrizeValueInSol = (prizes: Prize[] | undefined) => {
     totalValueInSol,
     isLoading,
     isError,
-    formattedValue: isLoading ? 'Loading...' : `${totalValueInSol.toFixed(6)} SOL`,
+    formattedValue: isLoading ? 'Loading...' : `${parseFloat(totalValueInSol.toFixed(6))} SOL`,
   };
 };
 

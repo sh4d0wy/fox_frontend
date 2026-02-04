@@ -13,16 +13,16 @@ interface SoldTableProps {
 
 export const SoldTable = ({ data, isLoading }: SoldTableProps) => {
   return (
-    <div className="border relative border-gray-1100 md:pb-32 pb-20 rounded-[20px] w-full overflow-hidden">
+    <div className="border relative border-gray-1100 min-h-[400px] rounded-[20px] w-full overflow-hidden">
       {isLoading && (
-        <div className="absolute w-full h-full flex items-center justify-center md:py-20 py-[120px] bg-white/50">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
           <p className="md:text-base text-sm font-medium text-center font-inter text-black-1000">
             Loading...
           </p>
         </div>
       )}
       {!isLoading && data.length === 0 && (
-        <div className="absolute w-full h-full flex items-center justify-center md:py-20 py-[120px]">
+        <div className="absolute inset-0 flex items-center justify-center">
           <p className="md:text-base text-sm font-medium text-center font-inter text-black-1000">
             No data found
           </p>
@@ -59,39 +59,41 @@ export const SoldTable = ({ data, isLoading }: SoldTableProps) => {
             const roiValue = typeof row.roi === 'string' 
               ? parseFloat(row.roi.replace('%', '')) 
               : row.roi;
+            
+            const isLastRow = idx === data.length - 1;
 
             return (
-              <tr key={idx} className="w-full">
+              <tr key={idx} className={`w-full ${!isLastRow ? 'border-b border-gray-1100' : ''}`}>
                 <td>
-                  <div className="px-6 flex items-center gap-2.5 py-6 border-b border-gray-1100">
+                  <div className="px-6 flex items-center gap-2.5 py-6">
                     <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
                       {datePart} {timePart && <><span className="text-gray-1200 mx-1">|</span> {timePart}</>}
                     </p>
                   </div>
                 </td>
                 <td>
-                  <div className="px-5 flex items-center gap-2.5 py-6 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.spent.toFixed(2)} SOL</p>
+                  <div className="px-5 flex items-center gap-2.5 py-6">
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{parseFloat(row.spent.toFixed(6))} USDT</p>
                   </div>
                 </td>
                 <td>
-                  <div className="px-5 flex items-center gap-2.5 py-6 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.sold.toFixed(2)} SOL</p>
+                  <div className="px-5 flex items-center gap-2.5 py-6">
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{parseFloat(row.sold.toFixed(6))} USDT</p>
                   </div>
                 </td>
                 <td>
-                  <div className="px-5 flex items-center gap-2.5 py-6 border-b border-gray-1100">
+                  <div className="px-5 flex items-center gap-2.5 py-6">
                     <p
                       className={`md:text-base text-sm font-medium font-inter ${
                         row.pl >= 0 ? "text-green-1000" : "text-red-1000"
                       }`}
                     >
-                      {row.pl.toFixed(2)} SOL
+                      {parseFloat(row.pl.toFixed(6))} USDT
                     </p>
                   </div>
                 </td>
                 <td>
-                  <div className="px-5 flex items-center gap-2.5 py-6 border-b border-gray-1100">
+                  <div className="px-5 flex items-center gap-2.5 py-6">
                     <p
                       className={`md:text-base text-sm font-medium font-inter ${
                         roiValue > 0 ? "text-green-1000" : "text-black-1000"

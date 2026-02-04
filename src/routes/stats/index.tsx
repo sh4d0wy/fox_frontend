@@ -74,8 +74,8 @@ const getRankAvatar = (rank: number): string | undefined => {
 };
 
 const formatVolume = (lamports: number): string => {
-  const sol = lamports / 1_000_000_000;
-  return sol.toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+  return lamports.toString();
 };
 
 const shortenAddress = (address: string): string => {
@@ -124,7 +124,28 @@ const columns: Column<TopRaffle>[] = [
   { key: "user", header: "User" },
   { key: "raffles", header: "Raffles" },
   { key: "tickets", header: "Tickets Sold" },
-  { key: "volume", header: "Volume (SOL)" },
+  { key: "volume", header: "Volume (USDT)" },
+];
+
+const buyercolumns: Column<TopRaffle>[] = [
+  {
+    key: "rank",
+    header: "Rank",
+    render: (row) =>
+      row.avatar ? (
+        <img
+          src={row.avatar}
+          className="w-9 h-9 rounded-full object-cover"
+          alt="rank"
+        />
+      ) : (
+        <p className="text-base text-black-1000 font-medium font-inter">{row.rank}</p>
+      ),
+  },
+  { key: "user", header: "User" },
+  { key: "raffles", header: "Raffles" },
+  { key: "tickets", header: "Tickets Bought" },
+  { key: "volume", header: "Volume (USDT)" },
 ];
 
 
@@ -141,6 +162,9 @@ function Leaderboard() {
 
   const rafflersData = mapRafflersToTableData(rafflerLeaderboard.data);
   const buyersData = mapBuyersToTableData(raffleBuyerLeaderboard.data);
+
+  console.log("rafflersData", rafflersData);
+  console.log("buyersData", buyersData);
 
   return (
     <main className='w-full'>
@@ -204,7 +228,7 @@ function Leaderboard() {
               {activeTab === "Top Buyers" && (
                 buyersData.length > 0 ? (
                   <TopRafflersTable   
-                    columns={columns}
+                    columns={buyercolumns}
                     data={buyersData}
                     rowKey={(row) => row.user}
                   />

@@ -37,6 +37,7 @@ export default function USDVolumeChart({ data, timeframe, isLoading }: USDVolume
     if (value === 0) return ""
     return `${value}`
   }
+  console.log("data", data);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -57,7 +58,7 @@ export default function USDVolumeChart({ data, timeframe, isLoading }: USDVolume
     <div className="bg-white border border-gray-1100 font-inter font-medium text-black-1000 overflow-hidden rounded-[20px] w-full">
       <div className="flex lg:flex-nowrap flex-wrap lg:gap-0 gap-5 bg-gray-1300 border-b border-gray-1100 py-6 px-5 items-center justify-between">
         <div>
-          <h2 className="text-xl font-inter text-black-1000 font-semibold"> Volume</h2>
+          <h2 className="text-xl font-inter text-black-1000 font-semibold"> Volume in USD ({timeframe})</h2>
           {/* <p className="text-sm text-gray-500 mt-1">
             Total: ${totalVolume.toFixed(2)} ({timeframe})
           </p> */}

@@ -7,7 +7,8 @@ export type CurrencyFilter = "Raffle" | "Gumball";
 interface FiltersState {
   timeframe: TimeframeFilter;
   setTimeframe: (value: TimeframeFilter) => void;
-
+  year: number;
+  setYear: (value: number) => void;
   services: { name: ServiceFilter; active: boolean }[];
   toggleService: (name: ServiceFilter, active: boolean) => void;
 
@@ -18,6 +19,9 @@ interface FiltersState {
 export const useFiltersStore = create<FiltersState>((set) => ({
   timeframe: "daily",
   setTimeframe: (value) => set({ timeframe: value }),
+
+  year: new Date().getFullYear(),
+  setYear: (value) => set({ year: value }),
 
   services: [
     { name: "Raffle", active: true },

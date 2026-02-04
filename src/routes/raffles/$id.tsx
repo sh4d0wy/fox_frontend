@@ -628,12 +628,12 @@ function RouteComponent() {
                             className="w-full h-[54px] disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={isBuyTicketDisabled}
                             text={isBuyTicketDisabled ? maxTicketsBought ? "Max Tickets Bought" : "Sold Out" : `Buy for ${
-                              ((raffle?.ticketPrice /
+                              parseFloat(((raffle?.ticketPrice /
                               10 **
                                 (VerifiedTokens.find(
                                   (token) =>
                                     token.address === raffle?.ticketTokenAddress
-                                )?.decimals || 0)) * ticketQuantity).toFixed(6)
+                                )?.decimals || 0)) * ticketQuantity).toFixed(6))
                             } ${
                               VerifiedTokens.find(
                                 (token) =>

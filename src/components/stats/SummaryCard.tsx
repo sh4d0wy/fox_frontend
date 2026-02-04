@@ -9,6 +9,7 @@ interface SummaryCardProps {
 }
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({ title, items }) => {
+
   return (
     <div className="w-full">
       <h3 className="text-[28px] font-semibold text-black-1000 font-inter pb-5">{title}</h3>

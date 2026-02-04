@@ -52,7 +52,7 @@ export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
                     <div className="flex flex-col">
                       {prize.isNft ? (
                       <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
-                        {prize.name || prize.symbol || "Prize"}
+                        {prize.name!.slice(0, 10) + "..." || prize.symbol || "Prize"}
                       </p>) : (
                         <p className="text-md text-black-1000 font-medium font-inter">
                           {formatPrice(prize.prizeAmount, prize.mint)}
@@ -68,7 +68,7 @@ export const GumballPrizesTable = ({ prizes }: GumballPrizesTableProps) => {
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{(prize.floorPrice ? (parseFloat(prize.floorPrice)/1e9).toFixed(6) +"SOL": "N/A")} </p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{(prize.floorPrice ? parseFloat((parseFloat(prize.floorPrice)/1e9).toFixed(6)) +" SOL": "N/A")} </p>
                   </div>
                 </td>
       

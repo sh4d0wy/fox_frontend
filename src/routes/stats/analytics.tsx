@@ -12,8 +12,8 @@ export const Route = createFileRoute('/stats/analytics')({
 })
 
 function RouteComponent() {
-  const { volume, raffles, purchases, averageTickets, uniqueBuyers, raffleType } = useAnalyticsStats({ timeframe: 'day' })
-  console.log(purchases.data)
+  const { volume, raffles, purchases, averageTickets, uniqueBuyers, raffleType } = useAnalyticsStats({ timeframe: 'week' })
+  console.log(raffleType.data)
   return (
     <main className='w-full'>
       <section className='w-full max-w-[1280px] mx-auto pt-[60px] pb-[100px]'>

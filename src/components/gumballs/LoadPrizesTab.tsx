@@ -63,7 +63,7 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
                <div className="">
                 <h3 className='text-base text-black-1000 font-medium font-inter mb-[22px]'>Total Prize Value</h3>
                 <h4 className='text-2xl font-bold font-inter text-black-1000'>
-                  {isPriceLoading ? 'Loading...' : `${totalValueInSol.toFixed(6)} SOL`}
+                  {isPriceLoading ? 'Loading...' : `${parseFloat(totalValueInSol.toFixed(6))} SOL`}
                 </h4>
             </div>
 
