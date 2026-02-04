@@ -10,6 +10,8 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
     const numPrice = parseFloat(price)/ 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === mint)?.decimals || 0);
     return `${numPrice}`;
   }
+
+  console.log("filterSpins", filterSpins);
   return (
     <div className="relative">
       <p className="text-base font-medium absolute z-10 -top-22 bg-primary-color w-fit px-4 py-3 rounded-full font-inter text-black-1000">
