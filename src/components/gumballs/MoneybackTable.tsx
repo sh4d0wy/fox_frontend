@@ -53,7 +53,7 @@ export const MoneybackTable = ({ spins }: { spins: SpinDataBackend[] }) => {
                 {spin.prize ? (
                   spin.prize.isNft ? (
                     <p className="text-base text-black-1000 font-medium font-inter">
-                      {spin.prize.name}
+                      {spin.prize.name && spin.prize.name.length > 10 ? spin.prize.name.slice(0,10)+"..." : spin.prize.name}
                     </p>
                   ) : (
                     <p className="text-base text-black-1000 font-medium font-inter">

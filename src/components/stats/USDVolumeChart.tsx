@@ -35,8 +35,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function USDVolumeChart({ data, timeframe, isLoading }: USDVolumeChartProps) {
   const formatYAxis = (value: number) => {
     if (value === 0) return ""
-    if (value >= 1_000_000) return `${value / 1_000_000}M`
-    if (value >= 1_000) return `${value / 1_000}k`
     return `${value}`
   }
 

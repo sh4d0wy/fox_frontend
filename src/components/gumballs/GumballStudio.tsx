@@ -37,9 +37,6 @@ const {data:tokenPrice} = useGetTokenPrice(gumball?.ticketMint);
 const totalProceedsInSol = useMemo(()=>{
   const numTotalProceeds = parseFloat(gumball?.totalProceeds || "0") / 10**(VerifiedTokens.find((token: typeof VerifiedTokens[0]) => token.address === gumball?.ticketMint)?.decimals || 0);
   const totalProcesds = numTotalProceeds * parseFloat(tokenPrice?.price.toString() || "1");
-  console.log(totalProcesds);
-  console.log(solPrice?.price);
-  console.log(totalProcesds / parseFloat(solPrice?.price.toString() || "0"));
   return totalProcesds / parseFloat(solPrice?.price.toString() || "0");
 }, [gumball?.totalProceeds, solPrice?.price]);
 
@@ -48,8 +45,8 @@ const availablePrizeIndexes = useMemo(() => {
   
   const spinCountByPrizeIndex: Record<number, number> = {};
   gumball.spins?.forEach((spin) => {
-    if (spin.transaction.metadata?.prizeIndex === undefined || spin.transaction.metadata?.prizeIndex === null) return;
-    const prizeIndex = spin.transaction.metadata.prizeIndex;
+    if (spin.prize?.prizeIndex === undefined || spin.prize?.prizeIndex === null) return;
+    const prizeIndex = spin.prize?.prizeIndex;
     spinCountByPrizeIndex[prizeIndex] = (spinCountByPrizeIndex[prizeIndex] || 0) + 1;
   });
   
@@ -63,6 +60,15 @@ const availablePrizeIndexes = useMemo(() => {
 }, [gumball?.prizes, gumball?.spins]);
 
 const { creatorClaimPrizeBackMutation } = useCreatorClaimPrizeBack();
+
+const hasSoldTicket = useMemo(()=>{
+  return gumball?.spins?.length > 0;
+}, [gumball?.spins]);
+
+console.log("hasSoldTicket", hasSoldTicket);
+console.log("availabelPrizeIndexes", availablePrizeIndexes);
+console.log("gumball?.status", gumball?.status);
+console.log("creatorConditions",((gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED") && availablePrizeIndexes.length > 0))
   
  return (
     <div className="w-full md:pt-[48px]">
@@ -71,7 +77,7 @@ const { creatorClaimPrizeBackMutation } = useCreatorClaimPrizeBack();
               gumballId: parseInt(gumballId),
               prizeIndexes: availablePrizeIndexes,
             })} className="inline-flex cursor-pointer items-center gap-2.5 md:text-base text-sm font-medium text-red-1000 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cancelGumball.isPending || gumball?.status === "CANCELLED" || gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED"}
+            disabled={cancelGumball.isPending || gumball?.status === "CANCELLED" || gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED" || hasSoldTicket}
             
             >
               {cancelGumball.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <img src="/icons/delete-icon-1.svg" className="w-6 h-6" alt="no-img" />}

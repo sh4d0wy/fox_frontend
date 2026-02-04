@@ -602,11 +602,8 @@ function CreateProfile() {
                       <NoAuctions />
                     ) : (
                       <div
-                        className={`grid ${
-                          activeRafflerTab === "purchased"
-                            ? "grid-cols-1"
-                            : "lg:grid-cols-3 md:grid-cols-2 grid-cols-1"
-                        } lg:gap-y-10 lg:gap-x-[26px] gap-4`}
+                        className={`grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1
+                        lg:gap-y-10 lg:gap-x-[26px] gap-4`}
                       >
                         {activeRafflerTab === "purchased"
                           ? sortedAuctionPurchasedCards.map((r: any) => (

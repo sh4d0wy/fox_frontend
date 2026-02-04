@@ -50,19 +50,21 @@ export const SoldGumballTable = ({gumballId}: {gumballId: string}) => {
                   <div className="px-6 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
                     <img src={row.prize?.image || "/images/prize-image.png"} className="w-[60px] h-[60px] rounded-full" alt="no-img" />
                     <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
-                      {row.prize?.name || "Prize"}
+                      {row.prize?.name && row.prize?.name.length > 15 ? row.prize?.name.slice(0,15)+"..." : row.prize?.name || "Prize"}
                     </p>
                   </div>
                 </td>
                 <td>
                   {/* TODO: handle NFTs and fix this logic*/}
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{parseFloat(row.prize?.prizeAmount || "0")/10** (row.prize?.decimals || 0)}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{
+                    row.prize?.isNft ? 1: 
+                    parseFloat(row.prize?.prizeAmount || "0")/10** (row.prize?.decimals || 0)}</p>
                   </div>
                 </td>
                 <td>
                   <div className="px-5 flex items-center gap-2.5 py-6 h-24 border-b border-gray-1100">
-                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.prize?.isNft?"N/A":0}</p>
+                    <p className="md:text-base text-sm text-black-1000 font-medium font-inter">{row.prize?.isNft?parseFloat(row.prize?.floorPrice || "0")/1e9:"NA"}</p>
                   </div>
                 </td>
       

@@ -58,12 +58,12 @@ export const useCreateGumball = () => {
             if (!args.isTicketSol && args.ticketMint === undefined) {
                 throw new Error("Ticket mint is required");
             }
-            if (args.endTime - args.startTime > (24 * 60 * 60 * 7)) {
-                throw new Error("Gumball duration must be less than 7 days");
-            }
-            if (args.endTime - args.startTime < (24 * 60 * 60)) {
-                throw new Error("Gumball duration must be equal or greater than 2 days")
-            }
+            // if (args.endTime - args.startTime > (24 * 60 * 60 * 7)) {
+            //     throw new Error("Gumball duration must be less than 7 days");
+            // }
+            // if (args.endTime - args.startTime < (24 * 60 * 60)) {
+            //     throw new Error("Gumball duration must be equal or greater than 2 days")
+            // }
             if (args.totalTickets < 3) {
                 throw new Error("Prize Count must be greater than 2");
             }

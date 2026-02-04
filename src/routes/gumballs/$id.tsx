@@ -165,7 +165,7 @@ function GumballsDetails() {
       }))
       .filter((prize) => prize.remainingQuantity > 0);
   }, [gumball?.prizes, gumball?.spins]);
-
+  console.log("spins", gumball?.spins);
   const handleSpinClick = async () => {
     try {
       await spinGumballFunction.mutateAsync({ gumballId: parseInt(id || "") });
@@ -501,7 +501,7 @@ function GumballsDetails() {
                                 </div> */}
 
                                 <div className="w-full flex mt-10">
-                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || availableGumballs.length === 0 || !publicKey} />
+                                <PrimaryButton onclick={handleSpinClick} text='Press To Spin' className='w-full h-12' disabled={spinGumballFunction.isPending || isSpinning || availableGumballs.length === 0 || !publicKey || gumball.ticketsSold===gumball.totalTickets} />
                                 </div>
 
                                 {/* <p className='md:text-base text-sm text-black-1000 font-medium font-inter pt-[18px] pb-10'>Your balance: 0 SOL</p> */}

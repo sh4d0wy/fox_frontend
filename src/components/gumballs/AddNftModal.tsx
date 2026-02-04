@@ -298,7 +298,7 @@ export default function AddNftModal({ isOpen, onClose, gumballId }: AddNftModalP
                         </div>
 
                         <div className="font-semibold text-black-1000 font-inter">
-                          {nft.floorPrice ? nft.floorPrice.toFixed(2) : 0} SOL
+                          {nft.floorPrice ? (nft.floorPrice/1e9).toFixed(3) : 0} SOL
                         </div>
 
                         {isSelected && (
@@ -326,15 +326,15 @@ export default function AddNftModal({ isOpen, onClose, gumballId }: AddNftModalP
 
               <button
                 onClick={handleAddPrizes}
-                disabled={selectedNfts.size === 0}
+                disabled={selectedNfts.size === 0 || addPrizes.isPending}
                 className={clsx(
                   "w-[50%] h-14 rounded-full font-semibold font-inter text-lg transition duration-300",
-                  selectedNfts.size > 0
+                  selectedNfts.size > 0 && !addPrizes.isPending
                     ? "bg-primary-color text-black-1000 hover:shadow-lg cursor-pointer"
                     : "bg-primary-color text-black-1000 cursor-not-allowed opacity-50"
                 )}
               >
-                Add prizes
+                {addPrizes.isPending ? "Adding prizes..." : "Add prizes"}
               </button>
             </div>
           </DialogPanel>

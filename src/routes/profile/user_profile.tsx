@@ -244,7 +244,7 @@ function RouteComponent() {
                       <div className={`grid ${activeRafflerTab === `purchased` ? `grid-cols-1` : `lg:grid-cols-3 md:grid-cols-2 grid-cols-1`} lg:gap-y-10 lg:gap-x-[26px] gap-4`}>
                         {(activeRafflerTab === "purchased" ? purchasedItems : createdItems).map(card => (
                           <div key={card.id} className="flex items-center justify-center">
-                            {activeRafflerTab === "purchased" ? <RafflersCardPurchased {...card} /> : <RafflersCard {...card} />}
+                            {activeRafflerTab === "purchased" ? <AuctionsCard {...card} /> : <RafflersCard {...card} />}
                           </div>
                         ))}
                       </div>

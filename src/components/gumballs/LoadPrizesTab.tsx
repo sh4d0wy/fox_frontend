@@ -26,14 +26,6 @@ export const LoadPrizesTab = ({gumballId}: {gumballId: string}) => {
   const maxROI = useMemo(() => {
     if (!gumball) return '0';
     const roi = (parseFloat(maxProceeds) - totalValueInSol) / parseFloat(maxProceeds) * 100;
-    console.log("maxProceeds", maxProceeds);
-    console.log("totalValueInSol", totalValueInSol);
-    console.log("roi", roi);
-
-    console.log("isNaN(roi)", isNaN(roi));
-    console.log("roi === Infinity", roi === Infinity);
-    console.log("parseFloat(maxProceeds)-totalValueInSol", parseFloat(maxProceeds)-totalValueInSol);
-    console.log("parseFloat(maxProceeds)-totalValueInSol/parseFloat(maxProceeds)", (parseFloat(maxProceeds)-totalValueInSol)/parseFloat(maxProceeds));
     if (isNaN(roi) || roi === Infinity) return '0';
     return Math.max(roi, 0).toFixed(2); 
   }, [maxProceeds, totalValueInSol]);
