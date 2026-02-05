@@ -3,8 +3,9 @@ import Dropdown from '../../components/ui/Dropdown';
 import { TopRafflersTable } from '../../components/leaderboard/TopRafflersTable';
 import { HotCollectionsTable } from '../../components/leaderboard/HotCollectionsTable';
 import { NoAuctions } from '../../components/auctions/NoAuctions';
-import { useLeaderboardStore, type LeaderboardTab } from "../../../store/useLeaderboardStore";
+import { useLeaderboardStore, type LeaderboardTab, type SortFilter, type TimeFilter } from "../../../store/useLeaderboardStore";
 import { useLeaderboard } from '../../../hooks/useLeaderboard';
+import { Loader } from 'lucide-react';
 
 export const Route = createFileRoute('/stats/')({
   component: Leaderboard,
@@ -12,15 +13,17 @@ export const Route = createFileRoute('/stats/')({
 
 
 const options = [
-  { label: "Raffles created", value: "Raffles created" },
-  { label: "Tickets Sold", value: "Tickets Sold" },
-  { label: "Volume", value: "Volume" },
+  { label: "Raffles created", value: "raffles" },
+  { label: "Tickets Sold", value: "tickets" },
+  { label: "Volume", value: "volume" },
 ];
 
 const options1 = [
-  { label: "All Time", value: "All Time" },
-  { label: "2W", value: "2W" },
-  { label: "1D", value: "1D" },
+  { label: "All Time", value: "all" },
+  { label: "7D", value: "7d" },
+  { label: "30D", value: "30d" },
+  { label: "90D", value: "90d" },
+  { label: "1Y", value: "1y" },
 ];
 
 interface Column<T> {
@@ -155,16 +158,21 @@ function Leaderboard() {
   const {
     activeTab,
     setActiveTab,
+    timeFilter,
+    sortFilter,
+    setTimeFilter,
+    setSortFilter,
   } = useLeaderboardStore();
 
   const tabNames: LeaderboardTab[] = ["Top Rafflers", "Top Buyers"];
-  const { rafflerLeaderboard, raffleBuyerLeaderboard } = useLeaderboard();
+  const { rafflerLeaderboard, raffleBuyerLeaderboard } = useLeaderboard({timeframe:timeFilter.value, sortFilter:sortFilter.value});
 
   const rafflersData = mapRafflersToTableData(rafflerLeaderboard.data);
   const buyersData = mapBuyersToTableData(raffleBuyerLeaderboard.data);
 
   console.log("rafflersData", rafflersData);
   console.log("buyersData", buyersData);
+ 
 
   return (
     <main className='w-full'>
@@ -195,25 +203,25 @@ function Leaderboard() {
                     <Dropdown
                      className="md:w-auto w-full"
                          options={options1}
-                         value={{ label: "All Time", value: "All Time" }}
+                         value={timeFilter}
                         onChange={(value) => {
-                        console.log("Selected sort option:", value);
+                        setTimeFilter(value as TimeFilter);
                         }}
                     />
 
                       <Dropdown
                        className="md:w-auto w-full md:text-base text-sm"
                          options={options}
-                         value={{ label: "Raffles created", value: "Raffles created" }}
+                         value={sortFilter}
                         onChange={(value) => {
-                        console.log("Selected sort option:", value);
+                        setSortFilter(value as SortFilter);
                         }}
                     />
 
                   </div>                   
                 </div>
 
-                {activeTab === "Top Rafflers" && (
+                {activeTab === "Top Rafflers" && !rafflerLeaderboard.isLoading && (
                 rafflersData.length > 0 ? (
                   <TopRafflersTable
                     columns={columns}
@@ -225,7 +233,7 @@ function Leaderboard() {
                 )
               )}
 
-              {activeTab === "Top Buyers" && (
+              {activeTab === "Top Buyers" && !raffleBuyerLeaderboard.isLoading && (
                 buyersData.length > 0 ? (
                   <TopRafflersTable   
                     columns={buyercolumns}
@@ -236,7 +244,11 @@ function Leaderboard() {
                   <NoAuctions />
                 )
               )}
-
+              {rafflerLeaderboard.isLoading || raffleBuyerLeaderboard.isLoading && (
+                <div className="w-full flex items-center justify-center">
+                  <Loader className="w-10 h-10 text-primary-color animate-spin" />
+                </div>
+              )}
 
                 </div>  
 

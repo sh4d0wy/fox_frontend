@@ -9,6 +9,7 @@ import { useFiltersStore } from '../../../store/profit_loss-store';
 import { SummaryCard } from '@/components/stats/SummaryCard';
 import { usePnlStats } from '../../../hooks/usePnlStats';
 import { useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 export const Route = createFileRoute('/stats/profit_loss')({
   component: ProfitLoss,
 })
@@ -78,6 +79,7 @@ function ProfitLoss() {
   console.log("soldTableData", soldTableData);
 
   const currentYear = new Date().getFullYear();
+  const {publicKey} = useWallet();
 
   return (
        <main className='w-full'>
@@ -135,15 +137,23 @@ function ProfitLoss() {
 
                    </div>
 
+                    {publicKey && (
+                    <>
                    <div className="w-full pt-10 grid md:grid-cols-2 gap-5 pb-10">
                     <SummaryCard title="Bought" items={boughtSummary}   />
                     <SummaryCard title="Sold" items={soldSummary}  />
                     </div>
-
                     <div className="w-full grid md:grid-cols-2 gap-5 pb-10">
                     <BoughtTable data={boughtTableData} isLoading={boughtPnl.isLoading} />
                     <SoldTable data={soldTableData} isLoading={soldPnl.isLoading} />
                     </div>
+                    </>
+                    )}
+                    {!publicKey && (
+                    <div className="w-full flex items-center justify-center">
+                    <h4 className="text-sm text-black-1000 px-5 py-19 w-full text-center rounded-lg border border-gray-1200 font-medium font-inter">Please connect your wallet to view your profit/loss</h4>
+                    </div>
+                    )}
 
                 </div>
 

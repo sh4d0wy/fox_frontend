@@ -1,8 +1,8 @@
 import { api } from "..";
 
-export const getRafflerLeaderboard = async()=>{
+export const getRafflerLeaderboard = async({timeframe, sortFilter}:{timeframe:string, sortFilter:string})=>{
     try {
-        const response = await api.get(`/stats/leaderboard/rafflers`);
+        const response = await api.get(`/stats/leaderboard/rafflers?timeFilter=${timeframe}&sortBy=${sortFilter}`);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -10,9 +10,9 @@ export const getRafflerLeaderboard = async()=>{
     }
 }
 
-export const getRaffleBuyerLeaderboard = async()=>{
+export const getRaffleBuyerLeaderboard = async({timeframe, sortFilter}:{timeframe:string, sortFilter:string})=>{
     try {
-        const response = await api.get(`/stats/leaderboard/buyers`);
+        const response = await api.get(`/stats/leaderboard/buyers?timeFilter=${timeframe}&sortBy=${sortFilter}`);
         return response.data;
     } catch (error) {
         console.error(error);
