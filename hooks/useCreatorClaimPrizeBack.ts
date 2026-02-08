@@ -29,7 +29,7 @@ export const useCreatorClaimPrizeBack = () => {
                 throw new Error("Gumball ID is required");
             }
             if (!args.prizeIndexes || args.prizeIndexes.length === 0) {
-                throw new Error("At least one prize index must be selected");
+                throw new Error("No prizes to claim");
             }
             return true;
         } catch (error: unknown) {
@@ -53,7 +53,7 @@ export const useCreatorClaimPrizeBack = () => {
             }
             const { base64Transaction, minContextSlot, blockhash, lastValidBlockHeight } = await getClaimBackMultiplePrizesTx(
                 args.gumballId,
-                args.prizeIndexes.map((prizeIndex) => { return { prizeIndex: prizeIndex } }),
+                args.prizeIndexes.length > 0 ? args.prizeIndexes.map((prizeIndex) => { return { prizeIndex: prizeIndex } }) : [],
             );
             const decodedTx = Buffer.from(base64Transaction, "base64");
             const transaction = Transaction.from(decodedTx);

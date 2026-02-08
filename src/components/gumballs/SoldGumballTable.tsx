@@ -2,17 +2,6 @@ import { VerifiedTokens } from "@/utils/verifiedTokens";
 import { useGumballById } from "hooks/useGumballsQuery";
 import type { GumballBackendDataType } from "types/backend/gumballTypes";
 
-interface BoughtRow {
-  img: string; 
-  prize: number;
-  quantity: number;
-  floorPrice: number;
-}
-
-const SoldGumball: BoughtRow[] = [
-
-];
-
 export const SoldGumballTable = ({gumballId}: {gumballId: string}) => {
   const { data: gumball } = useGumballById(gumballId) as { data: GumballBackendDataType };
   const soldGumballs = gumball?.spins;

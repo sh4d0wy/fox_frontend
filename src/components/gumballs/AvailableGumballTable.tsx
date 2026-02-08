@@ -72,7 +72,7 @@ export const AvailableGumballTable = ({gumballId}: {gumballId: string}) => {
                     <img src={row.image} className={`w-[60px] h-[60px] ${row.isNft ? 'rounded-lg' : 'rounded-full'}`} alt="no-img" />
                     <div className="flex flex-col">
                       <p className="md:text-base text-sm text-black-1000 font-medium font-inter">
-                        {row.name}
+                        {row.name && row.name.length > 15 ? row.name.slice(0,15)+"..." : row.name || "Prize"}
                       </p>
                       <span className={`text-xs font-inter ${row.isNft ? 'text-purple-600' : 'text-green-600'}`}>
                         {row.isNft ? 'NFT' : 'Token'}

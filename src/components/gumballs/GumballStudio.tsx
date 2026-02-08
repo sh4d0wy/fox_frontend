@@ -65,11 +65,12 @@ const hasSoldTicket = useMemo(()=>{
   return gumball?.spins?.length > 0;
 }, [gumball?.spins]);
 
-console.log("hasSoldTicket", hasSoldTicket);
-console.log("availabelPrizeIndexes", availablePrizeIndexes);
-console.log("gumball?.status", gumball?.status);
-console.log("creatorConditions",((gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED") && availablePrizeIndexes.length > 0))
-  
+const showClaimButton = useMemo(()=>{
+  const isCompleted = gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED";
+  const hasAvailablePrizes = availablePrizeIndexes.length > 0;
+  return isCompleted && hasAvailablePrizes;
+}, [gumball?.status, availablePrizeIndexes]);
+
  return (
     <div className="w-full md:pt-[48px]">
         <div className="w-full flex items-center lg:justify-end md:gap-[30px] gap-4 md:mb-7 mb-5">
@@ -106,7 +107,7 @@ console.log("creatorConditions",((gumball?.status === "COMPLETED_SUCCESSFULLY" |
                 <h4 className="text-base font-medium font-inter text-primary-color">{gumball?.uniqueBuyers} Unique Buyers</h4>
                 </div>
             </div>
-            {((gumball?.status === "COMPLETED_SUCCESSFULLY" || gumball?.status === "COMPLETED_FAILED") && availablePrizeIndexes.length > 0) &&  
+            {showClaimButton &&  
             <div className="py-3">
                 <button 
                 onClick={() => creatorClaimPrizeBackMutation.mutate({

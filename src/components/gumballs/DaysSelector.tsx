@@ -2,6 +2,11 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useGumballStore } from "../../../store/useGumballStore";
 import { useGumballAnchorProgram } from "hooks/useGumballAnchorProgram";
 
+const presets = [
+  { label: "2d", value: "2" },
+  { label: "5d", value: "5" },
+  { label: "7d", value: "7" },
+];
 export default function DaysSelector() {
   const [days, setDaysLocal] = useState("2");
   const [isDurationTouched, setIsDurationTouched] = useState(false);
@@ -16,12 +21,7 @@ export default function DaysSelector() {
     setEndTimePeriod,
     isCreatingGumball,
   } = useGumballStore();
-
-  const presets = [
-    { label: "2d", value: "2" },
-    { label: "5d", value: "5" },
-    { label: "7d", value: "7" },
-  ];
+    
   const maxDuration = useMemo(() => {
     return Math.floor(gumballConfig?.maximumGumballPeriod!/60/60/24) || 0;
   }, [gumballConfig]);
